@@ -14,6 +14,8 @@
 #include <fstream>
 #include "global.h"
 
+#include <QtGui>
+
 using namespace std;
 
 //My changes:
@@ -361,11 +363,10 @@ void Dostuff() {
 	string exit ="./" + name + png;
 
 	cout << "3)Save image" << endl;
-	corona::Image* Output = corona::CreateImage(imageheight,imagewidth,corona::PF_R8G8B8A8,MAP->d);
-	corona::SaveImage(exit.c_str(),corona::FF_PNG,Output);
+	QImage Output(reinterpret_cast<uchar*>(MAP->d),imagewidth,imageheight,QImage::Format_ARGB32);
+        Output.save(QString::fromStdString(exit));
 	
 	delete MAP;
-	delete Output;
 	//delete MAP;
 
 	//remove("level_in");
