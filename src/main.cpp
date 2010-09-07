@@ -363,7 +363,7 @@ void Dostuff() {
 	string exit ="./" + name + png;
 
 	cout << "3)Save image" << endl;
-	QImage Output(reinterpret_cast<uchar*>(MAP->d),imagewidth,imageheight,QImage::Format_ARGB32);
+	QImage Output(reinterpret_cast<uchar*>(MAP->d),imageheight,imagewidth,QImage::Format_ARGB32);
         Output.save(QString::fromStdString(exit));
 	
 	delete MAP;
