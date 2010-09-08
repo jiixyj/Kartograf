@@ -22,7 +22,6 @@ link_directories(
 
 include_directories(
   ${${PROJECT_NAME}_MAIN_DIR}/include
-  ${ZLIB_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)
