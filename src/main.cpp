@@ -303,7 +303,7 @@ void Dostuff() {
   std::cout << "4)Save txt" << std::endl;
 
 
-  QFile data("output.txt");
+  QFile data(txtname);
   if (data.open(QFile::WriteOnly | QFile::Truncate)) {
     QTextStream values(&data);
     values << "Map surface is: " << cc*16*16 << " square meters";
