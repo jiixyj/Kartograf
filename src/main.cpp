@@ -69,10 +69,10 @@ void Dostuff() {
   dir.setFilter(QDir::Files);
   QDirIterator it(dir, QDirIterator::Subdirectories);
   while (it.hasNext()) {
-       const render * temp = foo.LoadLevelFromFile(it.next().toAscii().data(),slide,water,cut);
-       if(temp->isgood){
+       const render temp = foo.LoadLevelFromFile(it.next().toAscii().data(),slide,water,cut);
+       if(temp.isgood){
         cc++;
-        renderblocks.push_back(*temp);
+        renderblocks.push_back(temp);
        }
       //}
 
@@ -119,13 +119,13 @@ void Dostuff() {
   imageheight = (maxx-minx)*16 + 144;
   imagewidth = (maxy-miny)*16 + 144;
   }
-  IMG * MAP;
+  QImage MAP;
   if(slide == 70)
-  MAP = new IMG(imageheight,imagewidth+128);
+  MAP = QImage(imageheight,imagewidth+128,QImage::Format_ARGB32);
   else if(slide == 69)
-  MAP = new IMG(imageheight,imagewidth);
+  MAP = QImage(imageheight,imagewidth,QImage::Format_ARGB32);
   else
-  MAP = new IMG(imageheight,imagewidth);
+  MAP = QImage(imageheight,imagewidth,QImage::Format_ARGB32);
 
   //std::cout << "\nAssembling image...";
   //if(slide == 69){
@@ -193,7 +193,7 @@ void Dostuff() {
   for(int yo = 0;yo < 160;yo++){
     int x = xo;
     int y = yo;
-  MAP->SetPixel(x+xx,y+yy-128,Blend(MAP->GetPixel(x+xx,y+yy-128),rit->Q->GetPixel(x,y),128));
+  MAP.setPixel(x+xx,y+yy-128,Blend(QColor::fromRgba(MAP.pixel(x+xx,y+yy-128)),QColor::fromRgba(rit->Q.pixel(x,y)),128).rgba());
   }}
 
 
@@ -206,11 +206,11 @@ void Dostuff() {
     //MAP.SetPixel(x+xx,y+yy,sf::Color(125,255,0,255));
 
     if(slide == 69)
-    MAP->SetPixel(x+xx,y+yy,Blend(MAP->GetPixel(x+xx,y+yy),rit->Q->GetPixel(x,y),128));
+    MAP.setPixel(x+xx,y+yy,Blend(QColor::fromRgba(MAP.pixel(x+xx,y+yy)),QColor::fromRgba(rit->Q.pixel(x,y)),128).rgba());
     else if(slide == 70)
-    MAP->SetPixel(x+xx,y+yy-128,Blend(MAP->GetPixel(x+xx,y+yy-128),rit->Q->GetPixel(x,y),128));
+    MAP.setPixel(x+xx,y+yy-128,Blend(QColor::fromRgba(MAP.pixel(x+xx,y+yy-128)),QColor::fromRgba(rit->Q.pixel(x,y)),128).rgba());
     else
-    MAP->SetPixel(x+xx,y+yy,rit->Q->GetPixel(x,y));
+    MAP.setPixel(x+xx,y+yy,rit->Q.pixel(x,y));
 
   }
   }}
@@ -292,10 +292,8 @@ void Dostuff() {
 
 
   std::cout << "3)Save image" << std::endl;
-  QImage Output(reinterpret_cast<uchar*>(MAP->d),imageheight,imagewidth,QImage::Format_ARGB32);
-        Output.save(name + ".png");
+        MAP.save(name + ".png");
 
-  delete MAP;
   //delete MAP;
 
   //remove("level_in");

@@ -11,46 +11,21 @@ extern int cave;
 extern int exclude;
 extern int slide;
 
-render::render(){
-Q = new IMG(16,16);
-}
-
-render::~render(){
-delete Q;
-//MessageBoxW(NULL,L"Done", L" ", MB_OK);
-
-}
-
-render::render(int bb){
-	if(bb == 69){
-	Q = new IMG(16,144);
-
-	}else if(bb == 70){
-	Q = new IMG(33,160);
-
-	}else{
-	Q = new IMG(16,16);
-	}
-
-x = 0;y= 0;
-
-}
-
 
 Level::~Level(){
 
 }
 
-Color Blend(Color A,Color B,int h){
-Color C;
-float Aa = (float)A.a/255;
-float Ba = (float)B.a/255;
-float Alpha = Aa + Ba*(1-Aa);
-C.r = (A.r*Aa + (B.r*((float)h/128))*Ba*(1-Aa))/Alpha;
-C.g = (A.g*Aa + (B.g*((float)h/128))*Ba*(1-Aa))/Alpha;
-C.b = (A.b*Aa + (B.b*((float)h/128))*Ba*(1-Aa))/Alpha;
-C.a = Alpha*255;
-return C;
+QColor Blend(QColor A,QColor B,int h){
+  QColor C;
+  double Aa = A.alphaF();
+  double Ba = B.alphaF();
+  double Alpha = Aa + Ba - Aa * Ba;
+  C.setRedF((A.redF()*Aa + (B.redF()*(h/128.0))*Ba*(1-Aa))/Alpha);
+  C.setGreenF((A.greenF()*Aa + (B.greenF()*(h/128.0))*Ba*(1-Aa))/Alpha);
+  C.setBlueF((A.blueF()*Aa + (B.blueF()*(h/128.0))*Ba*(1-Aa))/Alpha);
+  C.setAlphaF(Alpha);
+  return C;
 }
 
 
@@ -79,90 +54,90 @@ mapz = 128;
 
 	
 	for(int b = 0;b < 255;b++){
-		BlockC[b] = Color(0,0,0,0);
+		BlockC[b] = QColor(0,0,0,0);
 	}			
-				BlockC[0] = Color(255,255,255,0);
-				BlockC[1] = Color(120,120,120,255);
-				BlockC[2] = Color(117,176,73,255);
-				BlockC[3] = Color(134,96,67,255);
-				BlockC[4] = Color(115,115,115,255);
-				BlockC[48] = Color(115,115,115,255);
-				BlockC[5] = Color(157,128,79,255);
-				BlockC[6] = Color(120,120,120,0);
-				BlockC[7] = Color(84,84,84,255);
-				BlockC[8] = Color(38,92,255,51);
-				BlockC[9] = Color(38,92,255,51);
-				BlockC[10] = Color(255,90,0,255);
-				BlockC[11] = Color(255,90,0,255);
-				BlockC[12] = Color(218,210,158,255);
-				BlockC[13] = Color(136,126,126,255);
-				BlockC[14] = Color(143,140,125,255);
-				BlockC[15] = Color(136,130,127,255);
-				BlockC[16] = Color(115,115,115,255);
-				BlockC[17] = Color(102,81,51,255);
-				BlockC[18] = Color(60,192,41,100);
-				BlockC[20] = Color(255,255,255,64); //glass
-				//BlockC[21] = Color(222,50,50,255);
-				//BlockC[22] = Color(222,136,50,255);
-				//BlockC[23] = Color(222,222,50,255);
-				//BlockC[24] = Color(136,222,50,255);
-				//BlockC[25] = Color(50,222,50,255);
-				//BlockC[26] = Color(50,222,136,255);
-				//BlockC[27] = Color(50,222,222,255);
-				//BlockC[28] = Color(104,163,222,255);
-				//BlockC[29] = Color(120,120,222,255);
-				//BlockC[30] = Color(136,50,222,255);
-				//BlockC[31] = Color(174,74,222,255);
-				//BlockC[32] = Color(222,50,222,255);
-				//BlockC[33] = Color(222,50,136,255);
-				//BlockC[34] = Color(77,77,77,255);
-				BlockC[35] = Color(222,222,222,255); //Color(143,143,143,255); 
-				//BlockC[36] = Color(222,222,222,255);
-				BlockC[38] = Color(255,0,0,255);
-				BlockC[37] = Color(255,255,0,255);
-				BlockC[41] = Color(231,165,45,255);
-				BlockC[42] = Color(191,191,191,255);
-				BlockC[43] = Color(200,200,200,255);
-				BlockC[44] = Color(200,200,200,255);
-				BlockC[45] = Color(170,86,62,255);
-				BlockC[46] = Color(160,83,65,255);
-				BlockC[49] = Color(26,11,43,255);
-				BlockC[50] = Color(245,220,50,200);
-				BlockC[51] = Color(255,170,30,200);
-				//BlockC[52] = Color(245,220,50,255); unnecessary afaik
-				BlockC[53] = Color(157,128,79,255);
-				BlockC[54] = Color(125,91,38,255);
-				//BlockC[55] = Color(245,220,50,255); unnecessary afaik
-				BlockC[56] = Color(129,140,143,255);
-				BlockC[57] = Color(45,166,152,255);
-				BlockC[58] = Color(114,88,56,255);
-				BlockC[59] = Color(146,192,0,255);
-				BlockC[60] = Color(95,58,30,255);
-				BlockC[61] = Color(96,96,96,255);
-				BlockC[62] = Color(96,96,96,255);
-				BlockC[63] = Color(111,91,54,255);
-				BlockC[64] = Color(136,109,67,255);
-				BlockC[65] = Color(181,140,64,32);
-				BlockC[66] = Color(150,134,102,180);
-				BlockC[67] = Color(115,115,115,255);
-				BlockC[71] = Color(191,191,191,255);
-				BlockC[73] = Color(131,107,107,255);
-				BlockC[74] = Color(131,107,107,255);
-				BlockC[75] = Color(181,140,64,32);
-				BlockC[76] = Color(255,0,0,200);
-				BlockC[78] = Color(255,255,255,255);
-				BlockC[79] = Color(83,113,163,51);
-				BlockC[80] = Color(250,250,250,255);
-				BlockC[81] = Color(25,120,25,255);
-				BlockC[82] = Color(151,157,169,255);
-				BlockC[83] = Color(193,234,150,255);
-				BlockC[83] = Color(100,67,50,255);
+				BlockC[0] = QColor(255,255,255,0);
+				BlockC[1] = QColor(120,120,120,255);
+				BlockC[2] = QColor(117,176,73,255);
+				BlockC[3] = QColor(134,96,67,255);
+				BlockC[4] = QColor(115,115,115,255);
+				BlockC[48] = QColor(115,115,115,255);
+				BlockC[5] = QColor(157,128,79,255);
+				BlockC[6] = QColor(120,120,120,0);
+				BlockC[7] = QColor(84,84,84,255);
+				BlockC[8] = QColor(38,92,255,51);
+				BlockC[9] = QColor(38,92,255,51);
+				BlockC[10] = QColor(255,90,0,255);
+				BlockC[11] = QColor(255,90,0,255);
+				BlockC[12] = QColor(218,210,158,255);
+				BlockC[13] = QColor(136,126,126,255);
+				BlockC[14] = QColor(143,140,125,255);
+				BlockC[15] = QColor(136,130,127,255);
+				BlockC[16] = QColor(115,115,115,255);
+				BlockC[17] = QColor(102,81,51,255);
+				BlockC[18] = QColor(60,192,41,100);
+				BlockC[20] = QColor(255,255,255,64); //glass
+				//BlockC[21] = QColor(222,50,50,255);
+				//BlockC[22] = QColor(222,136,50,255);
+				//BlockC[23] = QColor(222,222,50,255);
+				//BlockC[24] = QColor(136,222,50,255);
+				//BlockC[25] = QColor(50,222,50,255);
+				//BlockC[26] = QColor(50,222,136,255);
+				//BlockC[27] = QColor(50,222,222,255);
+				//BlockC[28] = QColor(104,163,222,255);
+				//BlockC[29] = QColor(120,120,222,255);
+				//BlockC[30] = QColor(136,50,222,255);
+				//BlockC[31] = QColor(174,74,222,255);
+				//BlockC[32] = QColor(222,50,222,255);
+				//BlockC[33] = QColor(222,50,136,255);
+				//BlockC[34] = QColor(77,77,77,255);
+				BlockC[35] = QColor(222,222,222,255); //QColor(143,143,143,255); 
+				//BlockC[36] = QColor(222,222,222,255);
+				BlockC[38] = QColor(255,0,0,255);
+				BlockC[37] = QColor(255,255,0,255);
+				BlockC[41] = QColor(231,165,45,255);
+				BlockC[42] = QColor(191,191,191,255);
+				BlockC[43] = QColor(200,200,200,255);
+				BlockC[44] = QColor(200,200,200,255);
+				BlockC[45] = QColor(170,86,62,255);
+				BlockC[46] = QColor(160,83,65,255);
+				BlockC[49] = QColor(26,11,43,255);
+				BlockC[50] = QColor(245,220,50,200);
+				BlockC[51] = QColor(255,170,30,200);
+				//BlockC[52] = QColor(245,220,50,255); unnecessary afaik
+				BlockC[53] = QColor(157,128,79,255);
+				BlockC[54] = QColor(125,91,38,255);
+				//BlockC[55] = QColor(245,220,50,255); unnecessary afaik
+				BlockC[56] = QColor(129,140,143,255);
+				BlockC[57] = QColor(45,166,152,255);
+				BlockC[58] = QColor(114,88,56,255);
+				BlockC[59] = QColor(146,192,0,255);
+				BlockC[60] = QColor(95,58,30,255);
+				BlockC[61] = QColor(96,96,96,255);
+				BlockC[62] = QColor(96,96,96,255);
+				BlockC[63] = QColor(111,91,54,255);
+				BlockC[64] = QColor(136,109,67,255);
+				BlockC[65] = QColor(181,140,64,32);
+				BlockC[66] = QColor(150,134,102,180);
+				BlockC[67] = QColor(115,115,115,255);
+				BlockC[71] = QColor(191,191,191,255);
+				BlockC[73] = QColor(131,107,107,255);
+				BlockC[74] = QColor(131,107,107,255);
+				BlockC[75] = QColor(181,140,64,32);
+				BlockC[76] = QColor(255,0,0,200);
+				BlockC[78] = QColor(255,255,255,255);
+				BlockC[79] = QColor(83,113,163,51);
+				BlockC[80] = QColor(250,250,250,255);
+				BlockC[81] = QColor(25,120,25,255);
+				BlockC[82] = QColor(151,157,169,255);
+				BlockC[83] = QColor(193,234,150,255);
+				BlockC[83] = QColor(100,67,50,255);
 
 
 
 }
 
-Color Level::GetColor(int blockid){
+QColor Level::GetColor(int blockid){
 return BlockC[blockid];
 
 }
@@ -200,11 +175,10 @@ int Level::GetHeight(int x,int y){
 
 
 
-const render * Level::LoadLevelFromFile(const char * c, const int slide, const bool CWATER,const int cut){
+const render Level::LoadLevelFromFile(const char * c, const int slide, const bool CWATER,const int cut){
 
-	render * R;
-	R = new render(slide);
-	R->isgood = false;
+	render R(slide);
+	R.isgood = false;
 	long length;
 	
 	int p = 0;
@@ -242,7 +216,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 		databuffer[8] == 118 &&
 		databuffer[9] == 101 &&
 		databuffer[10] == 108){
-			R->isgood = true;
+			R.isgood = true;
 	}else{
 	return R;
 	}
@@ -312,7 +286,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				Int32 += (int)databuffer[z+3]*256;
 				Int32 += (int)databuffer[z+4]+1;
 				}
-				R->x = Int32;
+				R.x = Int32;
 
 
 
@@ -335,7 +309,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				
 
 			
-				R->y = Int32;
+				R.y = Int32;
 
 			}
 		
@@ -358,8 +332,8 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 		}
 
-		if(R->x > 10000000 || R->y > 10000000){
-			R->isgood = false;
+		if(R.x > 10000000 || R.y > 10000000){
+			R.isgood = false;
 			return R;
 
 		
@@ -402,7 +376,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 		
 		}}}
 
-		Color waste;
+		QColor waste;
 		
 		for(int x = 0;x< 16;x++){
 		for(int y = 0;y< 16;y++){
@@ -426,13 +400,13 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 		int l;
 		
-			Color *t = &R->Q->d[y+x*16];
+		        QColor t = QColor::fromRgba(R.Q.pixel(y, x));
 			if(cave){ 
 				for(int z = 127;z > 0;z--){
 					int rr = Read(x,y,z,blocks,0);
 					int blight = Read(x,y,z,blocklight,0);
 					if(Read(x,y,z,skylight,15) == 0 && IsBlock(x,y,z)){
-					Color B;
+					QColor B;
 				
 				
 				
@@ -461,16 +435,16 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 				int zzz = 128-z;
 
-				B.r = rt*2;
-				B.g = gt*2;
-				B.b = bt*2;
-				B.a = (blight > 0)*255;
+				B.setRed(rt*2);
+				B.setGreen(gt*2);
+				B.setBlue(bt*2);
+				B.setAlpha((blight > 0)*255);
 				 
 				
 				int zop = z*0.5 + 64;
 				
-				*t = Blend(*t,B,(zop));
-				if(t->a == 255 ) break;
+				t = Blend(t,B,(zop));
+				if(t.alpha() == 255 ) break;
 				}
 				}
 			}else if(slide == -1){
@@ -492,28 +466,28 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				int br = 0.8*l + 0.5*z;if(br > 128) br = 128;
 				
 				if(rr == 10 || rr == 11 || rr == 50 || rr == 51 || rr == 76){
-					*t = Blend(*t,GetColor(rr),128);
+					t = Blend(t,GetColor(rr),128);
 				}else if((rr == 8 || rr == 9 || rr == 79) && CWATER){
-					Color P = GetColor(rr);
+					QColor P = GetColor(rr);
 					if(Read(x,y,z+1,blocks,0) == 0){
-					P.a = 128; *t = Blend(*t,P,br);
+					P.setAlpha(128); t = Blend(t,P,br);
 					}
 					}else{
-					*t = Blend(*t,GetColor(rr),br);
+					t = Blend(t,GetColor(rr),br);
 					}}
 				//if(z == 0)
 					//t = BlockC[10];
-				if(t->a >= 255){z = -10;t->a = 255;}
+				if(t.alpha() >= 255){z = -10;t.setAlpha(255);}
 			}}else if(slide == -3){
 				for(int z = 127;z >= 0;z--){
 				int rr = Read(x,y,z,blocks,0);
 				if((rr != 0 && ((rr != 8 && rr != 9) || !CWATER) && (exclude == 0 || rr == exclude))){
 				
 				int zzz = 128-z;
-				t->r = (zzz > 0)*(zzz <= 32)*255 + (zzz > 32)*(zzz < 64)*(32-(zzz-32))*8;
-				t->g = (zzz > 96)*(zzz < 128)*(32-(zzz-96))*8 + (zzz > 0)*(zzz < 32)*(zzz)*8 + (zzz >= 32)*(zzz <= 96)*255;
-				t->b = (zzz >= 96)*(zzz < 128)*255 + (zzz > 64)*(zzz < 96)*(zzz-64)*8;
-				t->a = 255;
+				t.setRed((zzz > 0)*(zzz <= 32)*255 + (zzz > 32)*(zzz < 64)*(32-(zzz-32))*8);
+				t.setGreen((zzz > 96)*(zzz < 128)*(32-(zzz-96))*8 + (zzz > 0)*(zzz < 32)*(zzz)*8 + (zzz >= 32)*(zzz <= 96)*255);
+				t.setBlue((zzz >= 96)*(zzz < 128)*255 + (zzz > 64)*(zzz < 96)*(zzz-64)*8);
+				t.setAlpha(255);
 				z = -10;
 				}
 				}
@@ -522,10 +496,10 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				int rr = Read(x,y,z,blocks,0);
 				if((rr != 0 && ((rr != 8 && rr != 9) || !CWATER) && (exclude == 0 || rr == exclude))){
 
-				t->r = z*2;
-				t->g = z*2;
-				t->b = z*2;
-				t->a = 255;
+				t.setRed(z*2);
+				t.setGreen(z*2);
+				t.setBlue(z*2);
+				t.setAlpha(255);
 				z = -10;
 				}
 				}
@@ -533,18 +507,22 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				for(int z = 127;z >= 0;z--){
 				int rr = Read(x,y,z,blocks,0);
 
-					if(rr == 14 )*t = Blend(*t,Color(0,255,0,32),128);
-					if(rr == 15 )*t = Blend(*t,Color(255,0,0,32),128);
-					if(rr == 16 )*t = Blend(*t,Color(0,0,0,32),128);
-					if(rr == 56 )*t = Blend(*t,Color(0,0,255,32),128);
+					if(rr == 14 )t = Blend(t,QColor(0,255,0,32),128);
+					if(rr == 15 )t = Blend(t,QColor(255,0,0,32),128);
+					if(rr == 16 )t = Blend(t,QColor(0,0,0,32),128);
+					if(rr == 56 )t = Blend(t,QColor(0,0,255,32),128);
 				
-				if(t->a > 255){z = -10;t->a = 255;}
+				if(t.alpha() > 255){z = -10;t.setAlpha(255);}
 				}}
 		else{
 			int rr = Read(x,y,cut,blocks,0);
-			*t = GetColor(rr);
+			t = GetColor(rr);
 			
 			}
+// std::cout << "t: " << (t.red()) << " " <<  (t.green()) << " "
+//                    << (t.blue()) << " " << (t.alpha()) << std::endl;
+//                   std::cout << std::endl;
+                        R.Q.setPixel(y, x, t.rgba());
 		}}}else{
 			if(slide == 70){
 	for(int z = 128;z > -1;z--){
@@ -610,22 +588,22 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 				int rrx = 16+(y)-(x);
 				int rry = 0+(y)+(x);		
-				Color *t2;Color *t3;Color *t4;
-				Color *t1 = &R->Q->d[rry+((128-z)+rrx)*33];
+				QColor t2;QColor t3;QColor t4;
+				QColor t1 = QColor::fromRgba(R.Q.pixel(rry, (128-z)+rrx));
 				
 				if(rrx+1+(128-z) < 160)
-				t2 = &R->Q->d[rry+((128-z)+rrx+1)*33];
+				t2 = QColor::fromRgba(R.Q.pixel(rry, ((128-z)+rrx+1)));
 				else
-				t2 = &waste;
+				t2 = waste;
 
 
 				
 				if(rry+1 < 34 && rrx+1+(128-z) < 160)
-				t3 = &R->Q->d[rry+1+((128-z)+rrx+1)*33];
+				t3 = QColor::fromRgba(R.Q.pixel(rry, ((128-z)+rrx+1)));
 				else
-				t2 = &waste;
+				t2 = waste;
 				
-				t4 = &R->Q->d[rry+1+((128-z)+rrx)*33];
+				t4 = QColor::fromRgba(R.Q.pixel(rry+1, ((128-z)+rrx)));
 				
 				
 
@@ -657,7 +635,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 				if(exclude != 0){top = 128;here = 128; right = 128;left = 128;}
 				if(cave){
-				Color B;
+				QColor B;
 				
 				int blight = Read(xo,yo,z,blocklight,0);
 				if(blight > 0) blight++;
@@ -685,18 +663,18 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 				int zzz = 128-z;
 
-				B.r = rt*2;
-				B.g = gt*2;
-				B.b = bt*2;
-				B.a = (blight > 0)*255;
+				B.setRed(rt*2);
+				B.setGreen(gt*2);
+				B.setBlue(bt*2);
+				B.setAlpha((blight > 0)*255);
 				 
 				
 				int zop = z*0.5 + 64;
 
-				*t1 = Blend(*t1,B,(zop));
-				*t2 = Blend(*t2,B,(zop)*0.5);
-				*t3 = Blend(*t3,B,(zop)*0.65);
-				*t4 = Blend(*t4,B,(zop)*0.8);
+				t1 = Blend(t1,B,(zop));
+				t2 = Blend(t2,B,(zop)*0.5);
+				t3 = Blend(t3,B,(zop)*0.65);
+				t4 = Blend(t4,B,(zop)*0.8);
 
 				}
 
@@ -704,50 +682,50 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				if(rr != 0 && rr != 78 && (f || t ||  r || exclude != 0) && (exclude == 0 || rr == exclude)){
 				if (rr == 76 || rr == 75 || rr == 6 || rr == 37 || rr == 38 || rr == 39 || rr == 40 || rr == 51 || rr == 50 || rr == 59 || rr == 63 || rr == 65 || rr == 66){
 					if(rr == 50 || rr == 51 || rr == 76){
-					*t2 = Blend(*t2,GetColor(rr),128);
+					t2 = Blend(t2,GetColor(rr),128);
 					}else{
-					*t2 = Blend(*t2,GetColor(rr),here*0.8+z*0.4);
+					t2 = Blend(t2,GetColor(rr),here*0.8+z*0.4);
 					}
 				}else{
 					if(rr == 10 || rr == 11){
-					*t1 = Blend(*t1,GetColor(rr),(128));
-					*t2 = Blend(*t2,GetColor(rr),(128)*0.5);
-					*t3 = Blend(*t3,GetColor(rr),(128)*0.65);
-					*t4 = Blend(*t4,GetColor(rr),(128)*0.8);
+					t1 = Blend(t1,GetColor(rr),(128));
+					t2 = Blend(t2,GetColor(rr),(128)*0.5);
+					t3 = Blend(t3,GetColor(rr),(128)*0.65);
+					t4 = Blend(t4,GetColor(rr),(128)*0.8);
 
 					}else{
 						if(rr == 8 || rr == 9 || rr == 79){
-						Color P = GetColor(rr);
+						QColor P = GetColor(rr);
 						if(Read(xo,yo,z+1,blocks,0) == 0 || Read(xo+1,yo,z,blocks,-1) == 0 || Read(xo,yo+1,z,blocks,-1) == 0){
-							P.a = 128;
-						*t1 = Blend(*t1,P,(here*0.8+z*0.4));				
-						*t2 = Blend(*t2,P,(here*0.8+z*0.4)*0.65);
-						*t3 = Blend(*t3,P,(here*0.8+z*0.4)*0.5);
-						*t4 = Blend(*t4,P,(here*0.8+z*0.4)*0.8);}
+							P.setAlpha(128);
+						t1 = Blend(t1,P,(here*0.8+z*0.4));				
+						t2 = Blend(t2,P,(here*0.8+z*0.4)*0.65);
+						t3 = Blend(t3,P,(here*0.8+z*0.4)*0.5);
+						t4 = Blend(t4,P,(here*0.8+z*0.4)*0.8);}
 
 
 						}else if(rr == 2){
 				if(Read(xo,yo,z+1,blocks,0) == 78)
-				*t1 = Blend(*t1,Color(255,255,255,255),(top*0.8+z*0.4));
+				t1 = Blend(t1,QColor(255,255,255,255),(top*0.8+z*0.4));
 				else
-				*t1 = Blend(*t1,GetColor(2),(top*0.8+z*0.4));				
-				*t2 = Blend(*t2,GetColor(3),(left*0.8+z*0.4)*0.65);
-				*t3 = Blend(*t3,GetColor(3),(right*0.8+z*0.4)*0.5);
+				t1 = Blend(t1,GetColor(2),(top*0.8+z*0.4));				
+				t2 = Blend(t2,GetColor(3),(left*0.8+z*0.4)*0.65);
+				t3 = Blend(t3,GetColor(3),(right*0.8+z*0.4)*0.5);
 				if(Read(xo,yo,z+1,blocks,0) == 78)
-				*t4 = Blend(*t4,Color(255,255,255,255),(top*0.8+z*0.4)*0.8);
+				t4 = Blend(t4,QColor(255,255,255,255),(top*0.8+z*0.4)*0.8);
 				else
-				*t4 = Blend(*t4,GetColor(2),(top*0.8+z*0.4)*0.8);
+				t4 = Blend(t4,GetColor(2),(top*0.8+z*0.4)*0.8);
 						}else{
 				if(Read(xo,yo,z+1,blocks,0) == 78)
-				*t1 = Blend(*t1,Color(255,255,255,255),(top*0.8+z*0.4));
+				t1 = Blend(t1,QColor(255,255,255,255),(top*0.8+z*0.4));
 				else
-				*t1 = Blend(*t1,GetColor(rr),(top*0.8+z*0.4));				
-				*t2 = Blend(*t2,GetColor(rr),(left*0.8+z*0.4)*0.75);
-				*t3 = Blend(*t3,GetColor(rr),(right*0.8+z*0.4)*0.5);
+				t1 = Blend(t1,GetColor(rr),(top*0.8+z*0.4));				
+				t2 = Blend(t2,GetColor(rr),(left*0.8+z*0.4)*0.75);
+				t3 = Blend(t3,GetColor(rr),(right*0.8+z*0.4)*0.5);
 				if(Read(xo,yo,z+1,blocks,0) == 78)
-				*t4 = Blend(*t4,Color(255,255,255,255),(top*0.8+z*0.4)*0.8);
+				t4 = Blend(t4,QColor(255,255,255,255),(top*0.8+z*0.4)*0.8);
 				else
-				*t4 = Blend(*t4,GetColor(rr),(top*0.8+z*0.4)*0.8);
+				t4 = Blend(t4,GetColor(rr),(top*0.8+z*0.4)*0.8);
 
 						}
 					
@@ -756,6 +734,11 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 				}
 				}
 				}
+
+                                R.Q.setPixel(rry, (128-z)+rrx, t1.rgba());
+                                R.Q.setPixel(rry, (128-z)+rrx+1, t2.rgba());
+                                R.Q.setPixel(rry, (128-z)+rrx+1, t3.rgba());
+                                R.Q.setPixel(rry+1, (128-z)+rrx, t4.rgba());
 
 				}}}
 
@@ -802,12 +785,12 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 					f = IsBlock(xo+1,yo,z);
 					}}
 
-				Color *t1 = &R->Q->d[y+((128-z)+x)*16];			
-				Color *t2;
+				QColor t1 = QColor::fromRgba(R.Q.pixel(y,((128-z)+x)));
+				QColor t2;
 				if(z > 1)
-					t2 = &R->Q->d[y+((128-z)+x+1)*16];
+					t2 = QColor::fromRgba(R.Q.pixel(y,(128-z)+x+1));
 				else
-				t2 = new Color();
+				t2 = QColor();
 
 				int here,top,front;
 				if(exclude == 0 && !cave){
@@ -831,7 +814,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 
 				if(exclude != 0){top = 128;here = 128; front = 128;}
 				if(cave){
-				Color B;
+				QColor B;
 				
 				int blight = Read(xo,yo,z,blocklight,0);
 				if(blight > 0) blight++;
@@ -843,52 +826,52 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 					blight = 0;
 
 				int zzz = 128-z;
-				B.r = (zzz > 0)*(zzz <= 32)*255 + (zzz > 32)*(zzz < 64)*(32-(zzz-32))*8;
-				B.g = (zzz > 96)*(zzz < 128)*(32-(zzz-96))*8 + (zzz > 0)*(zzz < 32)*(zzz)*8 + (zzz >= 32)*(zzz <= 96)*255;
-				B.b = (zzz >= 96)*(zzz < 128)*255 + (zzz > 64)*(zzz < 96)*(zzz-64)*8;
-				B.a = (blight > 0)*255;
+				B.setRed((zzz > 0)*(zzz <= 32)*255 + (zzz > 32)*(zzz < 64)*(32-(zzz-32))*8);
+				B.setGreen((zzz > 96)*(zzz < 128)*(32-(zzz-96))*8 + (zzz > 0)*(zzz < 32)*(zzz)*8 + (zzz >= 32)*(zzz <= 96)*255);
+				B.setBlue((zzz >= 96)*(zzz < 128)*255 + (zzz > 64)*(zzz < 96)*(zzz-64)*8);
+				B.setAlpha((blight > 0)*255);
 
 				
 				
 
-				*t1 = Blend(*t1,B,(4*blight + 128));
-				*t2 = Blend(*t2,B,(4*blight + 128)*0.5);
+				t1 = Blend(t1,B,(4*blight + 128));
+				t2 = Blend(t2,B,(4*blight + 128)*0.5);
 
 				}
 
 				if(!cave){
 				if(rr != 0  && rr != 78 && (t || f || exclude != 0) && (exclude == 0 || rr == exclude)){
 				if(rr == 8 || rr == 9 || rr == 79){
-				Color P = GetColor(rr);
+				QColor P = GetColor(rr);
 				if(Read(xo,yo,z+1,blocks,0) == 0){
-				P.a = 128;
-				*t1 = Blend(*t1,P,top);}
+				P.setAlpha(128);
+				t1 = Blend(t1,P,top);}
 
 				
 				}else if (rr == 6 || rr == 75 || rr == 76 || rr == 37 || rr == 38 || rr == 39 || rr == 40 || rr == 51 || rr == 50 || rr == 59 || rr == 63 || rr == 65 || rr == 66){
 					if(rr == 50 || rr == 51 || rr == 76){
-					*t2 = Blend(*t2,GetColor(rr),128);
+					t2 = Blend(t2,GetColor(rr),128);
 					}else{
-					*t2 = Blend(*t2,GetColor(rr),here*0.8+z*0.4);
+					t2 = Blend(t2,GetColor(rr),here*0.8+z*0.4);
 					}
 				}else{
 					if(rr == 10 || rr == 11){
-					*t1 = Blend(*t1,GetColor(rr),128);
-					*t2 = Blend(*t2,GetColor(rr),128*0.5);
+					t1 = Blend(t1,GetColor(rr),128);
+					t2 = Blend(t2,GetColor(rr),128*0.5);
 
 					}else{
 					if(rr == 2){
 				if(Read(xo,yo,z+1,blocks,0) == 78)
-				*t1 = Blend(*t1,Color(255,255,255,255),top*0.8+z*0.4);
+				t1 = Blend(t1,QColor(255,255,255,255),top*0.8+z*0.4);
 				else
-				*t1 = Blend(*t1,GetColor(2),(top*0.8+z*0.4));				
-				*t2 = Blend(*t2,GetColor(3),(front*0.8+z*0.4)*0.75);
+				t1 = Blend(t1,GetColor(2),(top*0.8+z*0.4));				
+				t2 = Blend(t2,GetColor(3),(front*0.8+z*0.4)*0.75);
 						}else{
 				if(Read(xo,yo,z+1,blocks,0) == 78)
-				*t1 = Blend(*t1,Color(255,255,255,255),(top*0.8+z*0.4));
+				t1 = Blend(t1,QColor(255,255,255,255),(top*0.8+z*0.4));
 				else
-				*t1 = Blend(*t1,GetColor(rr),(top*0.8+z*0.4));				
-				*t2 = Blend(*t2,GetColor(rr),(front*0.8+z*0.4)*0.75);
+				t1 = Blend(t1,GetColor(rr),(top*0.8+z*0.4));				
+				t2 = Blend(t2,GetColor(rr),(front*0.8+z*0.4)*0.75);
 
 						}
 						
