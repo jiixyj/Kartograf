@@ -7,6 +7,7 @@
 #include <dirent.h>
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <stack>
 #include <list>
@@ -74,32 +75,25 @@ bool ListFiles(std::string path, std::vector<std::string>& files,int &numfiles) 
 };
 
 void Dostuff() {
+  #ifdef Q_WS_WIN
+    QSettings ini(QSettings::IniFormat,
+                  QSettings::UserScope,
+                  QCoreApplication::organizationName(),
+                  QCoreApplication::applicationName());
+    QDir dir = QDir(QFileInfo(ini.fileName()).absolutePath());
+  #else
+    QDir dir = QDir::home();
+  #endif
+  if (!dir.cd(QString(".minecraft/saves/World") + QString::number(CWorld))) {
+    std::cerr << "Tried dir: " dir.canonicalPath().toStdString() << std::endl;
+    qFatal("Minecraft is not installed!");
+  }
 
-  std::string A = getenv("HOME");
-  A += "/.minecraft/saves/World";
-  std::string name = "map";
+  std::stringstream ss;
+  ss << "map" << CWorld;
+  std::string name = ss.str();
   std::string png = ".png";
-
-  if(CWorld == 1){
-    A += "1";
-    name += "1";
-  }
-  if(CWorld == 2){
-    A += "2";
-    name += "2";
-  }
-  if(CWorld == 3){
-    A += "3";
-    name += "3";
-  }
-  if(CWorld == 4){
-    A += "4";
-    name += "4";
-  }
-  if(CWorld == 5){
-    A += "5";
-    name += "5";
-  }
+  std::string A = dir.canonicalPath().toStdString();
 
   std::cout << A << " " << name << std::endl;
   //return 0;
@@ -375,62 +369,62 @@ void Dostuff() {
   if (values.is_open())
   {
     values << "Map surface is: " << cc*16*16 << " square meters";
-    values << "end1";
+    values << std::endl;
     values << "Block amounts:";
-    values << "end1";
-    values << "Air: " << foo.count[0] << "end1";
-    values << "Stone: " << foo.count[1] << "end1";
-    values << "Grass: " << foo.count[2] << "end1";
-    values << "Dirt: " << foo.count[3] << "end1";
-    values << "Snow: " << foo.count[78] << "end1";
-    values << "end1";
-    values << "Water: " << foo.count[8]+foo.count[9] << "end1";
-    values << "Ice: " << foo.count[79] << "end1";
-    values << "Lava: " <<  foo.count[10]+foo.count[11] << "end1";
-    values << "end1";
-    values << "Obisidian: " <<  foo.count[49] << "end1";
-    values << "end1";
-    values << "Trunk: " << foo.count[17] << "end1";
-    values << "Leaves: " << foo.count[18] << "end1";
-    values << "Wood: " << foo.count[5] << "end1";
-    values << "Cactus: " << foo.count[81] << "end1";
-    values << "end1";
-    values << "Sand: " << foo.count[12] << "end1";
-    values << "Gravel: " << foo.count[13] << "end1";
-    values << "Clay: " << foo.count[82] << "end1";
-    values << "end1";
-    values << "Gold Ore: " << foo.count[14] << "end1";
-    values << "Iron Ore: " << foo.count[15] << "end1";
-    values << "Coal Ore: " << foo.count[16] << "end1";
-    values << "Diamond Ore: " << foo.count[56] << "end1";
-    values << "Redstone: " << foo.count[73]+foo.count[74] << "end1";
-    values << "end1";
-    values << "Cobble: " << foo.count[4] << "end1";
-    values << "Glass: " << foo.count[20] << "end1";
-    values << "Cloth: " << foo.count[35] << "end1";
-    values << "Gold: " << foo.count[41] << "end1";
-    values << "Iron: " << foo.count[42] << "end1";
-    values << "Diamond: " << foo.count[57] << "end1";
-    values << "end1";
-    values << "Farmland: " << foo.count[60] << "end1";
-    values << "Crops: " << foo.count[59] << "end1";
-    values << "Reed: " << foo.count[83] << "end1";
-    values << "Torch: " << foo.count[50] << "end1";
-    values << "CraftTable: " << foo.count[58] << "end1";
-    values << "Chest: " << foo.count[54] << "end1";
-    values << "Furnace: " << foo.count[61]+foo.count[62] << "end1";
-    values << "Wooden Doors: " << foo.count[64]/2 << "end1";
-    values << "Iron Doors: " << foo.count[71] << "end1";
-    values << "Signs: " << foo.count[63]+foo.count[68] << "end1";
-    values << "Ladder: " << foo.count[65] << "end1";
-    values << "Railtracks: " << foo.count[66] << "end1";
-    values << "Wooden Stairs: " << foo.count[53] << "end1";
-    values << "Rock Stairs: " << foo.count[67] << "end1";
-    values << "Lever: " << foo.count[69] << "end1";
-    values << "Buttons: " << foo.count[77] << "end1";
-    values << "Pressure Plates: " << foo.count[70]+foo.count[72] << "end1";
-    values << "Redstone Powder: " << foo.count[55] << "end1";
-    values << "Redstone Torches: " << foo.count[75]+foo.count[76] << "end1";
+    values << std::endl;
+    values << "Air: " << foo.count[0] << std::endl;
+    values << "Stone: " << foo.count[1] << std::endl;
+    values << "Grass: " << foo.count[2] << std::endl;
+    values << "Dirt: " << foo.count[3] << std::endl;
+    values << "Snow: " << foo.count[78] << std::endl;
+    values << std::endl;
+    values << "Water: " << foo.count[8]+foo.count[9] << std::endl;
+    values << "Ice: " << foo.count[79] << std::endl;
+    values << "Lava: " <<  foo.count[10]+foo.count[11] << std::endl;
+    values << std::endl;
+    values << "Obisidian: " <<  foo.count[49] << std::endl;
+    values << std::endl;
+    values << "Trunk: " << foo.count[17] << std::endl;
+    values << "Leaves: " << foo.count[18] << std::endl;
+    values << "Wood: " << foo.count[5] << std::endl;
+    values << "Cactus: " << foo.count[81] << std::endl;
+    values << std::endl;
+    values << "Sand: " << foo.count[12] << std::endl;
+    values << "Gravel: " << foo.count[13] << std::endl;
+    values << "Clay: " << foo.count[82] << std::endl;
+    values << std::endl;
+    values << "Gold Ore: " << foo.count[14] << std::endl;
+    values << "Iron Ore: " << foo.count[15] << std::endl;
+    values << "Coal Ore: " << foo.count[16] << std::endl;
+    values << "Diamond Ore: " << foo.count[56] << std::endl;
+    values << "Redstone: " << foo.count[73]+foo.count[74] << std::endl;
+    values << std::endl;
+    values << "Cobble: " << foo.count[4] << std::endl;
+    values << "Glass: " << foo.count[20] << std::endl;
+    values << "Cloth: " << foo.count[35] << std::endl;
+    values << "Gold: " << foo.count[41] << std::endl;
+    values << "Iron: " << foo.count[42] << std::endl;
+    values << "Diamond: " << foo.count[57] << std::endl;
+    values << std::endl;
+    values << "Farmland: " << foo.count[60] << std::endl;
+    values << "Crops: " << foo.count[59] << std::endl;
+    values << "Reed: " << foo.count[83] << std::endl;
+    values << "Torch: " << foo.count[50] << std::endl;
+    values << "CraftTable: " << foo.count[58] << std::endl;
+    values << "Chest: " << foo.count[54] << std::endl;
+    values << "Furnace: " << foo.count[61]+foo.count[62] << std::endl;
+    values << "Wooden Doors: " << foo.count[64]/2 << std::endl;
+    values << "Iron Doors: " << foo.count[71] << std::endl;
+    values << "Signs: " << foo.count[63]+foo.count[68] << std::endl;
+    values << "Ladder: " << foo.count[65] << std::endl;
+    values << "Railtracks: " << foo.count[66] << std::endl;
+    values << "Wooden Stairs: " << foo.count[53] << std::endl;
+    values << "Rock Stairs: " << foo.count[67] << std::endl;
+    values << "Lever: " << foo.count[69] << std::endl;
+    values << "Buttons: " << foo.count[77] << std::endl;
+    values << "Pressure Plates: " << foo.count[70]+foo.count[72] << std::endl;
+    values << "Redstone Powder: " << foo.count[55] << std::endl;
+    values << "Redstone Torches: " << foo.count[75]+foo.count[76] << std::endl;
 
     values << std::endl;
 

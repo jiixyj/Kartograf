@@ -6,7 +6,7 @@ set(CMAKE_MODULE_PATH ${${PROJECT_NAME}_MAIN_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR})
 
 find_package(ZLIB REQUIRED)
-find_package(Qt4 COMPONENTS QtGui REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")

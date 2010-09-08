@@ -9,7 +9,6 @@
 #include <fstream>
 #include "math.h"
 #include <time.h>
-#include <corona.h>
 
 #include "./IMG.h"
 
