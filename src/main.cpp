@@ -41,23 +41,19 @@ void Dostuff() {
     QDir dir = QDir::home();
   #endif
   if (!dir.cd(QString(".minecraft/saves/World") + QString::number(CWorld))) {
-    std::cerr << "Tried dir: "
-              << dir.canonicalPath().toStdString() << std::endl;
+    cerr << "Tried dir: " << dir.canonicalPath() << endl;
     qFatal("Minecraft is not installed!");
   }
 
   std::stringstream ss;
   ss << "map" << CWorld;
-  std::string name = ss.str();
-  std::string png = ".png";
-  std::string A = dir.canonicalPath().toStdString();
+  QString name = "map" + QString::number(CWorld);
 
-  std::cout << A << " " << name << std::endl;
+  cout << dir.canonicalPath() << " " << name << endl;
   //return 0;
 
   // std::string C = L"C:\\Users\\Harm\\Documents\\Visual Studio 2008\\Projects\\WinCartograph\\test\\edit";
 
-  //wcout << A.c_str();
   //return 0;
   std::list<render> renderblocks;
 
@@ -222,7 +218,7 @@ void Dostuff() {
 
 
 
-  std::string txtname = "./"+name+".txt";
+  QString txtname = name + ".txt";
 
   //std::cout << "\n\nERRORS: " << errors << "\nTOTAL: " << total;
   switch(slide){
@@ -251,12 +247,8 @@ void Dostuff() {
     break;
     case(64):
     {
-    std::string s;
-    std::stringstream out;
-    out << cut;
-    s = out.str();
       name.append("-slice-");
-      name += s;
+      name.append(QString::number(cut));
     }
     break;
 
@@ -292,22 +284,16 @@ void Dostuff() {
 
   if(exclude != 0){
     name.append("-only-");
-    std::string s;
-    std::stringstream out;
-    out << exclude;
-    s = out.str();
-    name += s;
+    name.append(QString::number(exclude));
 
   }
 
 
 
 
-  std::string exit ="./" + name + png;
-
   std::cout << "3)Save image" << std::endl;
   QImage Output(reinterpret_cast<uchar*>(MAP->d),imageheight,imagewidth,QImage::Format_ARGB32);
-        Output.save(QString::fromStdString(exit));
+        Output.save(name + ".png");
 
   delete MAP;
   //delete MAP;
@@ -316,72 +302,68 @@ void Dostuff() {
   renderblocks.clear();
   std::cout << "4)Save txt" << std::endl;
 
-  std::ofstream values( txtname.c_str() );
-  if (values.is_open())
-  {
+
+  QFile data("output.txt");
+  if (data.open(QFile::WriteOnly | QFile::Truncate)) {
+    QTextStream values(&data);
     values << "Map surface is: " << cc*16*16 << " square meters";
-    values << std::endl;
+    values << endl;
     values << "Block amounts:";
-    values << std::endl;
-    values << "Air: " << foo.count[0] << std::endl;
-    values << "Stone: " << foo.count[1] << std::endl;
-    values << "Grass: " << foo.count[2] << std::endl;
-    values << "Dirt: " << foo.count[3] << std::endl;
-    values << "Snow: " << foo.count[78] << std::endl;
-    values << std::endl;
-    values << "Water: " << foo.count[8]+foo.count[9] << std::endl;
-    values << "Ice: " << foo.count[79] << std::endl;
-    values << "Lava: " <<  foo.count[10]+foo.count[11] << std::endl;
-    values << std::endl;
-    values << "Obisidian: " <<  foo.count[49] << std::endl;
-    values << std::endl;
-    values << "Trunk: " << foo.count[17] << std::endl;
-    values << "Leaves: " << foo.count[18] << std::endl;
-    values << "Wood: " << foo.count[5] << std::endl;
-    values << "Cactus: " << foo.count[81] << std::endl;
-    values << std::endl;
-    values << "Sand: " << foo.count[12] << std::endl;
-    values << "Gravel: " << foo.count[13] << std::endl;
-    values << "Clay: " << foo.count[82] << std::endl;
-    values << std::endl;
-    values << "Gold Ore: " << foo.count[14] << std::endl;
-    values << "Iron Ore: " << foo.count[15] << std::endl;
-    values << "Coal Ore: " << foo.count[16] << std::endl;
-    values << "Diamond Ore: " << foo.count[56] << std::endl;
-    values << "Redstone: " << foo.count[73]+foo.count[74] << std::endl;
-    values << std::endl;
-    values << "Cobble: " << foo.count[4] << std::endl;
-    values << "Glass: " << foo.count[20] << std::endl;
-    values << "Cloth: " << foo.count[35] << std::endl;
-    values << "Gold: " << foo.count[41] << std::endl;
-    values << "Iron: " << foo.count[42] << std::endl;
-    values << "Diamond: " << foo.count[57] << std::endl;
-    values << std::endl;
-    values << "Farmland: " << foo.count[60] << std::endl;
-    values << "Crops: " << foo.count[59] << std::endl;
-    values << "Reed: " << foo.count[83] << std::endl;
-    values << "Torch: " << foo.count[50] << std::endl;
-    values << "CraftTable: " << foo.count[58] << std::endl;
-    values << "Chest: " << foo.count[54] << std::endl;
-    values << "Furnace: " << foo.count[61]+foo.count[62] << std::endl;
-    values << "Wooden Doors: " << foo.count[64]/2 << std::endl;
-    values << "Iron Doors: " << foo.count[71] << std::endl;
-    values << "Signs: " << foo.count[63]+foo.count[68] << std::endl;
-    values << "Ladder: " << foo.count[65] << std::endl;
-    values << "Railtracks: " << foo.count[66] << std::endl;
-    values << "Wooden Stairs: " << foo.count[53] << std::endl;
-    values << "Rock Stairs: " << foo.count[67] << std::endl;
-    values << "Lever: " << foo.count[69] << std::endl;
-    values << "Buttons: " << foo.count[77] << std::endl;
-    values << "Pressure Plates: " << foo.count[70]+foo.count[72] << std::endl;
-    values << "Redstone Powder: " << foo.count[55] << std::endl;
-    values << "Redstone Torches: " << foo.count[75]+foo.count[76] << std::endl;
+    values << endl;
+    values << "Air: " << foo.count[0] << endl;
+    values << "Stone: " << foo.count[1] << endl;
+    values << "Grass: " << foo.count[2] << endl;
+    values << "Dirt: " << foo.count[3] << endl;
+    values << "Snow: " << foo.count[78] << endl;
+    values << endl;
+    values << "Water: " << foo.count[8]+foo.count[9] << endl;
+    values << "Ice: " << foo.count[79] << endl;
+    values << "Lava: " <<  foo.count[10]+foo.count[11] << endl;
+    values << endl;
+    values << "Obisidian: " <<  foo.count[49] << endl;
+    values << endl;
+    values << "Trunk: " << foo.count[17] << endl;
+    values << "Leaves: " << foo.count[18] << endl;
+    values << "Wood: " << foo.count[5] << endl;
+    values << "Cactus: " << foo.count[81] << endl;
+    values << endl;
+    values << "Sand: " << foo.count[12] << endl;
+    values << "Gravel: " << foo.count[13] << endl;
+    values << "Clay: " << foo.count[82] << endl;
+    values << endl;
+    values << "Gold Ore: " << foo.count[14] << endl;
+    values << "Iron Ore: " << foo.count[15] << endl;
+    values << "Coal Ore: " << foo.count[16] << endl;
+    values << "Diamond Ore: " << foo.count[56] << endl;
+    values << "Redstone: " << foo.count[73]+foo.count[74] << endl;
+    values << endl;
+    values << "Cobble: " << foo.count[4] << endl;
+    values << "Glass: " << foo.count[20] << endl;
+    values << "Cloth: " << foo.count[35] << endl;
+    values << "Gold: " << foo.count[41] << endl;
+    values << "Iron: " << foo.count[42] << endl;
+    values << "Diamond: " << foo.count[57] << endl;
+    values << endl;
+    values << "Farmland: " << foo.count[60] << endl;
+    values << "Crops: " << foo.count[59] << endl;
+    values << "Reed: " << foo.count[83] << endl;
+    values << "Torch: " << foo.count[50] << endl;
+    values << "CraftTable: " << foo.count[58] << endl;
+    values << "Chest: " << foo.count[54] << endl;
+    values << "Furnace: " << foo.count[61]+foo.count[62] << endl;
+    values << "Wooden Doors: " << foo.count[64]/2 << endl;
+    values << "Iron Doors: " << foo.count[71] << endl;
+    values << "Signs: " << foo.count[63]+foo.count[68] << endl;
+    values << "Ladder: " << foo.count[65] << endl;
+    values << "Railtracks: " << foo.count[66] << endl;
+    values << "Wooden Stairs: " << foo.count[53] << endl;
+    values << "Rock Stairs: " << foo.count[67] << endl;
+    values << "Lever: " << foo.count[69] << endl;
+    values << "Buttons: " << foo.count[77] << endl;
+    values << "Pressure Plates: " << foo.count[70]+foo.count[72] << endl;
+    values << "Redstone Powder: " << foo.count[55] << endl;
+    values << "Redstone Torches: " << foo.count[75]+foo.count[76] << endl;
 
-    values << std::endl;
-
-
-
-  values.close();
   }else std::cout << "fatal write to txt" << std::endl;
 /*
   for (std::list<render>::iterator it=renderblocks.begin();it!=renderblocks.end();++it){
