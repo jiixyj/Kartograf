@@ -599,7 +599,7 @@ const render Level::LoadLevelFromFile(const char * c, const int slide, const boo
 
 				
 				if(rry+1 < 34 && rrx+1+(128-z) < 160)
-				t3 = QColor::fromRgba(R.Q.pixel(rry, ((128-z)+rrx+1)));
+				t3 = QColor::fromRgba(R.Q.pixel(rry+1, ((128-z)+rrx+1)));
 				else
 				t2 = waste;
 				
@@ -737,7 +737,7 @@ const render Level::LoadLevelFromFile(const char * c, const int slide, const boo
 
                                 R.Q.setPixel(rry, (128-z)+rrx, t1.rgba());
                                 R.Q.setPixel(rry, (128-z)+rrx+1, t2.rgba());
-                                R.Q.setPixel(rry, (128-z)+rrx+1, t3.rgba());
+                                R.Q.setPixel(rry+1, (128-z)+rrx+1, t3.rgba());
                                 R.Q.setPixel(rry+1, (128-z)+rrx, t4.rgba());
 
 				}}}
