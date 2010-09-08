@@ -30,50 +30,6 @@ int cut = 0;
 bool RENDER = false;
 bool water = true;
 
-bool ListFiles(std::string path, std::vector<std::string>& files,int &numfiles) {
-    std::stack<std::string> directories;
-  DIR *dir;
-  dirent *ent;
-  std::string temp_str;
-  std::string temp;
-
-    directories.push(path);
-    files.clear();
-
-  std::cout << "1)Generate tree of files..." << std::endl;
-    while ( !directories.empty() ) {
-    path = directories.top();
-    directories.pop();
-
-    dir = opendir( path.c_str() );
-
-        if (!dir) return false;
-
-
-        while((ent = readdir(dir)) != NULL)
-        {
-      temp_str = ent->d_name;
-
-      if ( temp_str != "." && temp_str != ".." ){
-        temp = path + "/" + temp_str;
-        //std::cout << temp << " ";
-        if (ent->d_type == DT_DIR ){
-          directories.push(temp);
-        }
-        if (ent->d_type == DT_REG ){
-          files.push_back(temp);
-          numfiles++;
-        }
-
-      }
-        }
-        closedir(dir);
-    }
-    std::cout << "Done!" << std::endl;
-
-    return true;
-};
-
 void Dostuff() {
   #ifdef Q_WS_WIN
     QSettings ini(QSettings::IniFormat,
@@ -85,7 +41,8 @@ void Dostuff() {
     QDir dir = QDir::home();
   #endif
   if (!dir.cd(QString(".minecraft/saves/World") + QString::number(CWorld))) {
-    std::cerr << "Tried dir: " dir.canonicalPath().toStdString() << std::endl;
+    std::cerr << "Tried dir: "
+              << dir.canonicalPath().toStdString() << std::endl;
     qFatal("Minecraft is not installed!");
   }
 
@@ -102,27 +59,21 @@ void Dostuff() {
 
   //wcout << A.c_str();
   //return 0;
-    std::vector<std::string> files;
   std::list<render> renderblocks;
 
-  int counter = 0;
   int cc = 0;
   //int lool = 0;
 
-  ListFiles(A, files,counter);
-
-  //lool = files.size();
   Level foo;
-  //std::ofstream myfile ("files.txt",std::ios::app);
 
   //decompress_one_file("C:\\Users\\Harm\\AppData\\Roaming\\.minecraft\\saves\\World3\\4\\1c\\c.4.-g.dat","level_in");
   //std::cout << "\nRendering chunks..";
 
-  //if (ListFiles(C.c_str(), L"*", files,counter)){
   std::cout << "2)Unzip and draw..." << std::endl;
-        for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); it++) {
-
-       const render * temp = foo.LoadLevelFromFile(it->c_str(),slide,water,cut);
+  dir.setFilter(QDir::Files);
+  QDirIterator it(dir, QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+       const render * temp = foo.LoadLevelFromFile(it.next().toAscii().data(),slide,water,cut);
        if(temp->isgood){
         cc++;
         renderblocks.push_back(*temp);
