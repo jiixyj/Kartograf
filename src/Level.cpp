@@ -229,7 +229,7 @@ const render * Level::LoadLevelFromFile(const char * c, const int slide, const b
 	int q = gzread(filein,databuffer,length);
 	while(q == -1){q = gzread(filein,databuffer,length);
 	};
-	gzclose_r(filein);
+	gzclose(filein);
 
 	if( databuffer[0] == 10 && 
 		databuffer[1] == 0 && 
