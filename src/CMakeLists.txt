@@ -6,3 +6,5 @@ add_executable(cart main)
 
 target_link_libraries(Level ${QT_LIBRARIES} render Color)
 target_link_libraries(cart Level)
+
+add_subdirectory(nbt)
