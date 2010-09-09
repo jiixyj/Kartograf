@@ -2,11 +2,9 @@
 
 #include <iostream>
 
-#include "./Color.h"
-
 render::render() {
   Q = QImage(16, 16, QImage::Format_ARGB32_Premultiplied);
-  Q.fill(256 + 256 << 8 + 256 << 16);
+  Q.fill(QColor(0, 0, 0, 0).rgba());
 }
 
 render::~render() {
@@ -22,7 +20,7 @@ render::render(int bb) {
   } else {
     Q = QImage(16, 16, QImage::Format_ARGB32_Premultiplied);
   }
-  Q.fill(Color(255, 255, 255, 0).rgba());
+  Q.fill(QColor(0, 0, 0, 0).rgba());
 
   x = 0;
   y = 0;
