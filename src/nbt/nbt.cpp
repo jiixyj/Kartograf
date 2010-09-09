@@ -2,6 +2,19 @@
 
 namespace tag {
 
+template <typename T>
+T endian_swap(T d) {
+  T a = d;
+  unsigned char* dst = (unsigned char*) &a;
+  unsigned char* src = (unsigned char*) &d;
+
+  for (int i = 0; i < sizeof(T); ++i) {
+    dst[i] = src[sizeof(T)-i-1];
+  }
+
+  return a;
+}
+
 int tag_end::id() { return 0; }
 int tag_byte::id() { return 1; }
 int tag_short::id() { return 2; }
@@ -18,43 +31,63 @@ tag::~tag() {}
 
 tag_byte::tag_byte() : tag(), name(), p() {}
 tag_byte::tag_byte(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), p() {
+          : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
 }
 
 tag_short::tag_short() : tag(), name(), p() {}
 tag_short::tag_short(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), p() {
+          : name(named ? (new tag_string(file, false)) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
+  p = endian_swap<int16_t>(p);
+  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "") << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_int::tag_int() : tag(), name(), p() {}
 tag_int::tag_int(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), p() {
+          : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
+  p = endian_swap<int32_t>(p);
+  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "") << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_long::tag_long() : tag(), name(), p() {}
 tag_long::tag_long(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), p() {
+          : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
+  p = endian_swap<int64_t>(p);
+  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "") << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_float::tag_float() : tag(), name(), p() {}
 tag_float::tag_float(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), p() {
+          : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
+  p = endian_swap<float>(p);
+  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "") << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_double::tag_double() : tag(), name(), p() {}
 tag_double::tag_double(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), p() {
+          : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
+  p = endian_swap<double>(p);
+  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "") << p << " (size: " << sizeof(p) << ")" << std::endl;
+}
+
+tag_byte_array::tag_byte_array() : tag(), name(), length(), p() {}
+tag_byte_array::tag_byte_array(gzFile* file, bool named)
+          : name(named ? new tag_string(file, false) : NULL), length(), p() {
+  length = tag_int(file, false);
+  char* bufferstring = new char[length.p];
+  gzread(*file, bufferstring, length.p);
+  p = std::string(bufferstring, length.p);
+  delete[] bufferstring;
 }
 
 tag_string::tag_string() : tag(), name(), length(), p() {}
 tag_string::tag_string(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), length(), p() {
+          : name(named ? new tag_string(file, false) : NULL), length(), p() {
   length = tag_short(file, false);
   char* bufferstring = new char[length.p];
   gzread(*file, bufferstring, length.p);
@@ -63,11 +96,62 @@ tag_string::tag_string(gzFile* file, bool named)
   delete[] bufferstring;
 }
 
+tag_list::tag_list() : tag(), name(), tagid(), length(), tags() {}
+tag_list::tag_list(gzFile* file, bool named)
+          : name(named ? new tag_string(file, false) : NULL),
+            tagid(), length(), tags() {
+  tagid = tag_byte(file, false);
+  length = tag_int(file, false);
+  int buffer;
+  for (int i = 0; i < length.p; ++i) {
+    switch (tagid.p) {
+      case -1:
+        std::cerr << "file read error!" << std::endl;
+        exit(1);
+        break;
+      case 1:
+        tags.push_back(new tag_byte(file, false));
+        break;
+      case 2:
+        tags.push_back(new tag_short(file, false));
+        break;
+      case 3:
+        tags.push_back(new tag_int(file, false));
+        break;
+      case 4:
+        tags.push_back(new tag_long(file, false));
+        break;
+      case 5:
+        tags.push_back(new tag_float(file, false));
+        break;
+      case 6:
+        tags.push_back(new tag_double(file, false));
+        break;
+      case 7:
+        tags.push_back(new tag_byte_array(file, false));
+        break;
+      case 8:
+        tags.push_back(new tag_string(file, false));
+        break;
+      case 9:
+        tags.push_back(new tag_list(file, false));
+        break;
+      case 10:
+        tags.push_back(new tag_compound(file, false));
+        break;
+      default:
+        std::cerr << "wrong file format: " << buffer << std::endl;
+        exit(1);
+        break;
+    }
+  }
+}
+
 tag_compound::tag_compound() : tag(), name(), tags() {}
 tag_compound::tag_compound(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : 0), tags() {
+          : name(named ? new tag_string(file, false) : NULL), tags() {
   int buffer;
-  while ((buffer = gzgetc(file)) != 0) {
+  while ((buffer = gzgetc(*file)) != 0) {
     switch (buffer) {
       case -1:
         std::cerr << "file read error!" << std::endl;
@@ -91,13 +175,25 @@ tag_compound::tag_compound(gzFile* file, bool named)
       case 6:
         tags.push_back(new tag_double(file, true));
         break;
+      case 7:
+        tags.push_back(new tag_byte_array(file, true));
+        break;
+      case 8:
+        tags.push_back(new tag_string(file, true));
+        break;
+      case 9:
+        tags.push_back(new tag_list(file, true));
+        break;
+      case 10:
+        tags.push_back(new tag_compound(file, true));
+        break;
       default:
-        std::cerr << "wrong file format!" << std::endl;
+        std::cerr << "wrong file format: " << buffer << std::endl;
         exit(1);
         break;
     }
   }
-  exit(1);
+  //exit(1);
 }
 
 }

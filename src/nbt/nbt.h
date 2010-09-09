@@ -73,6 +73,8 @@ struct tag_double : public tag {
 
 struct tag_byte_array : public tag {
   int id();
+  tag_byte_array();
+  tag_byte_array(gzFile*, bool named);
   tag_string* name;
   tag_int length;
   std::string p;
@@ -89,7 +91,9 @@ struct tag_string : public tag {
 
 struct tag_list : public tag {
   int id();
-  std::string name;
+  tag_list();
+  tag_list(gzFile*, bool named);
+  tag_string* name;
   tag_byte tagid;
   tag_int length;
   std::list<tag*> tags;
