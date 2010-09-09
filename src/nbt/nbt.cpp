@@ -2,6 +2,7 @@
 
 #include <string>
 #include <list>
+#include <sstream>
 
 namespace tag {
 
@@ -18,6 +19,35 @@ T endian_swap(T d) {
   return a;
 }
 
+std::string tagid_string(int8_t tagid) {
+  switch (tagid) {
+    case 0:
+      return "TAG_End";
+    case 1:
+      return "TAG_Byte";
+    case 2:
+      return "TAG_Short";
+    case 3:
+      return "TAG_Int";
+    case 4:
+      return "TAG_Long";
+    case 5:
+      return "TAG_Float";
+    case 6:
+      return "TAG_Double";
+    case 7:
+      return "TAG_Byte_Array";
+    case 8:
+      return "TAG_String";
+    case 9:
+      return "TAG_List";
+    case 10:
+      return "TAG_Compound";
+    default:
+      return "";
+  }
+}
+
 int tag_end::id() { return 0; }
 int tag_byte::id() { return 1; }
 int tag_short::id() { return 2; }
@@ -29,6 +59,115 @@ int tag_byte_array::id() { return 7; }
 int tag_string::id() { return 8; }
 int tag_list::id() { return 9; }
 int tag_compound::id() { return 10; }
+
+std::string tag_end::string(int) {
+  return "";
+}
+std::string tag_byte::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << static_cast<int>(p) << "\n";
+  return ss.str();
+}
+std::string tag_short::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << p << "\n";
+  return ss.str();
+}
+std::string tag_int::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << p << "\n";
+  return ss.str();
+}
+std::string tag_long::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << p << "\n";
+  return ss.str();
+}
+std::string tag_float::string(int indent) {
+  std::stringstream ss;
+  ss.precision(12);
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << p << "\n";
+  return ss.str();
+}
+std::string tag_double::string(int indent) {
+  std::stringstream ss;
+  ss.precision(12);
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << p << "\n";
+  return ss.str();
+}
+std::string tag_byte_array::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": [" << length.p << " bytes]" << "\n";
+  return ss.str();
+}
+std::string tag_string::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << p << "\n";
+  return ss.str();
+}
+std::string tag_list::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << tags.size() << " entries of type "
+             << tagid_string(tagid.p) << "\n";
+  ss << std::string(indent, ' ') << "{\n";
+
+  for (std::list<tag*>::iterator i = tags.begin(); i != tags.end(); ++i)
+    ss << (*i)->string(indent + 2);
+
+  ss << std::string(indent, ' ') << "}\n";
+  return ss.str();
+}
+std::string tag_compound::string(int indent) {
+  std::stringstream ss;
+  ss << std::string(indent, ' ') << tagid_string(id());
+  if (name) {
+    ss << "(\"" << name->p << "\")";
+  }
+  ss << ": " << tags.size() << " entries\n";
+  ss << std::string(indent, ' ') << "{\n";
+
+  for (std::list<tag*>::iterator i = tags.begin(); i != tags.end(); ++i)
+    ss << (*i)->string(indent + 2);
+
+  ss << std::string(indent, ' ') << "}\n";
+  return ss.str();
+}
 
 tag_byte& tag_byte::operator=(const tag_byte& other) {
   if (other.name != NULL) exit(1);
@@ -191,6 +330,7 @@ tag_compound::tag_compound(gzFile* file, bool named)
   }
 }
 
+
 void push_in_tags(std::list<tag*>* tags, gzFile* file,
                   int switcher, bool with_string) {
   switch (switcher) {
@@ -265,5 +405,5 @@ nbt::~nbt() {
 }
 
 std::string nbt::string() {
-  return "";
+  return global->string(0);
 }

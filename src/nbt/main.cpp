@@ -4,6 +4,6 @@
 
 int main() {
   nbt bigfile("bigtest.nbt");
-  std::cout << bigfile.string() << std::endl;
+  std::cout << bigfile.string();
   return 0;
 }

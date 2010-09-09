@@ -17,14 +17,17 @@ struct tag_string;
 struct tag {
   virtual ~tag();
   virtual int id() = 0;
+  virtual std::string string(int indent) = 0;
 };
 
 struct tag_end : public tag {
   int id();
+  std::string string(int indent);
 };
 
 struct tag_byte : public tag {
   int id();
+  std::string string(int indent);
   tag_byte();
   ~tag_byte();
   tag_byte(gzFile*, bool named);
@@ -37,6 +40,7 @@ struct tag_byte : public tag {
 
 struct tag_short : public tag {
   int id();
+  std::string string(int indent);
   tag_short();
   ~tag_short();
   tag_short(gzFile*, bool named);
@@ -49,6 +53,7 @@ struct tag_short : public tag {
 
 struct tag_int : public tag {
   int id();
+  std::string string(int indent);
   tag_int();
   ~tag_int();
   tag_int(gzFile*, bool named);
@@ -61,6 +66,7 @@ struct tag_int : public tag {
 
 struct tag_long : public tag {
   int id();
+  std::string string(int indent);
   tag_long();
   ~tag_long();
   tag_long(gzFile*, bool named);
@@ -73,6 +79,7 @@ struct tag_long : public tag {
 
 struct tag_float : public tag {
   int id();
+  std::string string(int indent);
   tag_float();
   ~tag_float();
   tag_float(gzFile*, bool named);
@@ -85,6 +92,7 @@ struct tag_float : public tag {
 
 struct tag_double : public tag {
   int id();
+  std::string string(int indent);
   tag_double();
   ~tag_double();
   tag_double(gzFile*, bool named);
@@ -97,6 +105,7 @@ struct tag_double : public tag {
 
 struct tag_byte_array : public tag {
   int id();
+  std::string string(int indent);
   tag_byte_array();
   ~tag_byte_array();
   tag_byte_array(gzFile*, bool named);
@@ -110,6 +119,7 @@ struct tag_byte_array : public tag {
 
 struct tag_string : public tag {
   int id();
+  std::string string(int indent);
   tag_string();
   ~tag_string();
   tag_string(gzFile*, bool named);
@@ -123,6 +133,7 @@ struct tag_string : public tag {
 
 struct tag_list : public tag {
   int id();
+  std::string string(int indent);
   tag_list();
   ~tag_list();
   tag_list(gzFile*, bool named);
@@ -137,6 +148,7 @@ struct tag_list : public tag {
 
 struct tag_compound : public tag {
   int id();
+  std::string string(int indent);
   tag_compound();
   ~tag_compound();
   tag_compound(gzFile* file, bool named);
