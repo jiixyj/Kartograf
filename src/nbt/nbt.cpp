@@ -211,8 +211,6 @@ tag_short::tag_short(gzFile* file, bool named)
           : name(named ? (new tag_string(file, false)) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
   p = endian_swap<int16_t>(p);
-  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "")
-            << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_int::tag_int() : tag(), name(), p() {}
@@ -224,8 +222,6 @@ tag_int::tag_int(gzFile* file, bool named)
           : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
   p = endian_swap<int32_t>(p);
-  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "")
-            << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_long::tag_long() : tag(), name(), p() {}
@@ -237,8 +233,6 @@ tag_long::tag_long(gzFile* file, bool named)
           : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
   p = endian_swap<int64_t>(p);
-  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "")
-            << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_float::tag_float() : tag(), name(), p() {}
@@ -250,8 +244,6 @@ tag_float::tag_float(gzFile* file, bool named)
           : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
   p = endian_swap<float>(p);
-  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "")
-            << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_double::tag_double() : tag(), name(), p() {}
@@ -263,8 +255,6 @@ tag_double::tag_double(gzFile* file, bool named)
           : name(named ? new tag_string(file, false) : NULL), p() {
   gzread(*file, reinterpret_cast<void*>(&p), sizeof(p));
   p = endian_swap<double>(p);
-  std::cout << id() << " is: " << ((name != NULL) ? name->p + " " : "")
-            << p << " (size: " << sizeof(p) << ")" << std::endl;
 }
 
 tag_byte_array::tag_byte_array() : tag(), name(), length(), p() {}
@@ -292,7 +282,6 @@ tag_string::tag_string(gzFile* file, bool named)
   char* bufferstring = new char[length.p];
   gzread(*file, bufferstring, length.p);
   p = std::string(bufferstring, length.p);
-  std::cout << p << std::endl;
   delete[] bufferstring;
 }
 
