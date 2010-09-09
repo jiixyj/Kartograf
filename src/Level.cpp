@@ -298,7 +298,6 @@ const render Level::LoadLevelFromFile(const char * c, const int slide, const boo
       bstartlight = z + 5;
     }
   }
-  exit(0);
 
 
   if (R.x > 10000000 || R.y > 10000000) {

@@ -12,6 +12,8 @@
 
 namespace tag {
 
+static std::string filename;
+
 struct tag_string;
 
 struct tag {
