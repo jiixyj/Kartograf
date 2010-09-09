@@ -87,11 +87,11 @@ void Dostuff(int CWorld) {
   }
   QImage MAP;
   if (slide == 70)
-    MAP = QImage(imageheight, imagewidth + 128, QImage::Format_ARGB32);
+    MAP = QImage(imageheight, imagewidth + 128, QImage::Format_ARGB32_Premultiplied);
   else if (slide == 69)
-    MAP = QImage(imageheight, imagewidth, QImage::Format_ARGB32);
+    MAP = QImage(imageheight, imagewidth, QImage::Format_ARGB32_Premultiplied);
   else
-    MAP = QImage(imageheight, imagewidth, QImage::Format_ARGB32);
+    MAP = QImage(imageheight, imagewidth, QImage::Format_ARGB32_Premultiplied);
 
   //std::cout << "\nAssembling image...";
   //if(slide == 69){
