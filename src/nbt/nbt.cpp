@@ -1,10 +1,11 @@
 #include "./nbt.h"
 
+#include <QtCore>
+
 #include <string>
 #include <list>
 #include <sstream>
 
-#include <QtCore>
 
 namespace tag {
 
@@ -450,14 +451,16 @@ nbt::nbt(const std::string& filename) : global() {
   gzclose(filein);
 }
 nbt::~nbt() {
-  for (std::list<tag::tag_compound*>::iterator i = global.begin(); i != global.end();) {
+  for (std::list<tag::tag_compound*>::iterator i = global.begin();
+                                                           i != global.end();) {
     delete *i++;
   }
 }
 
 std::string nbt::string() {
   std::stringstream ss;
-  for (std::list<tag::tag_compound*>::iterator i = global.begin(); i != global.end(); ++i) {
+  for (std::list<tag::tag_compound*>::iterator i = global.begin();
+                                                       i != global.end(); ++i) {
     ss << (*i)->string(0);
   }
   return ss.str();
