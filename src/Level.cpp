@@ -1,5 +1,6 @@
 #include "Level.h"
 
+#include <iostream>
 #include <fstream>
 
 #include "zlib.h"
@@ -232,48 +233,29 @@ const render Level::LoadLevelFromFile(const char * c, const int slide, const boo
 
   bool debugent = false;
 
-  for (int z = 0; z < length; z++) {
-
-    if (z > 10 && databuffer[z] == 112 && databuffer[z-1] == 101 && databuffer[z-2] == 101 && databuffer[z-3] == 104) {
+  for (int z = 11; z < length; z++) {
+    if (databuffer[z] == 112 && databuffer[z-1] == 101 && databuffer[z-2] == 101 && databuffer[z-3] == 104) {
       Sheep++;
-
     }
-
-    if (z > 10 && databuffer[z] == 101 && databuffer[z-1] == 105 && databuffer[z-2] == 98 && databuffer[z-3] == 109) {
+    if (databuffer[z] == 101 && databuffer[z-1] == 105 && databuffer[z-2] == 98 && databuffer[z-3] == 109) {
       Zombie++;
-
     }
-
-    if (z > 10 && databuffer[z] == 103 && databuffer[z-1] == 105 && databuffer[z-2] == 80) {
+    if (databuffer[z] == 103 && databuffer[z-1] == 105 && databuffer[z-2] == 80) {
       Pig++;
-
     }
-
-    if (z > 10 && databuffer[z] == 110 && databuffer[z-1] == 111 && databuffer[z-2] == 116 && databuffer[z-3] == 101 && databuffer[z-4] == 108) {
+    if (databuffer[z] == 110 && databuffer[z-1] == 111 && databuffer[z-2] == 116 && databuffer[z-3] == 101 && databuffer[z-4] == 108) {
       Skeleton++;
-
     }
-
-    if (z > 10 && databuffer[z] == 114 && databuffer[z-1] == 101 && databuffer[z-2] == 112 && databuffer[z-3] == 114) {
+    if (databuffer[z] == 114 && databuffer[z-1] == 101 && databuffer[z-2] == 112 && databuffer[z-3] == 114) {
       Creeper++;
-
     }
-
-    if (z > 10 && databuffer[z] == 119 && databuffer[z-1] == 111 && databuffer[z-2] == 67) {
+    if (databuffer[z] == 119 && databuffer[z-1] == 111 && databuffer[z-2] == 67) {
       Cow++;
-
     }
-    if (z > 10 && databuffer[z] == 101 && databuffer[z-1] == 109 && databuffer[z-2] == 105 && databuffer[z-3] == 108 && databuffer[z-4] == 83) {
+    if (databuffer[z] == 101 && databuffer[z-1] == 109 && databuffer[z-2] == 105 && databuffer[z-3] == 108 && databuffer[z-4] == 83) {
       Slime++;
-
     }
-
-
-
-
-    if (z > 10 && databuffer[z] == 115 && databuffer[z-1] == 111 && databuffer[z-2] == 80 && databuffer[z-3] == 120) {
-
-
+    if (databuffer[z] == 115 && databuffer[z-1] == 111 && databuffer[z-2] == 80 && databuffer[z-3] == 120) {
       long long Int32 = 0;
       bool neg = false;
       if (databuffer[z+1] == 255)neg = true;
@@ -288,13 +270,8 @@ const render Level::LoadLevelFromFile(const char * c, const int slide, const boo
         Int32 += (int)databuffer[z+4] + 1;
       }
       R.x = Int32;
-
-
-
     }
-    if (z > 10 && databuffer[z] == 115 && databuffer[z-1] == 111 && databuffer[z-2] == 80 && databuffer[z-3] == 122) {
-
-
+    if (databuffer[z] == 115 && databuffer[z-1] == 111 && databuffer[z-2] == 80 && databuffer[z-3] == 122) {
       long long Int32 = 0;
       bool neg = false;
       if (databuffer[z+1] == 255)neg = true;
@@ -307,37 +284,26 @@ const render Level::LoadLevelFromFile(const char * c, const int slide, const boo
         Int32 += (int)databuffer[z+3] * 256;
         Int32 += (int)databuffer[z+4] + 1;
       }
-
-
-
       R.y = Int32;
-
     }
-
-
-
     if (databuffer[z] == 115 && databuffer[z-1] == 107 && databuffer[z-2] == 99 && databuffer[z-3] == 111 && databuffer[z-4] == 108 && databuffer[z-5] == 66 && databuffer[z-6] == 6 && databuffer[z-7] == 0) {
       startterrain = z + 5;
-
     }
     if (z > startterrain + 10 && startterrain != 0) break;
 
     if (databuffer[z] == 116 && databuffer[z-1] == 104 && databuffer[z-2] == 103 && databuffer[z-3] == 105 && databuffer[z-4] == 76 && databuffer[z-5] == 121) {
       startlight = z + 5;
-
     }
     if (databuffer[z] == 116 && databuffer[z-1] == 104 && databuffer[z-2] == 103 && databuffer[z-3] == 105 && databuffer[z-4] == 76 && databuffer[z-5] == 107) {
       bstartlight = z + 5;
-
     }
-
   }
+  exit(0);
+
 
   if (R.x > 10000000 || R.y > 10000000) {
     R.isgood = false;
     return R;
-
-
   }
 
 
