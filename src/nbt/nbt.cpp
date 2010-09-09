@@ -4,6 +4,8 @@
 #include <list>
 #include <sstream>
 
+#include <QtCore>
+
 namespace tag {
 
 template <typename T>
@@ -389,6 +391,39 @@ void push_in_tags(std::list<tag*>* tags, gzFile* file,
 }
 }
 
+nbt::nbt(int world) : global() {
+  QDir dir = QDir::home();
+  if (!dir.cd(QString(".minecraft/saves/World") + QString::number(world))) {
+    qFatal("Minecraft is not installed!");
+  }
+
+  QString name = "map" + QString::number(world);
+  dir.setFilter(QDir::Files);
+  QDirIterator it(dir, QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    tag::filename = it.next().toAscii().data();
+    gzFile filein = gzopen(tag::filename.c_str(), "rb");
+    if (!filein) {
+      std::cerr << "file could not be opened! " << tag::filename << std::endl;
+      exit(1);
+    }
+    int buffer = gzgetc(filein);
+    switch (buffer) {
+      case -1:
+        std::cerr << "file read error! " << tag::filename << std::endl;
+        gzclose(filein);
+        continue;
+      case 10:
+        global.push_back(new tag::tag_compound(&filein, true));
+        break;
+      default:
+        std::cerr << "wrong file format! " << tag::filename << std::endl;
+        gzclose(filein);
+        continue;
+    }
+    gzclose(filein);
+  }
+}
 
 nbt::nbt(const std::string& filename) : global() {
   tag::filename = filename;
@@ -405,7 +440,7 @@ nbt::nbt(const std::string& filename) : global() {
       exit(1);
       break;
     case 10:
-      global = new tag::tag_compound(&filein, true);
+      global.push_back(new tag::tag_compound(&filein, true));
       break;
     default:
       std::cerr << "wrong file format! " << filename << std::endl;
@@ -415,9 +450,15 @@ nbt::nbt(const std::string& filename) : global() {
   gzclose(filein);
 }
 nbt::~nbt() {
-  delete global;
+  for (std::list<tag::tag_compound*>::iterator i = global.begin(); i != global.end();) {
+    delete *i++;
+  }
 }
 
 std::string nbt::string() {
-  return global->string(0);
+  std::stringstream ss;
+  for (std::list<tag::tag_compound*>::iterator i = global.begin(); i != global.end(); ++i) {
+    ss << (*i)->string(0);
+  }
+  return ss.str();
 }

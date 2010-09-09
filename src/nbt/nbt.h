@@ -167,12 +167,13 @@ void push_in_tags(std::list<tag*>* tags, gzFile* file,
 
 class nbt {
  public:
+  explicit nbt(int world);
   explicit nbt(const std::string&);
   ~nbt();
 
   std::string string();
  private:
-  tag::tag_compound* global;
+  std::list<tag::tag_compound*> global;
 
   nbt(const nbt&);
   nbt& operator=(const nbt&);
