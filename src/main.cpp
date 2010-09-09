@@ -409,9 +409,12 @@ int main(int ac, const char* av[]) {
     std::cin >> exclude;
   }
 
-
+  QTime t;
+  t.start();
 
   Dostuff(CWorld);
+
+  qDebug( "Time elapsed: %d ms", t.elapsed() );
 
   return 0;
 };
