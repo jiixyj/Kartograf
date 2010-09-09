@@ -16,14 +16,14 @@ Level::~Level() {
 
 }
 
-QColor Blend(QColor A, QColor B, int h) {
+QColor Blend(QColor B, QColor A, int h) {
   QColor C;
   double Aa = A.alphaF();
   double Ba = B.alphaF();
   double Alpha = Aa + Ba - Aa * Ba;
-  C.setRedF((A.redF()*Aa + (B.redF()*(h / 128.0))*Ba*(1 - Aa)) / Alpha);
-  C.setGreenF((A.greenF()*Aa + (B.greenF()*(h / 128.0))*Ba*(1 - Aa)) / Alpha);
-  C.setBlueF((A.blueF()*Aa + (B.blueF()*(h / 128.0))*Ba*(1 - Aa)) / Alpha);
+  C.setRedF((B.redF()*Ba + (A.redF()*(h / 128.0))*Aa*(1 - Ba)) / Alpha);
+  C.setGreenF((B.greenF()*Ba + (A.greenF()*(h / 128.0))*Aa*(1 - Ba)) / Alpha);
+  C.setBlueF((B.blueF()*Ba + (A.blueF()*(h / 128.0))*Aa*(1 - Ba)) / Alpha);
   C.setAlphaF(Alpha);
   return C;
 }
