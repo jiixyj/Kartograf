@@ -193,9 +193,9 @@ tag_int& tag_int::operator=(const tag_int& other) {
   return *this;
 }
 
-tag::tag() : name(NULL), tmp(), tmp2() {}
+tag::tag() : name(NULL) {}
 tag::tag(gzFile* file, bool named)
-          : name(named ? new tag_string(file, false) : NULL), tmp(), tmp2() {}
+          : name(named ? new tag_string(file, false) : NULL) {}
 tag::~tag() {
   delete name;
   name = NULL;

@@ -16,28 +16,27 @@ static std::string filename;
 
 struct tag_string;
 
+#define ERROREXIT std::cerr << "Wrong pay_*() function called!" << std::endl; \
+                  exit(1);
 struct tag {
   tag();
   tag(gzFile* file, bool named);
   virtual ~tag();
   virtual int id() = 0;
   virtual std::string string(int indent) = 0;
-  virtual int8_t pay_byte() const { return -1; }
-  virtual int16_t pay_short() const { return -1; }
-  virtual int32_t pay_int() const { return -1; }
-  virtual int64_t pay_long() const { return -1; }
-  virtual float pay_float() const { return -1.0f; }
-  virtual double pay_double() const { return -1.0; }
-  virtual const std::string& pay_byte_array() const { return tmp2; }
-  virtual const std::string& pay_string() const { return tmp2; }
-  virtual const std::list<tag*>& pay_list() const { return tmp; }
-  virtual const std::list<tag*>& pay_compound() const { return tmp; }
-  virtual const tag* sub(const std::string&) const { return NULL; }
+  virtual int8_t pay_byte() const { ERROREXIT }
+  virtual int16_t pay_short() const { ERROREXIT }
+  virtual int32_t pay_int() const { ERROREXIT }
+  virtual int64_t pay_long() const { ERROREXIT }
+  virtual float pay_float() const { ERROREXIT }
+  virtual double pay_double() const { ERROREXIT }
+  virtual const std::string& pay_byte_array() const { ERROREXIT }
+  virtual const std::string& pay_string() const { ERROREXIT }
+  virtual const std::list<tag*>& pay_list() const { ERROREXIT }
+  virtual const std::list<tag*>& pay_compound() const { ERROREXIT }
+  virtual const tag* sub(const std::string&) const { ERROREXIT }
   tag_string* name;
  private:
-  std::list<tag*> tmp;
-  std::string tmp2;
-
   tag(const tag&);
   tag& operator=(const tag&);
 };
