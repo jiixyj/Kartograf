@@ -11,9 +11,14 @@ int main(int ac, const char* av[]) {
   if (world == 0) {
     nbt bigfile(av[1]);
     std::cout << bigfile.string();
+    int32_t xPos = bigfile.global.front()->sub("Level")
+                                                    ->sub(3, "xPos")->pay_int();
+    int32_t zPos = bigfile.global.front()->sub("Level")
+                                                    ->sub(3, "zPos")->pay_int();
+    std::cout << xPos << " " << zPos << std::endl;
   } else {
     nbt bigfile(world);
-    std::cout << bigfile.string();
+    // std::cout << bigfile.string();
   }
   return 0;
 }
