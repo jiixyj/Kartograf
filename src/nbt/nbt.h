@@ -54,7 +54,7 @@ struct tag_byte : public tag {
   tag_byte(gzFile*, bool named);
   tag_byte& operator=(const tag_byte& other);
   int8_t p;
-  int8_t pay_byte() const { return p; };
+  int8_t pay_byte() const { return p; }
  private:
   tag_byte(const tag_byte&);
 };
@@ -67,7 +67,7 @@ struct tag_short : public tag {
   tag_short(gzFile*, bool named);
   tag_short& operator=(const tag_short& other);
   int16_t p;
-  int16_t pay_short() const { return p; };
+  int16_t pay_short() const { return p; }
  private:
   tag_short(const tag_short&);
 };
@@ -80,7 +80,7 @@ struct tag_int : public tag {
   tag_int(gzFile*, bool named);
   tag_int& operator=(const tag_int& other);
   int32_t p;
-  int32_t pay_int() const { return p; };
+  int32_t pay_int() const { return p; }
  private:
   tag_int(const tag_int&);
 };
@@ -92,7 +92,7 @@ struct tag_long : public tag {
   ~tag_long();
   tag_long(gzFile*, bool named);
   int64_t p;
-  int64_t pay_long() const { return p; };
+  int64_t pay_long() const { return p; }
  private:
   tag_long(const tag_long&);
   tag_long& operator=(const tag_long&);
@@ -105,7 +105,7 @@ struct tag_float : public tag {
   ~tag_float();
   tag_float(gzFile*, bool named);
   float p;
-  float pay_float() const { return p; };
+  float pay_float() const { return p; }
  private:
   tag_float(const tag_float&);
   tag_float& operator=(const tag_float&);
@@ -118,7 +118,7 @@ struct tag_double : public tag {
   ~tag_double();
   tag_double(gzFile*, bool named);
   double p;
-  double pay_double() const { return p; };
+  double pay_double() const { return p; }
  private:
   tag_double(const tag_double&);
   tag_double& operator=(const tag_double&);
@@ -132,7 +132,7 @@ struct tag_byte_array : public tag {
   tag_byte_array(gzFile*, bool named);
   tag_int length;
   std::string p;
-  const std::string& pay_byte_array() const { return p; };
+  const std::string& pay_byte_array() const { return p; }
  private:
   tag_byte_array(const tag_byte_array&);
   tag_byte_array& operator=(const tag_byte_array&);
@@ -146,7 +146,7 @@ struct tag_string : public tag {
   tag_string(gzFile*, bool named);
   tag_short length;
   std::string p;
-  const std::string& pay_string() const { return p; };
+  const std::string& pay_string() const { return p; }
  private:
   tag_string(const tag_string&);
   tag_string& operator=(const tag_string&);
@@ -161,7 +161,7 @@ struct tag_list : public tag {
   tag_byte tagid;
   tag_int length;
   std::list<tag*> tags;
-  const std::list<tag*>& pay_list() const { return tags; };
+  const std::list<tag*>& pay_list() const { return tags; }
  private:
   tag_list(const tag_list&);
   tag_list& operator=(const tag_list&);
@@ -174,7 +174,7 @@ struct tag_compound : public tag {
   ~tag_compound();
   tag_compound(gzFile* file, bool named);
   std::list<tag*> tags;
-  const std::list<tag*>& pay_compound() const { return tags; };
+  const std::list<tag*>& pay_compound() const { return tags; }
   const tag* sub(const std::string& name) const;
  private:
   tag_compound(const tag_compound&);
