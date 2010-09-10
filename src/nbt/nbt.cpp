@@ -332,23 +332,11 @@ tag_compound::tag_compound(gzFile* file, bool named)
   }
 }
 
-const tag* tag_compound::sub(int tagid, const std::string& subname) const {
+const tag* tag_compound::sub(const std::string& subname) const {
   std::list<tag*>::const_iterator it = tags.begin();
   while (it != tags.end()) {
-    if ((*it)->id() == tagid && (*it)->name->p.compare(subname) == 0) {
+    if ((*it)->name->p.compare(subname) == 0) {
       return *it;
-    }
-    ++it;
-  }
-  std::cerr << "tag not found!" << std::endl;
-  return NULL;
-}
-
-const tag_compound* tag_compound::sub(const std::string& subname) const {
-  std::list<tag*>::const_iterator it = tags.begin();
-  while (it != tags.end()) {
-    if ((*it)->id() == 10 && (*it)->name->p.compare(subname) == 0) {
-      return dynamic_cast<tag_compound*>(*it);
     }
     ++it;
   }

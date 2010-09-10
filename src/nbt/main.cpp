@@ -9,13 +9,12 @@ int main(int ac, const char* av[]) {
   }
   int world = atoi(av[1]);
   if (world == 0) {
-    nbt bigfile(av[1]);
-    std::cout << bigfile.string();
-    int32_t xPos = bigfile.global.front()->sub("Level")
-                                                    ->sub(3, "xPos")->pay_int();
-    int32_t zPos = bigfile.global.front()->sub("Level")
-                                                    ->sub(3, "zPos")->pay_int();
-    std::cout << xPos << " " << zPos << std::endl;
+    nbt bf(av[1]);
+    std::cout << bf.string();
+    int32_t xPos = bf.global.front()->sub("Level")->sub("xPos")->pay_int();
+    int32_t zPos = bf.global.front()->sub("Level")->sub("zPos")->pay_int();
+    int64_t time = bf.global.front()->sub("Level")->sub("LastUpdate")->pay_long();
+    std::cout << xPos << " " << zPos << " " << time << std::endl;
   } else {
     nbt bigfile(world);
     // std::cout << bigfile.string();

@@ -32,6 +32,7 @@ struct tag {
   virtual const std::string& pay_string() const { return tmp2; }
   virtual const std::list<tag*>& pay_list() const { return tmp; }
   virtual const std::list<tag*>& pay_compound() const { return tmp; }
+  virtual const tag* sub(const std::string&) const { return NULL; }
   tag_string* name;
  private:
   std::list<tag*> tmp;
@@ -175,8 +176,7 @@ struct tag_compound : public tag {
   tag_compound(gzFile* file, bool named);
   std::list<tag*> tags;
   const std::list<tag*>& pay_compound() const { return tags; };
-  const tag* sub(int tagid, const std::string& name) const;
-  const tag_compound* sub(const std::string& name) const;
+  const tag* sub(const std::string& name) const;
  private:
   tag_compound(const tag_compound&);
   tag_compound& operator=(const tag_compound&);
