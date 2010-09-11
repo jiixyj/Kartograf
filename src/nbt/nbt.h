@@ -42,11 +42,6 @@ struct tag {
   std::tr1::shared_ptr<tag_string> name;
 };
 
-struct tag_end : public tag {
-  int id();
-  std::string string(int indent);
-};
-
 struct tag_byte : public tag {
   int id();
   std::string string(int indent);

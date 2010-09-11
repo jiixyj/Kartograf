@@ -51,7 +51,6 @@ std::string tagid_string(int8_t tagid) {
   }
 }
 
-int tag_end::id() { return 0; }
 int tag_byte::id() { return 1; }
 int tag_short::id() { return 2; }
 int tag_int::id() { return 3; }
@@ -63,9 +62,6 @@ int tag_string::id() { return 8; }
 int tag_list::id() { return 9; }
 int tag_compound::id() { return 10; }
 
-std::string tag_end::string(int) {
-  return "";
-}
 std::string tag_byte::string(int indent) {
   std::stringstream ss;
   ss << std::string(indent, ' ') << tagid_string(id());
