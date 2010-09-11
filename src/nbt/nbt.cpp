@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <sstream>
+#include <boost/assign.hpp>
 
 namespace tag {
 
@@ -19,147 +20,45 @@ T endian_swap(T d) {
   return a;
 }
 
-std::string tagid_string(int8_t tagid) {
-  switch (tagid) {
-    case 0:
-      return "TAG_End";
-    case 1:
-      return "TAG_Byte";
-    case 2:
-      return "TAG_Short";
-    case 3:
-      return "TAG_Int";
-    case 4:
-      return "TAG_Long";
-    case 5:
-      return "TAG_Float";
-    case 6:
-      return "TAG_Double";
-    case 7:
-      return "TAG_Byte_Array";
-    case 8:
-      return "TAG_String";
-    case 9:
-      return "TAG_List";
-    case 10:
-      return "TAG_Compound";
-    default:
-      return "";
-  }
-}
+std::map<int8_t, std::string> tagid_string = boost::assign::map_list_of
+  (0, "TAG_End")
+  (1, "TAG_Byte")
+  (2, "TAG_Short")
+  (3, "TAG_Int")
+  (4, "TAG_Long")
+  (5, "TAG_Float")
+  (6, "TAG_Double")
+  (7, "TAG_Byte_Array")
+  (8, "TAG_String")
+  (9, "TAG_List")
+  (10, "TAG_Compound")
+;
 
-template<>
-int tag_<int8_t>::id() { return 1; }
-template<>
-int tag_<int16_t>::id() { return 2; }
-template<>
-int tag_<int32_t>::id() { return 3; }
-template<>
-int tag_<int64_t>::id() { return 4; }
-template<>
-int tag_<float>::id() { return 5; }
-template<>
-int tag_<double>::id() { return 6; }
-template<>
-int tag_<byte_array>::id() { return 7; }
-template<>
-int tag_<string>::id() { return 8; }
-template<>
-int tag_<list>::id() { return 9; }
-template<>
-int tag_<compound>::id() { return 10; }
+template<> int tag_<int8_t>::id() { return 1; }
+template<> int tag_<int16_t>::id() { return 2; }
+template<> int tag_<int32_t>::id() { return 3; }
+template<> int tag_<int64_t>::id() { return 4; }
+template<> int tag_<float>::id() { return 5; }
+template<> int tag_<double>::id() { return 6; }
+template<> int tag_<byte_array>::id() { return 7; }
+template<> int tag_<string>::id() { return 8; }
+template<> int tag_<list>::id() { return 9; }
+template<> int tag_<compound>::id() { return 10; }
 
-template <>
-tag_<byte_array>::tag_(gzFile* file, bool named)
-          : tag(file, named), p(file, false) {
-  char* bufferstring = new char[p.length.p];
-  if (gzread(*file, bufferstring, p.length.p) == -1) {
-    std::cerr << "file read error! " << filename << std::endl;
-    exit(1);
-  }
-  p.p = std::string(bufferstring, p.length.p);
-  delete[] bufferstring;
-}
-template <>
-tag_<string>::tag_(gzFile* file, bool named)
-          : tag(file, named), p(file, false) {
-  char* bufferstring = new char[p.length.p];
-  if (gzread(*file, bufferstring, p.length.p) == -1) {
-    std::cerr << "file read error! " << filename << std::endl;
-    exit(1);
-  }
-  p.p = std::string(bufferstring, p.length.p);
-  delete[] bufferstring;
-}
-template <>
-tag_<list>::tag_(gzFile* file, bool named)
-          : tag(file, named), p(file, false) {
-  for (int i = 0; i < p.length.p; ++i) {
-    push_in_tags(&(p.tags), file, p.tagid.p, false);
-  }
-}
-template <>
-tag_<compound>::tag_(gzFile* file, bool named)
-          : tag(file, named), p() {
-  int buffer;
-  while ((buffer = gzgetc(*file)) != 0) {
-    push_in_tags(&(p.tags), file, buffer, true);
-  }
-}
+template <> tag_<byte_array>::tag_(gzFile* file, bool named)
+          : tag(file, named), p(file) {}
+template <> tag_<string>::tag_(gzFile* file, bool named)
+          : tag(file, named), p(file) {}
+template <> tag_<list>::tag_(gzFile* file, bool named)
+          : tag(file, named), p(file) {}
+template <> tag_<compound>::tag_(gzFile* file, bool named)
+          : tag(file, named), p(file) {}
 
-template <>
-std::string tag_<byte_array>::str(int indent) {
-  std::stringstream ss;
-  ss.precision(12);
-  ss << std::string(indent, ' ') << tagid_string(id());
-  if (name.get()) {
-    ss << "(\"" << name->p.p << "\")";
-  }
-  ss << ": [" << p.length.p << " bytes]" << "\n";
-  return ss.str();
-}
-template <>
-std::string tag_<list>::str(int indent) {
-  std::stringstream ss;
-  ss.precision(12);
-  ss << std::string(indent, ' ') << tagid_string(id());
-  if (name.get()) {
-    ss << "(\"" << name->p.p << "\")";
-  }
-  ss << ": " << p.tags.size() << " entries of type "
-             << tagid_string(p.tagid.p) << "\n";
-  ss << std::string(indent, ' ') << "{\n";
-
-  std::list<std::tr1::shared_ptr<tag> >::iterator i = p.tags.begin();
-  for (; i != p.tags.end(); ++i)
-    ss << (*i)->str(indent + 2);
-
-  ss << std::string(indent, ' ') << "}\n";
-  return ss.str();
-}
-template <>
-std::string tag_<compound>::str(int indent) {
-  std::stringstream ss;
-  ss.precision(12);
-  ss << std::string(indent, ' ') << tagid_string(id());
-  if (name.get()) {
-    ss << "(\"" << name->p.p << "\")";
-  }
-  ss << ": " << p.tags.size() << " entries\n";
-  ss << std::string(indent, ' ') << "{\n";
-
-  std::list<std::tr1::shared_ptr<tag> >::iterator i = p.tags.begin();
-  for (; i != p.tags.end(); ++i)
-    ss << (*i)->str(indent + 2);
-
-  ss << std::string(indent, ' ') << "}\n";
-  return ss.str();
-}
 template <typename T>
-std::string tag_<T>::str(int indent) {
+std::string tag_<T>::str() {
   std::stringstream ss;
   ss.precision(12);
-  ss << std::string(indent, ' ') << tagid_string(id());
+  ss << std::string(indent, ' ') << tagid_string[id()];
   if (name.get()) {
     ss << "(\"" << name->p.p << "\")";
   }
@@ -189,21 +88,77 @@ tag::tag(gzFile* file, bool named)
           : name(named ? new tag_<string>(file, false) : NULL) {}
 
 
-string::string(gzFile* file, bool named) : length(file, named), p() {}
-std::ostream& operator <<(std::ostream& os,const string& obj) {
+string::string(gzFile* file) : length(file, false), p() {
+  char* bufferstring = new char[length.p];
+  if (gzread(*file, bufferstring, length.p) == -1) {
+    std::cerr << "file read error! " << filename << std::endl;
+    exit(1);
+  }
+  p = std::string(bufferstring, length.p);
+  delete[] bufferstring;
+}
+std::ostream& operator <<(std::ostream& os, const string& obj) {
   os << obj.p;
   return os;
 }
-byte_array::byte_array(gzFile* file, bool named) : length(file, named), p() {}
+byte_array::byte_array(gzFile* file) : length(file, false), p() {
+  char* bufferstring = new char[length.p];
+  if (gzread(*file, bufferstring, length.p) == -1) {
+    std::cerr << "file read error! " << filename << std::endl;
+    exit(1);
+  }
+  p = std::string(bufferstring, length.p);
+  delete[] bufferstring;
+}
+std::ostream& operator <<(std::ostream& os, const byte_array& obj) {
+  os << "[" << obj.length.p << " bytes]" << "\n";
+  return os;
+}
 
-list::list(gzFile* file, bool named) : tagid(file, named), length(file, named),
-          tags() {}
+list::list(gzFile* file) : tagid(file, false), length(file, false), tags() {
+  for (int i = 0; i < length.p; ++i) {
+    push_in_tags(&tags, file, tagid.p, false);
+  }
+}
+std::ostream& operator <<(std::ostream& os, const list& obj) {
+  os << obj.tags.size() << " entries of type "
+     << tagid_string[obj.tagid.p] << "\n";
+  os << std::string(indent, ' ') << "{\n";
 
-const std::tr1::shared_ptr<tag> compound::sub(const std::string& subname)
-                                                                         const {
+  std::list<std::tr1::shared_ptr<tag> >::const_iterator i = obj.tags.begin();
+  indent += 2;
+  for (; i != obj.tags.end(); ++i)
+    os << (*i)->str();
+  indent -= 2;
+
+  os << std::string(indent, ' ') << "}";
+  return os;
+}
+
+compound::compound(gzFile* file) : tags() {
+  int buffer;
+  while ((buffer = gzgetc(*file)) != 0) {
+    push_in_tags(&tags, file, buffer, true);
+  }
+}
+std::ostream& operator <<(std::ostream& os, const compound& obj) {
+  os << obj.tags.size() << " entries\n";
+  os << std::string(indent, ' ') << "{\n";
+
+  std::list<std::tr1::shared_ptr<tag> >::const_iterator i = obj.tags.begin();
+  indent += 2;
+  for (; i != obj.tags.end(); ++i)
+    os << (*i)->str();
+  indent -= 2;
+
+  os << std::string(indent, ' ') << "}";
+  return os;
+}
+
+const std::tr1::shared_ptr<tag> compound::sub(const std::string& name) const {
   std::list<std::tr1::shared_ptr<tag> >::const_iterator it = tags.begin();
   while (it != tags.end()) {
-    if ((*it)->name->p.p.compare(subname) == 0) {
+    if ((*it)->name->p.p.compare(name) == 0) {
       return *it;
     }
     ++it;
@@ -338,8 +293,7 @@ std::string nbt::string() {
   std::list<std::tr1::shared_ptr<tag::tag_<tag::compound> > >::iterator i =
                                                                  global.begin();
   for (; i != global.end(); ++i) {
-    ss << (*i)->str(0);
+    ss << (*i)->str();
   }
   return ss.str();
 }
-

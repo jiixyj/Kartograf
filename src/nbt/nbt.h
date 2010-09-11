@@ -14,6 +14,7 @@
 namespace tag {
 
 static std::string filename;
+static int __attribute__ ((__unused__)) indent = 0;
 
 struct string;
 template <typename T>
@@ -26,7 +27,7 @@ struct tag {
   tag(gzFile* file, bool named);
   virtual ~tag();
   virtual int id() = 0;
-  virtual std::string str(int indent) = 0;
+  virtual std::string str() = 0;
   virtual int8_t pay_byte() const { ERROREXIT }
   virtual int16_t pay_short() const { ERROREXIT }
   virtual int32_t pay_int() const { ERROREXIT }
@@ -52,7 +53,7 @@ template <typename T> struct IsSame<T,T> { typedef TrueType Result; };
 template <typename T>
 struct tag_ : public tag {
   int id();
-  std::string str(int indent);
+  std::string str();
   tag_();
   tag_(gzFile*, bool named);
   T p;
@@ -60,30 +61,38 @@ struct tag_ : public tag {
 };
 
 struct byte_array {
-  byte_array(gzFile*, bool named);
+  byte_array(gzFile*);
   tag_<int32_t> length;
   std::string p;
+  friend std::ostream& operator <<(std::ostream& os,const byte_array& obj);
 };
 
 struct string {
-  string(gzFile*, bool named);
+  string(gzFile*);
   tag_<int16_t> length;
   std::string p;
   friend std::ostream& operator <<(std::ostream& os,const string& obj);
 };
-std::ostream& operator <<(std::ostream& os,const string& obj);
 
 struct list {
-  list(gzFile*, bool named);
+  list(gzFile*);
   tag_<int8_t> tagid;
   tag_<int32_t> length;
   std::list<std::tr1::shared_ptr<tag> > tags;
+  friend std::ostream& operator <<(std::ostream& os,const list& obj);
 };
 
 struct compound {
+  compound(gzFile*);
   std::list<std::tr1::shared_ptr<tag> > tags;
   const std::tr1::shared_ptr<tag> sub(const std::string& subname) const;
+  friend std::ostream& operator <<(std::ostream& os,const compound& obj);
 };
+
+std::ostream& operator <<(std::ostream& os, const byte_array& obj);
+std::ostream& operator <<(std::ostream& os, const string& obj);
+std::ostream& operator <<(std::ostream& os, const list& obj);
+std::ostream& operator <<(std::ostream& os, const compound& obj);
 
 void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string);
