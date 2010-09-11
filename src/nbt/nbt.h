@@ -45,11 +45,6 @@ struct tag {
   std::tr1::shared_ptr<tag_<string> > name;
 };
 
-struct FalseType { enum { value = false }; };
-struct TrueType { enum { value = true }; };
-template <typename T1, typename T2> struct IsSame { typedef FalseType Result; };
-template <typename T> struct IsSame<T,T> { typedef TrueType Result; };
-
 template <typename T>
 struct tag_ : public tag {
   int id();

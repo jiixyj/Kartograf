@@ -34,16 +34,16 @@ std::map<int8_t, std::string> tagid_string = boost::assign::map_list_of
   (10, "TAG_Compound")
 ;
 
-template<> int tag_<int8_t>::id() { return 1; }
-template<> int tag_<int16_t>::id() { return 2; }
-template<> int tag_<int32_t>::id() { return 3; }
-template<> int tag_<int64_t>::id() { return 4; }
-template<> int tag_<float>::id() { return 5; }
-template<> int tag_<double>::id() { return 6; }
-template<> int tag_<byte_array>::id() { return 7; }
-template<> int tag_<string>::id() { return 8; }
-template<> int tag_<list>::id() { return 9; }
-template<> int tag_<compound>::id() { return 10; }
+template <> int tag_<int8_t>::id() { return 1; }
+template <> int tag_<int16_t>::id() { return 2; }
+template <> int tag_<int32_t>::id() { return 3; }
+template <> int tag_<int64_t>::id() { return 4; }
+template <> int tag_<float>::id() { return 5; }
+template <> int tag_<double>::id() { return 6; }
+template <> int tag_<byte_array>::id() { return 7; }
+template <> int tag_<string>::id() { return 8; }
+template <> int tag_<list>::id() { return 9; }
+template <> int tag_<compound>::id() { return 10; }
 
 template <> tag_<byte_array>::tag_(gzFile* file, bool named)
           : tag(file, named), p(file) {}
@@ -53,6 +53,18 @@ template <> tag_<list>::tag_(gzFile* file, bool named)
           : tag(file, named), p(file) {}
 template <> tag_<compound>::tag_(gzFile* file, bool named)
           : tag(file, named), p(file) {}
+
+template <>
+std::string tag_<int8_t>::str() {
+  std::stringstream ss;
+  ss.precision(12);
+  ss << std::string(indent, ' ') << tagid_string[id()];
+  if (name.get()) {
+    ss << "(\"" << name->p.p << "\")";
+  }
+  ss << ": " << static_cast<int>(p) << "\n";
+  return ss.str();
+}
 
 template <typename T>
 std::string tag_<T>::str() {
@@ -111,7 +123,7 @@ byte_array::byte_array(gzFile* file) : length(file, false), p() {
   delete[] bufferstring;
 }
 std::ostream& operator <<(std::ostream& os, const byte_array& obj) {
-  os << "[" << obj.length.p << " bytes]" << "\n";
+  os << "[" << obj.length.p << " bytes]";
   return os;
 }
 
@@ -169,50 +181,41 @@ const std::tr1::shared_ptr<tag> compound::sub(const std::string& name) const {
 
 void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string) {
+  typedef std::tr1::shared_ptr<tag> tp;
   switch (switcher) {
     case -1:
       std::cerr << "file read error! " << filename << std::endl;
       exit(1);
       break;
     case 1:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<int8_t>(file, with_string)));
+      tags->push_back(tp(new tag_<int8_t>(file, with_string)));
       break;
     case 2:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<int16_t>(file, with_string)));
+      tags->push_back(tp(new tag_<int16_t>(file, with_string)));
       break;
     case 3:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<int32_t>(file, with_string)));
+      tags->push_back(tp(new tag_<int32_t>(file, with_string)));
       break;
     case 4:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<int64_t>(file, with_string)));
+      tags->push_back(tp(new tag_<int64_t>(file, with_string)));
       break;
     case 5:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<float>(file, with_string)));
+      tags->push_back(tp(new tag_<float>(file, with_string)));
       break;
     case 6:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<double>(file, with_string)));
+      tags->push_back(tp(new tag_<double>(file, with_string)));
       break;
     case 7:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<byte_array>(file, with_string)));
+      tags->push_back(tp(new tag_<byte_array>(file, with_string)));
       break;
     case 8:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<string>(file, with_string)));
+      tags->push_back(tp(new tag_<string>(file, with_string)));
       break;
     case 9:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<list>(file, with_string)));
+      tags->push_back(tp(new tag_<list>(file, with_string)));
       break;
     case 10:
-      tags->push_back(std::tr1::shared_ptr<tag>
-                      (new tag_<compound>(file, with_string)));
+      tags->push_back(tp(new tag_<compound>(file, with_string)));
       break;
     default:
       std::cerr << "wrong file format: " << switcher << filename << std::endl;
@@ -220,6 +223,7 @@ void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
       break;
   }
 }
+
 }
 
 nbt::nbt(int world) : global() {
@@ -237,7 +241,7 @@ nbt::nbt(int world) : global() {
     size_t second = tag::filename.find(".", first + 1);
     long x = strtol(&(tag::filename.c_str()[first + 1]), NULL, 36);
     long z = strtol(&(tag::filename.c_str()[second + 1]), NULL, 36);
-    std::cout << tag::filename << "  "<< x << " " << z << std::endl;
+    // std::cout << tag::filename << "  "<< x << " " << z << std::endl;
     gzFile filein = gzopen(tag::filename.c_str(), "rb");
     if (!filein) {
       std::cerr << "file could not be opened! " << tag::filename << std::endl;
