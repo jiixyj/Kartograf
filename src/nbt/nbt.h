@@ -20,7 +20,7 @@ struct string;
 template <typename T>
 struct tag_;
 
-#define ERROREXIT std::cerr << "Wrong pay_*() function called!" << std::endl; \
+#define ERROREXIT std::cerr << "Wrong pay_<>() function called!" << std::endl; \
                   exit(1);
 struct tag {
   tag();
@@ -28,21 +28,15 @@ struct tag {
   virtual ~tag();
   virtual int id() = 0;
   virtual std::string str() = 0;
-  virtual int8_t pay_byte() const { ERROREXIT }
-  virtual int16_t pay_short() const { ERROREXIT }
-  virtual int32_t pay_int() const { ERROREXIT }
-  virtual int64_t pay_long() const { ERROREXIT }
-  virtual float pay_float() const { ERROREXIT }
-  virtual double pay_double() const { ERROREXIT }
-  virtual const std::string& pay_byte_array() const { ERROREXIT }
-  virtual const std::string& pay_string() const { ERROREXIT }
-  virtual const std::list<std::tr1::shared_ptr<tag> >& pay_list() const
-  { ERROREXIT }
-  virtual const std::list<std::tr1::shared_ptr<tag> >& pay_compound() const
-  { ERROREXIT }
-  virtual const std::tr1::shared_ptr<tag> sub(const std::string&) const
-  { ERROREXIT }
-  std::tr1::shared_ptr<tag_<string> > name;
+  template <class T> const T& pay_() const {
+    const tag_<T>* payload = dynamic_cast<const tag_<T>*>(this);
+    if (!payload) {
+      ERROREXIT
+    }
+    return payload->p;
+  }
+  const std::tr1::shared_ptr<tag> sub(const std::string&) const;
+  const std::tr1::shared_ptr<tag_<string> > name;
 };
 
 template <typename T>

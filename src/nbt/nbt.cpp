@@ -34,6 +34,10 @@ std::map<int8_t, std::string> tagid_string = boost::assign::map_list_of
   (10, "TAG_Compound")
 ;
 
+const std::tr1::shared_ptr<tag> tag::sub(const std::string& subname) const {
+  return dynamic_cast<const tag_<compound>*>(this)->pay().sub(subname);
+}
+
 template <> int tag_<int8_t>::id() { return 1; }
 template <> int tag_<int16_t>::id() { return 2; }
 template <> int tag_<int32_t>::id() { return 3; }
@@ -241,7 +245,7 @@ nbt::nbt(int world) : global() {
     size_t second = tag::filename.find(".", first + 1);
     long x = strtol(&(tag::filename.c_str()[first + 1]), NULL, 36);
     long z = strtol(&(tag::filename.c_str()[second + 1]), NULL, 36);
-    // std::cout << tag::filename << "  "<< x << " " << z << std::endl;
+    std::cout << tag::filename << "  "<< x << " " << z << std::endl;
     gzFile filein = gzopen(tag::filename.c_str(), "rb");
     if (!filein) {
       std::cerr << "file could not be opened! " << tag::filename << std::endl;
@@ -254,8 +258,8 @@ nbt::nbt(int world) : global() {
         gzclose(filein);
         continue;
       case 10:
-        global.push_back(std::tr1::shared_ptr<tag::tag_<tag::compound> >
-                                 (new tag::tag_<tag::compound>(&filein, true)));
+        // global.push_back(std::tr1::shared_ptr<tag::tag_<tag::compound> >
+        //                          (new tag::tag_<tag::compound>(&filein, true)));
         break;
       default:
         std::cerr << "wrong file format! " << tag::filename << std::endl;
