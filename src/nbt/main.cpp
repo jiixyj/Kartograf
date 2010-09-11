@@ -18,7 +18,11 @@ int main(int ac, const char* av[]) {
     std::cout << xPos << " " << zPos << " " << std::endl;
   } else {
     nbt bigfile(world);
-    std::cout << bigfile.string();
+    // std::list<std::tr1::shared_ptr<tag::tag_<tag::compound> > >::iterator i =
+    //                                                      bigfile.global.begin();
+    // for (; i != bigfile.global.end(); ++i) {
+    // }
+    // std::cout << bigfile.string();
   }
   return 0;
 }
