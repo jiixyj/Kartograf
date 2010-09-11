@@ -131,9 +131,10 @@ std::ostream& operator <<(std::ostream& os, const byte_array& obj) {
   return os;
 }
 
-list::list(gzFile* file) : tagid(file, false), length(file, false), tags() {
+list::list(gzFile* file) : tagid(file, false), length(file, false),
+                           tags(length.p) {
   for (int i = 0; i < length.p; ++i) {
-    push_in_tags(&tags, file, tagid.p, false);
+    push_in_tags(&tags, file, tagid.p, false, i);
   }
 }
 std::ostream& operator <<(std::ostream& os, const list& obj) {
@@ -141,7 +142,7 @@ std::ostream& operator <<(std::ostream& os, const list& obj) {
      << tagid_string[obj.tagid.p] << "\n";
   os << std::string(indent, ' ') << "{\n";
 
-  std::list<std::tr1::shared_ptr<tag> >::const_iterator i = obj.tags.begin();
+  std::vector<std::tr1::shared_ptr<tag> >::const_iterator i = obj.tags.begin();
   indent += 2;
   for (; i != obj.tags.end(); ++i)
     os << (*i)->str();
@@ -183,6 +184,31 @@ const std::tr1::shared_ptr<tag> compound::sub(const std::string& name) const {
   ERROREXIT
 }
 
+void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
+                  int switcher, bool with_string, int i) {
+  typedef std::tr1::shared_ptr<tag> tp;
+  switch (switcher) {
+    case -1:
+      std::cerr << "file read error! " << filename << std::endl;
+      exit(1);
+      break;
+    case 1: (*tags)[i] = tp(new tag_<int8_t>(file, with_string)); break;
+    case 2: (*tags)[i] = tp(new tag_<int16_t>(file, with_string)); break;
+    case 3: (*tags)[i] = tp(new tag_<int32_t>(file, with_string)); break;
+    case 4: (*tags)[i] = tp(new tag_<int64_t>(file, with_string)); break;
+    case 5: (*tags)[i] = tp(new tag_<float>(file, with_string)); break;
+    case 6: (*tags)[i] = tp(new tag_<double>(file, with_string)); break;
+    case 7: (*tags)[i] = tp(new tag_<byte_array>(file, with_string)); break;
+    case 8: (*tags)[i] = tp(new tag_<string>(file, with_string)); break;
+    case 9: (*tags)[i] = tp(new tag_<list>(file, with_string)); break;
+    case 10: (*tags)[i] = tp(new tag_<compound>(file, with_string)); break;
+    default:
+      std::cerr << "wrong file format: " << switcher << filename << std::endl;
+      exit(1);
+      break;
+  }
+}
+
 void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string) {
   typedef std::tr1::shared_ptr<tag> tp;
@@ -191,36 +217,16 @@ void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
       std::cerr << "file read error! " << filename << std::endl;
       exit(1);
       break;
-    case 1:
-      tags->push_back(tp(new tag_<int8_t>(file, with_string)));
-      break;
-    case 2:
-      tags->push_back(tp(new tag_<int16_t>(file, with_string)));
-      break;
-    case 3:
-      tags->push_back(tp(new tag_<int32_t>(file, with_string)));
-      break;
-    case 4:
-      tags->push_back(tp(new tag_<int64_t>(file, with_string)));
-      break;
-    case 5:
-      tags->push_back(tp(new tag_<float>(file, with_string)));
-      break;
-    case 6:
-      tags->push_back(tp(new tag_<double>(file, with_string)));
-      break;
-    case 7:
-      tags->push_back(tp(new tag_<byte_array>(file, with_string)));
-      break;
-    case 8:
-      tags->push_back(tp(new tag_<string>(file, with_string)));
-      break;
-    case 9:
-      tags->push_back(tp(new tag_<list>(file, with_string)));
-      break;
-    case 10:
-      tags->push_back(tp(new tag_<compound>(file, with_string)));
-      break;
+    case 1: tags->push_back(tp(new tag_<int8_t>(file, with_string))); break;
+    case 2: tags->push_back(tp(new tag_<int16_t>(file, with_string))); break;
+    case 3: tags->push_back(tp(new tag_<int32_t>(file, with_string))); break;
+    case 4: tags->push_back(tp(new tag_<int64_t>(file, with_string))); break;
+    case 5: tags->push_back(tp(new tag_<float>(file, with_string))); break;
+    case 6: tags->push_back(tp(new tag_<double>(file, with_string))); break;
+    case 7: tags->push_back(tp(new tag_<byte_array>(file, with_string))); break;
+    case 8: tags->push_back(tp(new tag_<string>(file, with_string))); break;
+    case 9: tags->push_back(tp(new tag_<list>(file, with_string))); break;
+    case 10: tags->push_back(tp(new tag_<compound>(file, with_string))); break;
     default:
       std::cerr << "wrong file format: " << switcher << filename << std::endl;
       exit(1);
@@ -258,8 +264,8 @@ nbt::nbt(int world) : global() {
         gzclose(filein);
         continue;
       case 10:
-        // global.push_back(std::tr1::shared_ptr<tag::tag_<tag::compound> >
-        //                          (new tag::tag_<tag::compound>(&filein, true)));
+        global.push_back(std::tr1::shared_ptr<tag::tag_<tag::compound> >
+                                 (new tag::tag_<tag::compound>(&filein, true)));
         break;
       default:
         std::cerr << "wrong file format! " << tag::filename << std::endl;

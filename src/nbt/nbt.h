@@ -67,7 +67,7 @@ struct list {
   list(gzFile*);
   tag_<int8_t> tagid;
   tag_<int32_t> length;
-  std::list<std::tr1::shared_ptr<tag> > tags;
+  std::vector<std::tr1::shared_ptr<tag> > tags;
   friend std::ostream& operator <<(std::ostream& os,const list& obj);
 };
 
@@ -83,6 +83,8 @@ std::ostream& operator <<(std::ostream& os, const string& obj);
 std::ostream& operator <<(std::ostream& os, const list& obj);
 std::ostream& operator <<(std::ostream& os, const compound& obj);
 
+void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
+                  int switcher, bool with_string, int index);
 void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string);
 }
