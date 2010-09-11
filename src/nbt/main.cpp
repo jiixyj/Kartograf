@@ -11,13 +11,14 @@ int main(int ac, const char* av[]) {
   if (world == 0) {
     nbt bf(av[1]);
     std::cout << bf.string();
-    int32_t xPos = bf.global.front()->sub("Level")->sub("xPos")->pay_int();
-    int32_t zPos = bf.global.front()->sub("Level")->sub("zPos")->pay_int();
-    int64_t time = bf.global.front()->sub("Level")->sub("LastUpdate")->pay_long();
+    tag::tag* global = bf.global.front();
+    int32_t xPos = global->sub("Level")->sub("xPos")->pay_int();
+    int32_t zPos = global->sub("Level")->sub("zPos")->pay_int();
+    int64_t time = global->sub("Level")->sub("LastUpdate")->pay_long();
     std::cout << xPos << " " << zPos << " " << time << std::endl;
   } else {
     nbt bigfile(world);
-    // std::cout << bigfile.string();
+    std::cout << bigfile.string();
   }
   return 0;
 }
