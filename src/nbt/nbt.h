@@ -22,7 +22,7 @@ struct tag_string;
 struct tag {
   tag();
   tag(gzFile* file, bool named);
-  virtual ~tag() {};
+  virtual ~tag();
   virtual int id() = 0;
   virtual std::string string(int indent) = 0;
   virtual int8_t pay_byte() const { ERROREXIT }
@@ -125,7 +125,6 @@ struct tag_list : public tag {
   int id();
   std::string string(int indent);
   tag_list();
-  ~tag_list();
   tag_list(gzFile*, bool named);
   tag_byte tagid;
   tag_int length;
@@ -137,7 +136,6 @@ struct tag_compound : public tag {
   int id();
   std::string string(int indent);
   tag_compound();
-  ~tag_compound();
   tag_compound(gzFile* file, bool named);
   std::list<std::tr1::shared_ptr<tag> > tags;
   const std::list<std::tr1::shared_ptr<tag> >& pay_compound() const
@@ -153,7 +151,6 @@ class nbt {
  public:
   explicit nbt(int world);
   explicit nbt(const std::string&);
-  ~nbt();
 
   std::string string();
 

@@ -175,6 +175,7 @@ std::string tag_compound::string(int indent) {
 }
 
 tag::tag() : name() {}
+tag::~tag() {}
 tag::tag(gzFile* file, bool named)
           : name(named ? new tag_string(file, false) : NULL) {}
 
@@ -262,8 +263,6 @@ tag_string::tag_string(gzFile* file, bool named)
 }
 
 tag_list::tag_list() : tag(), tagid(), length(), tags() {}
-tag_list::~tag_list() {
-}
 tag_list::tag_list(gzFile* file, bool named)
           : tag(file, named),
             tagid(file, false), length(file, false), tags() {
@@ -273,8 +272,6 @@ tag_list::tag_list(gzFile* file, bool named)
 }
 
 tag_compound::tag_compound() : tag(), tags() {}
-tag_compound::~tag_compound() {
-}
 tag_compound::tag_compound(gzFile* file, bool named)
           : tag(file, named), tags() {
   int buffer;
@@ -415,9 +412,6 @@ nbt::nbt(const std::string& filename) : global() {
       break;
   }
   gzclose(filein);
-}
-
-nbt::~nbt() {
 }
 
 std::string nbt::string() {
