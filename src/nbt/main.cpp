@@ -11,18 +11,19 @@ int main(int ac, const char* av[]) {
   if (world == 0) {
     nbt bf(av[1]);
     std::cout << bf.string();
-    tag::tag* global = bf.global.front().get();
-    int32_t xPos, zPos;
-    xPos = global->sub("Level")->sub("xPos")->pay_<int32_t>();
-    zPos = global->sub("Level")->sub("zPos")->pay_<int32_t>();
-    std::cout << xPos << " " << zPos << " " << std::endl;
   } else {
-    nbt bigfile(world);
-    // std::list<std::tr1::shared_ptr<tag::tag_<tag::compound> > >::iterator i =
-    //                                                      bigfile.global.begin();
-    // for (; i != bigfile.global.end(); ++i) {
-    // }
-    // std::cout << bigfile.string();
+    nbt bf(world);
+    for (int i = bf.zPos_min(); i < bf.zPos_max(); ++i) {
+      for (int j = bf.xPos_min(); j < bf.xPos_max(); ++j) {
+        const nbt::tag_ptr tag = bf.tag_at(j, i);
+        if (tag) {
+          nbt::tag_ptr comp(tag->sub("Level")->sub("xPos"));
+          int32_t xPos = comp->pay_<int32_t>();
+          int32_t zPos = comp->pay_<int32_t>();
+          std::cout << xPos << " " << zPos << " " << std::endl;
+        }
+      }
+    }
   }
   return 0;
 }

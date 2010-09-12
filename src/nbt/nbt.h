@@ -5,19 +5,33 @@
 #include <zlib.h>
 
 #include <string>
+#include <QtCore>
 
 #include "./tag.h"
 
 class nbt {
  public:
+  nbt();
   explicit nbt(int world);
   explicit nbt(const std::string&);
 
   std::string string();
+  int32_t xPos_min() { return xPos_min_; }
+  int32_t zPos_min() { return zPos_min_; }
+  int32_t xPos_max() { return xPos_max_; }
+  int32_t zPos_max() { return zPos_max_; }
 
-  /* make this private */
-  std::list<std::tr1::shared_ptr<tag::tag_<tag::compound> > > global;
+  typedef std::tr1::shared_ptr<tag::tag> tag_ptr;
+  const tag_ptr tag_at(int32_t x, int32_t z);
+
+  tag_ptr tag_;
  private:
+  int32_t xPos_min_;
+  int32_t zPos_min_;
+  int32_t xPos_max_;
+  int32_t zPos_max_;
+
+  QDir dir_;
 
   nbt(const nbt&);
   nbt& operator=(const nbt&);
