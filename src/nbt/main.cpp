@@ -13,14 +13,15 @@ int main(int ac, const char* av[]) {
     std::cout << bf.string();
   } else {
     nbt bf(world);
-    for (int i = bf.zPos_min(); i < bf.zPos_max(); ++i) {
-      for (int j = bf.xPos_min(); j < bf.xPos_max(); ++j) {
+    for (int i = bf.zPos_min(); i <= bf.zPos_max(); ++i) {
+      for (int j = bf.xPos_min(); j <= bf.xPos_max(); ++j) {
         const nbt::tag_ptr tag = bf.tag_at(j, i);
         if (tag) {
-          nbt::tag_ptr comp(tag->sub("Level")->sub("xPos"));
-          int32_t xPos = comp->pay_<int32_t>();
-          int32_t zPos = comp->pay_<int32_t>();
-          std::cout << xPos << " " << zPos << " " << std::endl;
+          nbt::tag_ptr comp(tag->sub("Level"));
+          int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
+          int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
+          std::cout << j << " " << xPos << "  "
+                    << i << " " << zPos << std::endl;
         }
       }
     }
