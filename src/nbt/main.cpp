@@ -65,7 +65,10 @@ int main(int ac, const char* av[]) {
                   color.setRgba(QColor(height, height, height, 255).rgba());
                 }
               } else {
-                for (int h = 0; h <= height; ++h) {
+                int height_low_bound = height;
+                while (colors[blocks[height_low_bound-- + ii0 * 128
+                                             + jj0 * 128 * 16]].alpha() != 255);
+                for (int h = height_low_bound; h <= height; ++h) {
                   uint8_t blknr = blocks[h + ii0 * 128 + jj0 * 128 * 16];
                   color = blend(colors[blknr], color);
                 }
