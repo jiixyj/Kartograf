@@ -1,8 +1,10 @@
 #include <iostream>
 #include <QtGui>
 #include <limits>
+#include <cmath>
 
 #include "./nbt.h"
+#include "./settings.h"
 
 int main(int ac, const char* av[]) {
   if (ac != 2) {
@@ -15,10 +17,15 @@ int main(int ac, const char* av[]) {
     std::cout << bf.string();
   } else {
     nbt bf(world);
+    Settings set;
+    set.topview = true;
+    set.heightmap = true;
+    set.color = false;
     QImage img((bf.xPos_max() - bf.xPos_min() + 1) * 16,
                (bf.zPos_max() - bf.zPos_min() + 1) * 16,
                QImage::Format_ARGB32_Premultiplied);
     img.fill(0);
+          int min = 300, max = -10;
     for (int i = bf.zPos_min(); i <= bf.zPos_max(); ++i) {
       for (int j = bf.xPos_min(); j <= bf.xPos_max(); ++j) {
         const nbt::tag_ptr tag = bf.tag_at(j, i);
@@ -41,9 +48,15 @@ int main(int ac, const char* av[]) {
           int index = 0;
           for (int32_t ii = zPos_img; ii < zPos_img + 16; ++ii) {
             for (int32_t jj = xPos_img; jj < xPos_img + 16; ++jj) {
-              char height = heightMap.at(index++);
+              unsigned char height = heightMap.at(index++);
+              QColor color;
+              if (set.color) {
+                color.setHsvF(atan(((1.0 - height / 127.0) - 0.5) * 10) / M_PI + 0.5, 1.0, 1.0, 1.0);
+              } else {
+                color.setRgba(QColor(height, height, height, 255).rgba());
+              }
               img.setPixel(static_cast<int32_t>(jj), static_cast<int32_t>(ii),
-                           QColor(height, height, height, 255).rgba());
+                           color.rgba());
             }
           }
           // std::cout << j << " " << xPos << "  "
