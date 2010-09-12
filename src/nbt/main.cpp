@@ -26,6 +26,8 @@ int main(int ac, const char* av[]) {
           nbt::tag_ptr comp(tag->sub("Level"));
           int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
           int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
+          const std::string& heightMap = comp->sub("HeightMap")->
+                                               pay_<tag::byte_array>().p;
           uint64_t xtmp = (xPos - bf.xPos_min()) * 16;
           uint64_t ztmp = (zPos - bf.zPos_min()) * 16;
           int32_t max_int = std::numeric_limits<int32_t>::max();
@@ -36,10 +38,12 @@ int main(int ac, const char* av[]) {
           }
           int32_t xPos_img = static_cast<int32_t>(xtmp);
           int32_t zPos_img = static_cast<int32_t>(ztmp);
+          int index = 0;
           for (int32_t ii = zPos_img; ii < zPos_img + 16; ++ii) {
             for (int32_t jj = xPos_img; jj < xPos_img + 16; ++jj) {
+              char height = heightMap.at(index++);
               img.setPixel(static_cast<int32_t>(jj), static_cast<int32_t>(ii),
-                           QColor(0, 0, 0, 255).rgba());
+                           QColor(height, height, height, 255).rgba());
             }
           }
           // std::cout << j << " " << xPos << "  "
