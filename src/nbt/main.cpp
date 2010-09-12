@@ -70,7 +70,7 @@ int main(int ac, const char* av[]) {
                   color = blend(colors[blknr], color);
                 }
                 img.setPixel(static_cast<int32_t>(jj), static_cast<int32_t>(ii),
-                             color.rgba());
+                             color.lighter((height - 64) / 2 + 64).rgba());
               }
               // uint8_t light = skylight[(height + ii0 * 128 + jj0 * 128 * 16) / 2];
               // if (height % 2 == 1) {
