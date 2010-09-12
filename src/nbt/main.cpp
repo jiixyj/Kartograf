@@ -2,6 +2,7 @@
 #include <QtGui>
 #include <limits>
 #include <cmath>
+#include <bitset>
 
 #include "./nbt.h"
 #include "./settings.h"
@@ -53,6 +54,8 @@ int main(int ac, const char* av[]) {
           int index = 0;
           for (int32_t ii = zPos_img; ii < zPos_img + 16; ++ii) {
             for (int32_t jj = xPos_img; jj < xPos_img + 16; ++jj) {
+              int32_t ii0 = ii - zPos_img;
+              int32_t jj0 = jj - xPos_img;
               uint8_t height = heightMap[index++];
               QColor color;
               if (set.heightmap) {
@@ -62,8 +65,6 @@ int main(int ac, const char* av[]) {
                   color.setRgba(QColor(height, height, height, 255).rgba());
                 }
               } else {
-                int32_t ii0 = ii - zPos_img;
-                int32_t jj0 = jj - xPos_img;
                 for (int h = 0; h <= height; ++h) {
                   uint8_t blknr = blocks[h + ii0 * 128 + jj0 * 128 * 16];
                   color = blend(colors[blknr], color);
@@ -71,6 +72,14 @@ int main(int ac, const char* av[]) {
                 img.setPixel(static_cast<int32_t>(jj), static_cast<int32_t>(ii),
                              color.rgba());
               }
+              // uint8_t light = skylight[(height + ii0 * 128 + jj0 * 128 * 16) / 2];
+              // if (height % 2 == 1) {
+              //   light >>= 4;
+              // } else {
+              //   light &= 0x0F;
+              // }
+              // light <<= 4;
+
             }
           }
           // std::cout << j << " " << xPos << "  "
