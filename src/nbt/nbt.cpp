@@ -6,8 +6,6 @@
 #include <limits>
 #include <sstream>
 
-#include "./colors.h"
-
 nbt::nbt(int world) : tag_(),
                       xPos_min_(std::numeric_limits<int32_t>::max()),
                       zPos_min_(std::numeric_limits<int32_t>::max()),

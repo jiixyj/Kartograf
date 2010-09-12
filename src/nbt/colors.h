@@ -1,6 +1,24 @@
 #include <boost/assign.hpp>
 #include <QtGui>
 
+QColor blend(QColor B, QColor A, int h) {
+  QColor C;
+  C.setRedF(B.redF() + (1 - B.alphaF()) * A.redF()*(h / 128.0));
+  C.setGreenF(B.greenF() + (1 - B.alphaF()) * A.greenF()*(h / 128.0));
+  C.setBlueF(B.blueF() + (1 - B.alphaF()) * A.blueF()*(h / 128.0));
+  C.setAlphaF(B.alphaF() + (1 - B.alphaF()) * A.alphaF());
+  return C;
+}
+
+QColor blend(const QColor& B, const QColor& A) {
+  QColor C;
+  C.setRedF(B.redF() + (1 - B.alphaF()) * A.redF());
+  C.setGreenF(B.greenF() + (1 - B.alphaF()) * A.greenF());
+  C.setBlueF(B.blueF() + (1 - B.alphaF()) * A.blueF());
+  C.setAlphaF(B.alphaF() + (1 - B.alphaF()) * A.alphaF());
+  return C;
+}
+
 static std::map<int, QColor> colors = boost::assign::map_list_of
   (0, QColor(0, 0, 0, 0))
   (1, QColor(120, 120, 120, 255))
