@@ -86,5 +86,6 @@ static std::map<int, QColor> colors = boost::assign::map_list_of
   (81, QColor(25, 120, 25, 255))
   (82, QColor(151, 157, 169, 255))
   (83, QColor(193, 234, 150, 255))
-  (83, QColor(100, 67, 50, 255))
+  (84, QColor(100, 67, 50, 255))
+  (85, QColor(92, 72, 32, 128))
 ;
