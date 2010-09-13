@@ -29,7 +29,6 @@ int main(int ac, const char* av[]) {
              (bf.zPos_max() - bf.zPos_min() + 1) * 16,
              QImage::Format_ARGB32_Premultiplied);
   img.fill(0);
-        int min = 300, max = -10;
   for (int i = bf.zPos_min(); i <= bf.zPos_max(); ++i) {
     for (int j = bf.xPos_min(); j <= bf.xPos_max(); ++j) {
       const nbt::tag_ptr tag = bf.tag_at(j, i);
