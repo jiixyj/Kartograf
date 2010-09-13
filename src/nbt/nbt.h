@@ -33,8 +33,7 @@ class nbt {
 
   QDir dir_;
 
-  nbt(const nbt&);
-  nbt& operator=(const nbt&);
+  void construct_world();
 };
 
 #endif  // SRC_NBT_NBT_H_

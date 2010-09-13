@@ -6,6 +6,13 @@
 #include <limits>
 #include <sstream>
 
+nbt::nbt() : tag_(),
+                      xPos_min_(std::numeric_limits<int32_t>::max()),
+                      zPos_min_(std::numeric_limits<int32_t>::max()),
+                      xPos_max_(std::numeric_limits<int32_t>::min()),
+                      zPos_max_(std::numeric_limits<int32_t>::min()),
+                      dir_(QDir::home()) {}
+
 nbt::nbt(int world) : tag_(),
                       xPos_min_(std::numeric_limits<int32_t>::max()),
                       zPos_min_(std::numeric_limits<int32_t>::max()),
@@ -17,23 +24,7 @@ nbt::nbt(int world) : tag_(),
   }
   QString name = "map" + QString::number(world);
   dir_.setFilter(QDir::Files);
-  QDirIterator it(dir_, QDirIterator::Subdirectories);
-  while (it.hasNext()) {
-    it.next();
-    std::string fn = it.fileName().toAscii().data();
-    size_t first = fn.find(".");
-    size_t second = fn.find(".", first + 1);
-    if (second != std::string::npos) {
-      long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
-      long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
-      xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
-      xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
-      zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
-      zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
-    }
-  }
-  std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;
-  std::cout << "z: " << zPos_min_ << " " << zPos_max_ << std::endl;
+  construct_world();
 }
 
 nbt::nbt(const std::string& filename)
@@ -43,6 +34,10 @@ nbt::nbt(const std::string& filename)
             xPos_max_(std::numeric_limits<int32_t>::min()),
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_() {
+  if ((dir_ = QDir(QString::fromStdString(filename))).exists()) {
+    construct_world();
+    return;
+  }
   tag::filename = filename;
   gzFile filein = gzopen(filename.c_str(), "rb");
   if (!filein) {
@@ -66,6 +61,27 @@ nbt::nbt(const std::string& filename)
   }
   gzclose(filein);
 }
+
+void nbt::construct_world() {
+  QDirIterator it(dir_, QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    it.next();
+    std::string fn = it.fileName().toAscii().data();
+    size_t first = fn.find(".");
+    size_t second = fn.find(".", first + 1);
+    if (second != std::string::npos) {
+      long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
+      long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
+      xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
+      xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
+      zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
+      zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
+    }
+  }
+  std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;
+  std::cout << "z: " << zPos_min_ << " " << zPos_max_ << std::endl;
+}
+
 
 const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) {
   QDir tmp = dir_;
@@ -113,5 +129,5 @@ const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) {
 }
 
 std::string nbt::string() {
-  return tag_->str();
+  return (tag_ != 0) ? tag_->str() : "";
 }
