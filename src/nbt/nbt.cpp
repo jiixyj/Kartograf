@@ -6,6 +6,8 @@
 #include <limits>
 #include <sstream>
 
+#include "./colors.h"
+
 nbt::nbt() : tag_(),
                       xPos_min_(std::numeric_limits<int32_t>::max()),
                       zPos_min_(std::numeric_limits<int32_t>::max()),
@@ -83,7 +85,7 @@ void nbt::construct_world() {
 }
 
 
-const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) {
+const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   QDir tmp = dir_;
   QString dirname(QString::number((x + 64) % 64, 36) + "/"
                 + QString::number((z + 64) % 64, 36));
@@ -126,6 +128,79 @@ const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) {
               << dirstring.toAscii().data() << std::endl;
   }
   exit(1);
+}
+
+void nbt::setSettings(Settings set) {
+  set_ = set;
+  return;
+}
+
+QImage nbt::getImage(int32_t j, int32_t i) const {
+  QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
+  img.fill(0);
+      const nbt::tag_ptr tag = tag_at(j, i);
+      if (tag) {
+        nbt::tag_ptr comp(tag->sub("Level"));
+        int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
+        int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
+        const std::string& heightMap = comp->sub("HeightMap")->
+                                             pay_<tag::byte_array>().p;
+        const std::string& blocks = comp->sub("Blocks")->
+                                             pay_<tag::byte_array>().p;
+        const std::string& skylight = comp->sub("SkyLight")->
+                                             pay_<tag::byte_array>().p;
+        uint64_t xtmp = (xPos - xPos_min()) * 16;
+        uint64_t ztmp = (zPos - zPos_min()) * 16;
+        int32_t max_int = std::numeric_limits<int32_t>::max();
+        if (xtmp + 15 > static_cast<uint64_t>(max_int)
+         || ztmp + 15 > static_cast<uint64_t>(max_int)) {
+          std::cerr << "Map is too large for an image!" << std::endl;
+          exit(1);
+        }
+        int32_t xPos_img = static_cast<int32_t>(xtmp);
+        int32_t zPos_img = static_cast<int32_t>(ztmp);
+        int index = 0;
+        for (int32_t ii = zPos_img; ii < zPos_img + 16; ++ii) {
+          for (int32_t jj = xPos_img; jj < xPos_img + 16; ++jj) {
+            int32_t ii0 = ii - zPos_img;
+            int32_t jj0 = jj - xPos_img;
+            uint8_t height = heightMap[index++];
+            QColor color;
+            if (set_.heightmap) {
+              if (set_.color) {
+                color.setHsvF(atan(((1.0 - height / 127.0) - 0.5) * 10) / M_PI + 0.5, 1.0, 1.0, 1.0);
+              } else {
+                color.setRgba(QColor(height, height, height, 255).rgba());
+              }
+            } else {
+              int height_low_bound = height;
+              while (colors[blocks[height_low_bound-- + ii0 * 128
+                                           + jj0 * 128 * 16]].alpha() != 255);
+              for (int h = height_low_bound; h <= height; ++h) {
+                uint8_t blknr = blocks[h + ii0 * 128 + jj0 * 128 * 16];
+                color = blend(colors[blknr], color);
+              }
+              // painter.setPen(color.lighter((height - 64) / 2 + 64));
+              // painter.drawPoint(static_cast<int32_t>(jj), static_cast<int32_t>(ii));
+              // label.repaint();
+              // label.update();
+            }
+            img.setPixel(static_cast<int32_t>(jj0), static_cast<int32_t>(ii0),
+                         color.lighter((height - 64) / 2 + 64).rgba());
+            // uint8_t light = skylight[(height + ii0 * 128 + jj0 * 128 * 16) / 2];
+            // if (height % 2 == 1) {
+            //   light >>= 4;
+            // } else {
+            //   light &= 0x0F;
+            // }
+            // light <<= 4;
+
+          }
+        }
+        // std::cout << j << " " << xPos << "  "
+        //           << i << " " << zPos << std::endl;
+      }
+  return img;
 }
 
 std::string nbt::string() {
