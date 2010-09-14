@@ -24,7 +24,7 @@ int main(int ac, char* av[]) {
   std::cout << bf.string();
   Settings set;
   set.topview = true;
-  set.heightmap = true;
+  set.heightmap = false;
   set.color = false;
   bf.setSettings(set);
   QGraphicsScene scene;

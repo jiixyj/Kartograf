@@ -2,10 +2,12 @@
 
 #include <iostream>
 #include <Qt/QtTest>
+#include <QtGui>
 
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent)
-                 : QGraphicsView(img, parent), bf_(bf) {
+                 : QGraphicsView(img, parent), bf_(bf), scale_(1) {
+  connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
 }
 
 void MainForm::populateScene() {
@@ -13,8 +15,9 @@ void MainForm::populateScene() {
     for (int j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
       populateSceneH(i, j);
     }
-   // QTest::qWait(1);
+    QTest::qWait(1);
   }
+  // setTransform(QTransform().scale(1, 1));
 }
 
 void MainForm::populateSceneH(int i, int j) {
@@ -25,6 +28,37 @@ void MainForm::populateSceneH(int i, int j) {
       pi->setPos(16 * j, 16 * i);
 }
 
+void MainForm::scale() {
+  if (scale_ <= 0) {
+    setTransform(QTransform().scale(1.0/pow(2.0, abs(scale_ - 1)), 1.0/pow(2.0, abs(scale_ - 1))));
+  } else {
+    setTransform(QTransform().scale(scale_, scale_));
+  }
+}
+
 void MainForm::getGoing() {
   emit startPopulatingScene();
+}
+
+void MainForm::mousePressEvent(QMouseEvent* event) {
+  switch (event->button()) {
+    case Qt::LeftButton:
+      ++scale_;
+      emit scaleSig();
+      break;
+    case Qt::MidButton:
+      break;
+    case Qt::RightButton:
+      --scale_;
+      emit scaleSig();
+      break;
+    default:
+      break;
+  }
+  return;
+}
+
+void MainForm::mouseDoubleClickEvent(QMouseEvent* event) {
+  mousePressEvent(event);
+  return;
 }
