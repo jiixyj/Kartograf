@@ -271,6 +271,10 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
   return img;
 }
 
+void nbt::clearCache() const {
+  blockcache_.clear();
+}
+
 std::string nbt::string() {
   return (tag_ != 0) ? tag_->str() : "";
 }

@@ -14,7 +14,7 @@ class MainForm : public QGraphicsView {
 
  public slots:
   void populateScene();
-  void populateSceneH(int i, int j);
+  void populateSceneItem(int i, int j);
   void scale();
 
  signals:

@@ -27,6 +27,7 @@ class nbt {
 
   void setSettings(Settings set);
   QImage getImage(int32_t x, int32_t z) const;
+  void clearCache() const;
 
   tag_ptr tag_;
  private:

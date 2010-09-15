@@ -13,14 +13,15 @@ MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent)
 void MainForm::populateScene() {
   for (int i = bf_->zPos_min(); i <= bf_->zPos_max(); ++i) {
     for (int j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
-      populateSceneH(i, j);
+      populateSceneItem(i, j);
     }
     QTest::qWait(1);
   }
+  bf_->clearCache();
   // setTransform(QTransform().scale(1, 1));
 }
 
-void MainForm::populateSceneH(int i, int j) {
+void MainForm::populateSceneItem(int i, int j) {
       QGraphicsPixmapItem* pi =
       scene()->addPixmap(QPixmap::fromImage(bf_->getImage(j, i)));
       pi->setFlag(QGraphicsItem::ItemIsMovable, false);
