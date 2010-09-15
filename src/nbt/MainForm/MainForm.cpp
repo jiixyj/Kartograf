@@ -1,11 +1,11 @@
 #include "MainForm.moc"
 
-#include <iostream>
 #include <QtGui>
+#include <iostream>
 
 
-MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent)
-                 : QGraphicsView(img, parent), bf_(bf), scale_(1) {
+MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
+                 : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1) {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
 }
 
@@ -35,7 +35,8 @@ void MainForm::populateSceneItem(int i, int j) {
 
 void MainForm::scale() {
   if (scale_ <= 0) {
-    setTransform(QTransform().scale(1.0/pow(2.0, abs(scale_ - 1)), 1.0/pow(2.0, abs(scale_ - 1))));
+    setTransform(QTransform().scale(1.0/pow(2.0, abs(scale_ - 1)),
+                                    1.0/pow(2.0, abs(scale_ - 1))));
   } else {
     setTransform(QTransform().scale(scale_, scale_));
   }
@@ -45,8 +46,8 @@ void MainForm::getGoing() {
   emit startPopulatingScene();
 }
 
-void MainForm::mousePressEvent(QMouseEvent* event) {
-  switch (event->button()) {
+void MainForm::mousePressEvent(QMouseEvent* mevent) {
+  switch (mevent->button()) {
     case Qt::LeftButton:
       ++scale_;
       emit scaleSig();
@@ -63,7 +64,7 @@ void MainForm::mousePressEvent(QMouseEvent* event) {
   return;
 }
 
-void MainForm::mouseDoubleClickEvent(QMouseEvent* event) {
-  mousePressEvent(event);
+void MainForm::mouseDoubleClickEvent(QMouseEvent* mevent) {
+  mousePressEvent(mevent);
   return;
 }

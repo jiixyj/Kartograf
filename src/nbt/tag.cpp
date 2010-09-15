@@ -1,10 +1,15 @@
 #include "./tag.h"
 
-#include <map>
 #include <boost/assign.hpp>
+#include <list>
+#include <map>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace tag {
+
+static int indent = 0;
 
 template <typename T>
 T endian_swap(T d) {
@@ -32,7 +37,7 @@ std::map<int8_t, std::string> tagid_string = boost::assign::map_list_of
 ;
 
 const std::tr1::shared_ptr<tag> tag::sub(const std::string& subname) const {
-  return dynamic_cast<const tag_<compound>*>(this)->pay().sub(subname);
+  return reinterpret_cast<const tag_<compound>*>(this)->pay().sub(subname);
 }
 
 template <> int tag_<int8_t>::id() { return 1; }
@@ -229,5 +234,4 @@ void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
       break;
   }
 }
-
 }

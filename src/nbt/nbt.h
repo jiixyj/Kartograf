@@ -2,10 +2,11 @@
 #define SRC_NBT_NBT_H_
 
 #include <stdint.h>
-#include <zlib.h>
 
-#include <string>
 #include <QtGui>
+#include <map>
+#include <string>
+#include <utility>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -31,11 +32,16 @@ class nbt {
 
   tag_ptr tag_;
  private:
-  QColor checkReliefDiagonal(QColor input, int x, int y, int z, int j, int i) const;
-  QColor checkReliefNormal(QColor input, int x, int y, int z, int j, int i) const;
-  QColor calculateMap(QColor input, int x, int y, int z, int j, int i) const;
-  QColor calculateShadow(QColor input, int x, int y, int z, int j, int i) const;
-  QColor calculateRelief(QColor input, int x, int y, int z, int j, int i) const;
+  QColor checkReliefDiagonal(QColor input, int x, int y, int z,
+                                           int j, int i) const;
+  QColor checkReliefNormal(QColor input, int x, int y, int z,
+                                         int j, int i) const;
+  QColor calculateMap(QColor input, int x, int y, int z,
+                                    int j, int i) const;
+  QColor calculateShadow(QColor input, int x, int y, int z,
+                                       int j, int i) const;
+  QColor calculateRelief(QColor input, int x, int y, int z,
+                                       int j, int i) const;
   int32_t xPos_min_;
   int32_t zPos_min_;
   int32_t xPos_max_;

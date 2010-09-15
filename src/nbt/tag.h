@@ -1,15 +1,18 @@
+#ifndef SRC_NBT_TAG_H_
+#define SRC_NBT_TAG_H_
+
 #include <zlib.h>
-#include <string>
+
 #include <tr1/memory>
-#include <iostream>
 #include <cstdlib>
-#include <vector>
+#include <iostream>
 #include <list>
+#include <string>
+#include <vector>
 
 namespace tag {
 
 static std::string filename;
-static int __attribute__ ((__unused__)) indent = 0;
 
 struct string;
 template <typename T>
@@ -24,10 +27,7 @@ struct tag {
   virtual int id() = 0;
   virtual std::string str() = 0;
   template <class T> const T& pay_() const {
-    const tag_<T>* payload = dynamic_cast<const tag_<T>*>(this);
-    if (!payload) {
-      ERROREXIT
-    }
+    const tag_<T>* payload = reinterpret_cast<const tag_<T>*>(this);
     return payload->p;
   }
   const std::tr1::shared_ptr<tag> sub(const std::string&) const;
@@ -45,32 +45,32 @@ struct tag_ : public tag {
 };
 
 struct byte_array {
-  byte_array(gzFile*);
+  explicit byte_array(gzFile* file);
   tag_<int32_t> length;
   std::string p;
-  friend std::ostream& operator <<(std::ostream& os,const byte_array& obj);
+  friend std::ostream& operator <<(std::ostream& os, const byte_array& obj);
 };
 
 struct string {
-  string(gzFile*);
+  explicit string(gzFile* file);
   tag_<int16_t> length;
   std::string p;
-  friend std::ostream& operator <<(std::ostream& os,const string& obj);
+  friend std::ostream& operator <<(std::ostream& os, const string& obj);
 };
 
 struct list {
-  list(gzFile*);
+  explicit list(gzFile* file);
   tag_<int8_t> tagid;
   tag_<int32_t> length;
   std::vector<std::tr1::shared_ptr<tag> > tags;
-  friend std::ostream& operator <<(std::ostream& os,const list& obj);
+  friend std::ostream& operator <<(std::ostream& os, const list& obj);
 };
 
 struct compound {
-  compound(gzFile*);
+  explicit compound(gzFile* file);
   std::list<std::tr1::shared_ptr<tag> > tags;
   const std::tr1::shared_ptr<tag> sub(const std::string& subname) const;
-  friend std::ostream& operator <<(std::ostream& os,const compound& obj);
+  friend std::ostream& operator <<(std::ostream& os, const compound& obj);
 };
 
 std::ostream& operator <<(std::ostream& os, const byte_array& obj);
@@ -83,3 +83,5 @@ void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
 void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string);
 }
+
+#endif  // SRC_NBT_TAG_H_

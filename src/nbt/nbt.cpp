@@ -1,26 +1,35 @@
 #include "./nbt.h"
 
 #include <errno.h>
-#include <string>
-#include <list>
+#include <zlib.h>
+
+#include <algorithm>
 #include <limits>
+#include <list>
+#include <map>
 #include <sstream>
+#include <string>
+#include <utility>
 
 #include "./colors.h"
 
 nbt::nbt() : tag_(),
-                      xPos_min_(std::numeric_limits<int32_t>::max()),
-                      zPos_min_(std::numeric_limits<int32_t>::max()),
-                      xPos_max_(std::numeric_limits<int32_t>::min()),
-                      zPos_max_(std::numeric_limits<int32_t>::min()),
-                      dir_(QDir::home()) {}
+             xPos_min_(std::numeric_limits<int32_t>::max()),
+             zPos_min_(std::numeric_limits<int32_t>::max()),
+             xPos_max_(std::numeric_limits<int32_t>::min()),
+             zPos_max_(std::numeric_limits<int32_t>::min()),
+             dir_(QDir::home()),
+             set_(),
+             blockcache_() {}
 
 nbt::nbt(int world) : tag_(),
                       xPos_min_(std::numeric_limits<int32_t>::max()),
                       zPos_min_(std::numeric_limits<int32_t>::max()),
                       xPos_max_(std::numeric_limits<int32_t>::min()),
                       zPos_max_(std::numeric_limits<int32_t>::min()),
-                      dir_(QDir::home()) {
+                      dir_(QDir::home()),
+                      set_(),
+                      blockcache_() {
   if (!dir_.cd(QString(".minecraft/saves/World") + QString::number(world))) {
     qFatal("Minecraft is not installed!");
   }
@@ -35,7 +44,9 @@ nbt::nbt(const std::string& filename)
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
             zPos_max_(std::numeric_limits<int32_t>::min()),
-            dir_() {
+            dir_(),
+            set_(),
+            blockcache_() {
   if ((dir_ = QDir(QString::fromStdString(filename))).exists()) {
     construct_world();
     return;
@@ -72,8 +83,8 @@ void nbt::construct_world() {
     size_t first = fn.find(".");
     size_t second = fn.find(".", first + 1);
     if (second != std::string::npos) {
-      long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
-      long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
+      int64_t x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
+      int64_t z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
       xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
       xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
       zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
@@ -162,33 +173,35 @@ uint8_t getValue(const std::map<std::pair<int, int>, std::string>& cache,
   }
 }
 
-QColor nbt::checkReliefDiagonal(QColor input, int x, int y, int z, int j, int i) const {
-  int j_diff = 0, i_diff = 0;
+QColor nbt::checkReliefDiagonal(QColor input, int x, int y, int z,
+                                              int j, int i) const {
+  int xd = 0, zd = 0;
   QColor color = input;
   if (set_.sun_direction == 7 || set_.sun_direction == 1) {
-    ++j_diff;
+    ++xd;
   } else if (set_.sun_direction == 3 || set_.sun_direction == 5) {
-    --j_diff;
+    --xd;
   }
   if (set_.sun_direction == 7 || set_.sun_direction == 5) {
-    ++i_diff;
+    ++zd;
   } else if (set_.sun_direction == 3 || set_.sun_direction == 1) {
-    --i_diff;
+    --zd;
   }
-  if ((colors[getValue(blockcache_, x + j_diff, y, z, j, i)].alpha() == 255
-    || colors[getValue(blockcache_, x, y, z + i_diff, j, i)].alpha() == 255)
-   && colors[getValue(blockcache_, x + j_diff, y, z + i_diff, j, i)].alpha() == 255) {
+  if ((colors[getValue(blockcache_, x + xd, y, z, j, i)].alpha() == 255
+    || colors[getValue(blockcache_, x, y, z + zd, j, i)].alpha() == 255)
+   && colors[getValue(blockcache_, x + xd, y, z + zd, j, i)].alpha() == 255) {
       color = color.lighter(120);
   }
-  if ((colors[getValue(blockcache_, x - j_diff, y, z, j, i)].alpha() == 255
-    || colors[getValue(blockcache_, x, y, z - i_diff, j, i)].alpha() == 255)
-   && colors[getValue(blockcache_, x - j_diff, y, z - i_diff, j, i)].alpha() == 255) {
+  if ((colors[getValue(blockcache_, x - xd, y, z, j, i)].alpha() == 255
+    || colors[getValue(blockcache_, x, y, z - zd, j, i)].alpha() == 255)
+   && colors[getValue(blockcache_, x - xd, y, z - zd, j, i)].alpha() == 255) {
       color = color.darker(120);
   }
   return color;
 }
 
-QColor nbt::checkReliefNormal(QColor input, int x, int y, int z, int j, int i) const {
+QColor nbt::checkReliefNormal(QColor input, int x, int y, int z,
+                                            int j, int i) const {
   QColor color = input;
   if (set_.sun_direction % 4 == 2) {
     if ((colors[getValue(blockcache_, x + 1, y, z - 1, j, i)].alpha() == 255
@@ -228,7 +241,8 @@ QColor nbt::checkReliefNormal(QColor input, int x, int y, int z, int j, int i) c
   return color;
 }
 
-QColor nbt::calculateShadow(QColor input, int x, int y, int z, int j, int i) const {
+QColor nbt::calculateShadow(QColor input, int x, int y, int z,
+                                          int j, int i) const {
   QColor color = input;
   if (set_.shadow) {
     QColor light(0, 0, 0, 0);
@@ -264,7 +278,8 @@ QColor nbt::calculateShadow(QColor input, int x, int y, int z, int j, int i) con
   return color;
 }
 
-QColor nbt::calculateRelief(QColor input, int x, int y, int z, int j, int i) const {
+QColor nbt::calculateRelief(QColor input, int x, int y, int z,
+                                          int j, int i) const {
   QColor color = input;
   if (set_.topview) {
     if (set_.relief) {
@@ -278,18 +293,21 @@ QColor nbt::calculateRelief(QColor input, int x, int y, int z, int j, int i) con
   return color;
 }
 
-QColor nbt::calculateMap(QColor input, int x, int y, int z, int j, int i) const {
+QColor nbt::calculateMap(QColor input, int x, int y, int z,
+                                       int j, int i) const {
   QColor color = input;
   if (set_.topview) {
     if (set_.heightmap) {
       if (set_.color) {
-        color.setHsvF(atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5, 1.0, 1.0, 1.0);
+        color.setHsvF(atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5,
+                      1.0, 1.0, 1.0);
       } else {
         color.setRgba(QColor(y, y, y, 255).rgba());
       }
     } else {
       int height_low_bound = y;
-      while (colors[getValue(blockcache_, x, height_low_bound--, z, j, i)].alpha() != 255);
+      while (colors[getValue(blockcache_, x, height_low_bound--, z, j, i)]
+                                                               .alpha() != 255);
       for (int h = height_low_bound; h <= y; ++h) {
         uint8_t blknr = getValue(blockcache_, x, h, z, j, i);
         color = blend(colors[blknr], color);
@@ -314,8 +332,8 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
         if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
           const nbt::tag_ptr newtag = tag_at(jj, ii);
           if (newtag) {
-            blockcache_[std::pair<int, int>(jj, ii)] = newtag->sub("Level")->sub("Blocks")->
-                                                    pay_<tag::byte_array>().p;
+            blockcache_[std::pair<int, int>(jj, ii)] = newtag->sub("Level")->
+                                       sub("Blocks")->pay_<tag::byte_array>().p;
           }
         }
       }

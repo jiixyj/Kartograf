@@ -1,9 +1,6 @@
-#include <iostream>
 #include <QtGui>
-#include <QApplication>
-#include <limits>
-#include <cmath>
-#include <bitset>
+#include <iostream>
+#include <string>
 
 #include "./nbt.h"
 #include "./MainForm/MainForm.h"
@@ -34,7 +31,8 @@ int main(int ac, char* av[]) {
   MainForm label(&scene, &bf);
   label.show();
 
-  QObject::connect(&label, SIGNAL(startPopulatingScene()), &label, SLOT(populateScene()));
+  QObject::connect(&label, SIGNAL(startPopulatingScene()),
+                   &label, SLOT(populateScene()));
 
   QFuture<void>(QtConcurrent::run(&label, &MainForm::getGoing));
 

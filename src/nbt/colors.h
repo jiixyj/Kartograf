@@ -1,5 +1,9 @@
+#ifndef SRC_NBT_COLORS_H_
+#define SRC_NBT_COLORS_H_
+
 #include <boost/assign.hpp>
 #include <QtGui>
+#include <map>
 
 QColor blend(const QColor& B, const QColor& A) {
   QColor C;
@@ -31,23 +35,23 @@ static std::map<int, QColor> colors = boost::assign::map_list_of
   (16, QColor(115, 115, 115, 255))
   (17, QColor(102, 81, 51, 255))
   (18, QColor(24, 75, 16, 100))
-  (20, QColor(64, 64, 64, 64)) //glass
-  //(21, QColor(222,50,50,255))
-  //(22, QColor(222,136,50,255))
-  //(23, QColor(222,222,50,255))
-  //(24, QColor(136,222,50,255))
-  //(25, QColor(50,222,50,255))
-  //(26, QColor(50,222,136,255))
-  //(27, QColor(50,222,222,255))
-  //(28, QColor(104,163,222,255))
-  //(29, QColor(120,120,222,255))
-  //(30, QColor(136,50,222,255))
-  //(31, QColor(174,74,222,255))
-  //(32, QColor(222,50,222,255))
-  //(33, QColor(222,50,136,255))
-  //(34, QColor(77,77,77,255))
-  (35, QColor(222, 222, 222, 255)) //QColor(143,143,143,255);
-  //(36, QColor(222,222,222,255))
+  (20, QColor(64, 64, 64, 64))
+  // (21, QColor(222,50,50,255))
+  // (22, QColor(222,136,50,255))
+  // (23, QColor(222,222,50,255))
+  // (24, QColor(136,222,50,255))
+  // (25, QColor(50,222,50,255))
+  // (26, QColor(50,222,136,255))
+  // (27, QColor(50,222,222,255))
+  // (28, QColor(104,163,222,255))
+  // (29, QColor(120,120,222,255))
+  // (30, QColor(136,50,222,255))
+  // (31, QColor(174,74,222,255))
+  // (32, QColor(222,50,222,255))
+  // (33, QColor(222,50,136,255))
+  // (34, QColor(77,77,77,255))
+  (35, QColor(222, 222, 222, 255))  // QColor(143,143,143,255);
+  // (36, QColor(222,222,222,255))
   (38, QColor(255, 0, 0, 255))
   (37, QColor(255, 255, 0, 255))
   (41, QColor(231, 165, 45, 255))
@@ -59,10 +63,10 @@ static std::map<int, QColor> colors = boost::assign::map_list_of
   (49, QColor(26, 11, 43, 255))
   (50, QColor(192, 173, 39, 200))
   (51, QColor(200, 133, 24, 200))
-  //(52, QColor(245,220,50,255)) unnecessary afaik
+  // (52, QColor(245,220,50,255)) unnecessary afaik
   (53, QColor(157, 128, 79, 255))
   (54, QColor(125, 91, 38, 255))
-  //(55, QColor(245,220,50,255)) unnecessary afaik
+  // (55, QColor(245,220,50,255)) unnecessary afaik
   (56, QColor(129, 140, 143, 255))
   (57, QColor(45, 166, 152, 255))
   (58, QColor(114, 88, 56, 255))
@@ -89,3 +93,5 @@ static std::map<int, QColor> colors = boost::assign::map_list_of
   (84, QColor(100, 67, 50, 255))
   (85, QColor(92, 72, 32, 128))
 ;
+
+#endif  // SRC_NBT_COLORS_H_

@@ -1,5 +1,5 @@
-#ifndef SRC_MAINFORM_MAINFORM_H_
-#define SRC_MAINFORM_MAINFORM_H_
+#ifndef SRC_NBT_MAINFORM_MAINFORM_H_
+#define SRC_NBT_MAINFORM_MAINFORM_H_
 
 #include <QtGui>
 
@@ -35,4 +35,4 @@ class MainForm : public QGraphicsView {
   MainForm& operator=(const MainForm&);
 };
 
-#endif  // SRC_MAINFORM_MAINFORM_H_
+#endif  // SRC_NBT_MAINFORM_MAINFORM_H_
