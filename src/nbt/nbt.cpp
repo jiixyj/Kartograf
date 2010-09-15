@@ -162,6 +162,72 @@ uint8_t getValue(const std::map<std::pair<int, int>, std::string>& cache,
   }
 }
 
+QColor nbt::checkReliefDiagonal(QColor input, int sun_direction, int x, int y, int z, int j, int i) const {
+  int j_diff = 0, i_diff = 0;
+  QColor ret = input;
+  if (sun_direction == 7 || sun_direction == 1) {
+    ++j_diff;
+  } else if (sun_direction == 3 || sun_direction == 5) {
+    --j_diff;
+  }
+  if (sun_direction == 7 || sun_direction == 5) {
+    ++i_diff;
+  } else if (sun_direction == 3 || sun_direction == 1) {
+    --i_diff;
+  }
+  if ((colors[getValue(blockcache_, x + j_diff, y, z, j, i)].alpha() == 255
+    || colors[getValue(blockcache_, x, y, z + i_diff, j, i)].alpha() == 255)
+   && colors[getValue(blockcache_, x + j_diff, y, z + i_diff, j, i)].alpha() == 255) {
+      ret = input.lighter(120);
+  }
+  if ((colors[getValue(blockcache_, x - j_diff, y, z, j, i)].alpha() == 255
+    || colors[getValue(blockcache_, x, y, z - i_diff, j, i)].alpha() == 255)
+   && colors[getValue(blockcache_, x - j_diff, y, z - i_diff, j, i)].alpha() == 255) {
+      ret = input.darker(120);
+  }
+  return ret;
+}
+
+QColor nbt::checkReliefNormal(QColor input, int sun_direction, int x, int y, int z, int j, int i) const {
+  QColor ret = input;
+  if (sun_direction % 4 == 2) {
+    if ((colors[getValue(blockcache_, x + 1, y, z - 1, j, i)].alpha() == 255
+      || colors[getValue(blockcache_, x - 1, y, z - 1, j, i)].alpha() == 255)
+     && colors[getValue(blockcache_, x, y, z - 1, j, i)].alpha() == 255) {
+      if (sun_direction == 2)
+        ret = input.lighter(120);
+      if (sun_direction == 6)
+        ret = input.darker(120);
+    }
+    if ((colors[getValue(blockcache_, x + 1, y, z + 1, j, i)].alpha() == 255
+      || colors[getValue(blockcache_, x - 1, y, z + 1, j, i)].alpha() == 255)
+     && colors[getValue(blockcache_, x, y, z + 1, j, i)].alpha() == 255) {
+      if (sun_direction == 2)
+        ret = input.darker(120);
+      if (sun_direction == 6)
+        ret = input.lighter(120);
+    }
+  } else if (sun_direction % 4 == 0) {
+    if ((colors[getValue(blockcache_, x - 1, y, z + 1, j, i)].alpha() == 255
+      || colors[getValue(blockcache_, x - 1, y, z - 1, j, i)].alpha() == 255)
+     && colors[getValue(blockcache_, x - 1, y, z, j, i)].alpha() == 255) {
+      if (sun_direction == 4)
+        ret = input.lighter(120);
+      if (sun_direction == 0)
+        ret = input.darker(120);
+    }
+    if ((colors[getValue(blockcache_, x + 1, y, z - 1, j, i)].alpha() == 255
+      || colors[getValue(blockcache_, x + 1, y, z + 1, j, i)].alpha() == 255)
+     && colors[getValue(blockcache_, x + 1, y, z, j, i)].alpha() == 255) {
+      if (sun_direction == 4)
+        ret = input.darker(120);
+      if (sun_direction == 0)
+        ret = input.lighter(120);
+    }
+  }
+  return ret;
+}
+
 QImage nbt::getImage(int32_t j, int32_t i) const {
   QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
   img.fill(0);
@@ -258,28 +324,10 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
           color = color.darker(50.0 * light.alphaF() + 100);
         }
         if (set_.relief) {
-          int j_diff = 0, i_diff = 0;
           if (set_.sun_direction % 2 == 1) {
-            if (set_.sun_direction == 7 || set_.sun_direction == 1) {
-              ++j_diff;
-            } else if (set_.sun_direction == 3 || set_.sun_direction == 5) {
-              --j_diff;
-            }
-            if (set_.sun_direction == 7 || set_.sun_direction == 5) {
-              ++i_diff;
-            } else if (set_.sun_direction == 3 || set_.sun_direction == 1) {
-              --i_diff;
-            }
-            if ((colors[getValue(blockcache_, jj0 + j_diff, height, ii0, j, i)].alpha() == 255
-              || colors[getValue(blockcache_, jj0, height, ii0 + i_diff, j, i)].alpha() == 255)
-             && colors[getValue(blockcache_, jj0 + j_diff, height, ii0 + i_diff, j, i)].alpha() == 255) {
-                color = color.lighter(120);
-            }
-            if ((colors[getValue(blockcache_, jj0 - j_diff, height, ii0, j, i)].alpha() == 255
-              || colors[getValue(blockcache_, jj0, height, ii0 - i_diff, j, i)].alpha() == 255)
-             && colors[getValue(blockcache_, jj0 - j_diff, height, ii0 - i_diff, j, i)].alpha() == 255) {
-                color = color.darker(120);
-            }
+            color = checkReliefDiagonal(color, set_.sun_direction, jj0, height, ii0, j, i);
+          } else {
+            color = checkReliefNormal(color, set_.sun_direction, jj0, height, ii0, j, i);
           }
         }
         img.setPixel(static_cast<int32_t>(jj0), static_cast<int32_t>(ii0),

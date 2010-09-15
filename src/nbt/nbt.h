@@ -31,6 +31,8 @@ class nbt {
 
   tag_ptr tag_;
  private:
+  QColor checkReliefDiagonal(QColor input, int sun_direction, int x, int y, int z, int j, int i) const;
+  QColor checkReliefNormal(QColor input, int sun_direction, int x, int y, int z, int j, int i) const;
   int32_t xPos_min_;
   int32_t zPos_min_;
   int32_t xPos_max_;
