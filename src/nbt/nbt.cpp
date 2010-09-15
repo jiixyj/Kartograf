@@ -20,6 +20,7 @@ nbt::nbt() : tag_(),
              zPos_max_(std::numeric_limits<int32_t>::min()),
              dir_(QDir::home()),
              set_(),
+             blockcache_mutex_(),
              blockcache_() {}
 
 nbt::nbt(int world) : tag_(),
@@ -29,6 +30,7 @@ nbt::nbt(int world) : tag_(),
                       zPos_max_(std::numeric_limits<int32_t>::min()),
                       dir_(QDir::home()),
                       set_(),
+                      blockcache_mutex_(),
                       blockcache_() {
   if (!dir_.cd(QString(".minecraft/saves/World") + QString::number(world))) {
     qFatal("Minecraft is not installed!");
@@ -46,6 +48,7 @@ nbt::nbt(const std::string& filename)
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(),
             set_(),
+            blockcache_mutex_(),
             blockcache_() {
   if ((dir_ = QDir(QString::fromStdString(filename))).exists()) {
     construct_world();
@@ -332,8 +335,11 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
         if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
           const nbt::tag_ptr newtag = tag_at(jj, ii);
           if (newtag) {
-            blockcache_[std::pair<int, int>(jj, ii)] = newtag->sub("Level")->
+            const std::string& pl = newtag->sub("Level")->
                                        sub("Blocks")->pay_<tag::byte_array>().p;
+            blockcache_mutex_.lock();
+            blockcache_[std::pair<int, int>(jj, ii)] = pl;
+            blockcache_mutex_.unlock();
           }
         }
       }
@@ -369,6 +375,6 @@ void nbt::clearCache() const {
   blockcache_.clear();
 }
 
-std::string nbt::string() {
+std::string nbt::string() const {
   return (tag_ != 0) ? tag_->str() : "";
 }

@@ -12,13 +12,13 @@ int main(int ac, char* av[]) {
     exit(1);
   }
   int world = atoi(av[1]);
-  nbt bf;
+  nbt* bf;
   if (world == 0) {
-    bf = nbt(av[1]);
+    bf = new nbt(av[1]);
   } else {
-    bf = nbt(world);
+    bf = new nbt(world);
   }
-  std::cout << bf.string();
+  std::cout << bf->string();
   Settings set;
   set.topview = true;
   set.heightmap = false;
@@ -26,15 +26,12 @@ int main(int ac, char* av[]) {
   set.shadow = true;
   set.relief = true;
   set.sun_direction = 7;
-  bf.setSettings(set);
+  bf->setSettings(set);
   QGraphicsScene scene;
-  MainForm label(&scene, &bf);
+  MainForm label(&scene, bf);
   label.show();
 
-  QObject::connect(&label, SIGNAL(startPopulatingScene()),
-                   &label, SLOT(populateScene()));
-
-  QFuture<void>(QtConcurrent::run(&label, &MainForm::getGoing));
+  QFuture<void>(QtConcurrent::run(&label, &MainForm::populateScene));
 
   return app.exec();
 }

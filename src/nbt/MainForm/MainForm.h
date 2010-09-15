@@ -2,6 +2,7 @@
 #define SRC_NBT_MAINFORM_MAINFORM_H_
 
 #include <QtGui>
+#include <tbb/concurrent_queue.h>
 
 #include "../nbt.h"
 
@@ -10,16 +11,17 @@ class MainForm : public QGraphicsView {
 
  public:
   MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent = NULL);
-  void getGoing();
 
  public slots:
   void populateScene();
-  void populateSceneItem(int i, int j);
+  void populateSceneItem();
   void scale();
+  void saveToFile();
 
  signals:
-  void startPopulatingScene();
   void scaleSig();
+  void renderNewImage();
+  void saveToFileSignal();
 
  protected:
   void mousePressEvent(QMouseEvent* event);
@@ -30,6 +32,9 @@ class MainForm : public QGraphicsView {
   nbt* bf_;
 
   int scale_;
+
+  tbb::strict_ppl::concurrent_queue<QImage> images;
+  tbb::strict_ppl::concurrent_queue<QPair<int, int> > coords;
 
   MainForm(const MainForm&);
   MainForm& operator=(const MainForm&);

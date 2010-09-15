@@ -17,7 +17,7 @@ class nbt {
   explicit nbt(int world);
   explicit nbt(const std::string&);
 
-  std::string string();
+  std::string string() const;
   int32_t xPos_min() const { return xPos_min_; }
   int32_t zPos_min() const { return zPos_min_; }
   int32_t xPos_max() const { return xPos_max_; }
@@ -50,9 +50,13 @@ class nbt {
   QDir dir_;
   Settings set_;
 
+  mutable QMutex blockcache_mutex_;
   mutable std::map<std::pair<int, int>, std::string> blockcache_;
 
   void construct_world();
+
+  nbt(const nbt&);
+  nbt& operator=(const nbt&);
 };
 
 #endif  // SRC_NBT_NBT_H_

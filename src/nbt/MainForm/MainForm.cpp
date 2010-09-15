@@ -3,20 +3,30 @@
 #include <QtGui>
 #include <iostream>
 
-
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
                  : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1) {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
+  connect(this, SIGNAL(renderNewImage()), this, SLOT(populateSceneItem()));
+  connect(this, SIGNAL(saveToFileSignal()), this, SLOT(saveToFile()));
 }
 
 void MainForm::populateScene() {
   for (int i = bf_->zPos_min(); i <= bf_->zPos_max(); ++i) {
-    for (int j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
-      populateSceneItem(i, j);
-      QCoreApplication::processEvents(QEventLoop::AllEvents);
+    int j;
+    #pragma omp parallel for
+    for (j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
+      const QImage& img = bf_->getImage(j, i);
+      #pragma omp critical
+      {
+        images.push(img);
+        coords.push(QPair<int, int>(j, i));
+      }
+      emit renderNewImage();
     }
   }
   bf_->clearCache();
+  emit saveToFileSignal();
+
   // QPen pen;
   // pen.setColor(QColor(255, 0, 0, 255));
   // scene()->addEllipse(185, 50, 5, 5, pen);
@@ -25,12 +35,24 @@ void MainForm::populateScene() {
   // setTransform(QTransform().scale(1, 1));
 }
 
-void MainForm::populateSceneItem(int i, int j) {
-      QGraphicsPixmapItem* pi =
-      scene()->addPixmap(QPixmap::fromImage(bf_->getImage(j, i)));
-      pi->setFlag(QGraphicsItem::ItemIsMovable, false);
-      pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
-      pi->setPos(16 * j, 16 * i);
+void MainForm::saveToFile() {
+  QImage image(scene()->sceneRect().toAlignedRect().size(), QImage::Format_ARGB32_Premultiplied);
+  image.fill(0);
+  QPainter painter(&image);
+  scene()->render(&painter);
+  image.save("image.png");
+}
+
+void MainForm::populateSceneItem() {
+  QImage img;
+  QPair<int, int> coor;
+  if (images.try_pop(img) && coords.try_pop(coor)) {
+    QGraphicsPixmapItem* pi =
+    scene()->addPixmap(QPixmap::fromImage(img));
+    pi->setFlag(QGraphicsItem::ItemIsMovable, false);
+    pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
+    pi->setPos(16 * coor.first, 16 * coor.second);
+  }
 }
 
 void MainForm::scale() {
@@ -40,10 +62,6 @@ void MainForm::scale() {
   } else {
     setTransform(QTransform().scale(scale_, scale_));
   }
-}
-
-void MainForm::getGoing() {
-  emit startPopulatingScene();
 }
 
 void MainForm::mousePressEvent(QMouseEvent* mevent) {
