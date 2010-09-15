@@ -135,6 +135,33 @@ void nbt::setSettings(Settings set) {
   return;
 }
 
+uint8_t getValue(const std::map<std::pair<int, int>, std::string>& cache,
+              int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) {
+  while (x < 0) {
+    --j;
+    x += 16;
+  }
+  while (x > 15) {
+    ++j;
+    x -= 16;
+  }
+  while (z < 0) {
+    --i;
+    z += 16;
+  }
+  while (z > 15) {
+    ++i;
+    z -= 16;
+  }
+  std::map<std::pair<int, int>, std::string>::const_iterator it;
+  it = cache.find(std::pair<int, int>(j, i));
+  if (it != cache.end()) {
+    return it->second[y + z * 128 + x * 128 * 16];
+  } else {
+    return 0;
+  }
+}
+
 QImage nbt::getImage(int32_t j, int32_t i) const {
   QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
   img.fill(0);
@@ -149,6 +176,19 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
                                              pay_<tag::byte_array>().p;
         const std::string& skylight = comp->sub("SkyLight")->
                                              pay_<tag::byte_array>().p;
+
+        for (int jj = j + 3; jj >= j - 3; --jj) {
+          for (int ii = i + 3; ii >= i - 3; --ii) {
+            if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
+              const nbt::tag_ptr newtag = tag_at(jj, ii);
+              if (newtag) {
+                blockcache_[std::pair<int, int>(jj, ii)] = newtag->sub("Level")->sub("Blocks")->
+                                                        pay_<tag::byte_array>().p;
+              }
+            }
+          }
+        }
+
         uint64_t xtmp = (xPos - xPos_min()) * 16;
         uint64_t ztmp = (zPos - zPos_min()) * 16;
         int32_t max_int = std::numeric_limits<int32_t>::max();
@@ -184,6 +224,30 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
               // painter.drawPoint(static_cast<int32_t>(jj), static_cast<int32_t>(ii));
               // label.repaint();
               // label.update();
+            }
+            int32_t x = jj0, y = height, z = ii0;
+            QColor light(0, 0, 0, 0);
+            while (++y < 127) {
+              --x;
+              --z;
+              uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
+              if (blknr != 0) {
+                light = blend(colors[blknr], light);
+                if (colors[blknr].alpha() == 255) {
+                  break;
+                }
+              }
+            }
+            color = color.darker(50.0 * light.alphaF() + 100);
+            if ((colors[getValue(blockcache_, jj0 + 1, height, ii0, j, i)].alpha() == 255
+              || colors[getValue(blockcache_, jj0, height, ii0 + 1, j, i)].alpha() == 255)
+             && colors[getValue(blockcache_, jj0 + 1, height, ii0 + 1, j, i)].alpha() == 255) {
+              color = color.lighter(120);
+            }
+            if ((colors[getValue(blockcache_, jj0 - 1, height, ii0, j, i)].alpha() == 255
+              || colors[getValue(blockcache_, jj0, height, ii0 - 1, j, i)].alpha() == 255)
+             && colors[getValue(blockcache_, jj0 - 1, height, ii0 - 1, j, i)].alpha() == 255) {
+              color = color.darker(120);
             }
             img.setPixel(static_cast<int32_t>(jj0), static_cast<int32_t>(ii0),
                          color.lighter((height - 64) / 2 + 64).rgba());

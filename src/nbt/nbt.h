@@ -38,6 +38,8 @@ class nbt {
   QDir dir_;
   Settings set_;
 
+  mutable std::map<std::pair<int, int>, std::string> blockcache_;
+
   void construct_world();
 };
 
