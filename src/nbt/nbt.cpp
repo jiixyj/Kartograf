@@ -225,29 +225,33 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
           // label.repaint();
           // label.update();
         }
-        int32_t x = jj0, y = height, z = ii0;
-        QColor light(0, 0, 0, 0);
-        while (++y < 127) {
-          --x;
-          --z;
-          uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
-          if (blknr != 0) {
-            light = blend(colors[blknr], light);
-            if (colors[blknr].alpha() == 255) {
-              break;
+        if (set_.shadow) {
+          int32_t x = jj0, y = height, z = ii0;
+          QColor light(0, 0, 0, 0);
+          while (++y < 127) {
+            --x;
+            --z;
+            uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
+            if (blknr != 0) {
+              light = blend(colors[blknr], light);
+              if (colors[blknr].alpha() == 255) {
+                break;
+              }
             }
           }
+          color = color.darker(50.0 * light.alphaF() + 100);
         }
-        color = color.darker(50.0 * light.alphaF() + 100);
-        if ((colors[getValue(blockcache_, jj0 + 1, height, ii0, j, i)].alpha() == 255
-          || colors[getValue(blockcache_, jj0, height, ii0 + 1, j, i)].alpha() == 255)
-         && colors[getValue(blockcache_, jj0 + 1, height, ii0 + 1, j, i)].alpha() == 255) {
-          color = color.lighter(120);
-        }
-        if ((colors[getValue(blockcache_, jj0 - 1, height, ii0, j, i)].alpha() == 255
-          || colors[getValue(blockcache_, jj0, height, ii0 - 1, j, i)].alpha() == 255)
-         && colors[getValue(blockcache_, jj0 - 1, height, ii0 - 1, j, i)].alpha() == 255) {
-          color = color.darker(120);
+        if (set_.relief) {
+          if ((colors[getValue(blockcache_, jj0 + 1, height, ii0, j, i)].alpha() == 255
+            || colors[getValue(blockcache_, jj0, height, ii0 + 1, j, i)].alpha() == 255)
+           && colors[getValue(blockcache_, jj0 + 1, height, ii0 + 1, j, i)].alpha() == 255) {
+            color = color.lighter(120);
+          }
+          if ((colors[getValue(blockcache_, jj0 - 1, height, ii0, j, i)].alpha() == 255
+            || colors[getValue(blockcache_, jj0, height, ii0 - 1, j, i)].alpha() == 255)
+           && colors[getValue(blockcache_, jj0 - 1, height, ii0 - 1, j, i)].alpha() == 255) {
+            color = color.darker(120);
+          }
         }
         img.setPixel(static_cast<int32_t>(jj0), static_cast<int32_t>(ii0),
                      color.lighter((height - 64) / 2 + 64).rgba());

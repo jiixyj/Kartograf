@@ -26,6 +26,8 @@ int main(int ac, char* av[]) {
   set.topview = true;
   set.heightmap = false;
   set.color = false;
+  set.shadow = true;
+  set.relief = true;
   bf.setSettings(set);
   QGraphicsScene scene;
   MainForm label(&scene, &bf);
