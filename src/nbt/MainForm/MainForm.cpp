@@ -1,7 +1,6 @@
 #include "MainForm.moc"
 
 #include <iostream>
-#include <Qt/QtTest>
 #include <QtGui>
 
 
@@ -14,8 +13,8 @@ void MainForm::populateScene() {
   for (int i = bf_->zPos_min(); i <= bf_->zPos_max(); ++i) {
     for (int j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
       populateSceneItem(i, j);
+      QCoreApplication::processEvents(QEventLoop::AllEvents);
     }
-    QTest::qWait(1);
   }
   bf_->clearCache();
   // QPen pen;

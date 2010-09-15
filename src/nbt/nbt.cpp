@@ -162,70 +162,141 @@ uint8_t getValue(const std::map<std::pair<int, int>, std::string>& cache,
   }
 }
 
-QColor nbt::checkReliefDiagonal(QColor input, int sun_direction, int x, int y, int z, int j, int i) const {
+QColor nbt::checkReliefDiagonal(QColor input, int x, int y, int z, int j, int i) const {
   int j_diff = 0, i_diff = 0;
-  QColor ret = input;
-  if (sun_direction == 7 || sun_direction == 1) {
+  QColor color = input;
+  if (set_.sun_direction == 7 || set_.sun_direction == 1) {
     ++j_diff;
-  } else if (sun_direction == 3 || sun_direction == 5) {
+  } else if (set_.sun_direction == 3 || set_.sun_direction == 5) {
     --j_diff;
   }
-  if (sun_direction == 7 || sun_direction == 5) {
+  if (set_.sun_direction == 7 || set_.sun_direction == 5) {
     ++i_diff;
-  } else if (sun_direction == 3 || sun_direction == 1) {
+  } else if (set_.sun_direction == 3 || set_.sun_direction == 1) {
     --i_diff;
   }
   if ((colors[getValue(blockcache_, x + j_diff, y, z, j, i)].alpha() == 255
     || colors[getValue(blockcache_, x, y, z + i_diff, j, i)].alpha() == 255)
    && colors[getValue(blockcache_, x + j_diff, y, z + i_diff, j, i)].alpha() == 255) {
-      ret = input.lighter(120);
+      color = color.lighter(120);
   }
   if ((colors[getValue(blockcache_, x - j_diff, y, z, j, i)].alpha() == 255
     || colors[getValue(blockcache_, x, y, z - i_diff, j, i)].alpha() == 255)
    && colors[getValue(blockcache_, x - j_diff, y, z - i_diff, j, i)].alpha() == 255) {
-      ret = input.darker(120);
+      color = color.darker(120);
   }
-  return ret;
+  return color;
 }
 
-QColor nbt::checkReliefNormal(QColor input, int sun_direction, int x, int y, int z, int j, int i) const {
-  QColor ret = input;
-  if (sun_direction % 4 == 2) {
+QColor nbt::checkReliefNormal(QColor input, int x, int y, int z, int j, int i) const {
+  QColor color = input;
+  if (set_.sun_direction % 4 == 2) {
     if ((colors[getValue(blockcache_, x + 1, y, z - 1, j, i)].alpha() == 255
       || colors[getValue(blockcache_, x - 1, y, z - 1, j, i)].alpha() == 255)
      && colors[getValue(blockcache_, x, y, z - 1, j, i)].alpha() == 255) {
-      if (sun_direction == 2)
-        ret = input.lighter(120);
-      if (sun_direction == 6)
-        ret = input.darker(120);
+      if (set_.sun_direction == 2)
+        color = color.lighter(120);
+      if (set_.sun_direction == 6)
+        color = color.darker(120);
     }
     if ((colors[getValue(blockcache_, x + 1, y, z + 1, j, i)].alpha() == 255
       || colors[getValue(blockcache_, x - 1, y, z + 1, j, i)].alpha() == 255)
      && colors[getValue(blockcache_, x, y, z + 1, j, i)].alpha() == 255) {
-      if (sun_direction == 2)
-        ret = input.darker(120);
-      if (sun_direction == 6)
-        ret = input.lighter(120);
+      if (set_.sun_direction == 2)
+        color = color.darker(120);
+      if (set_.sun_direction == 6)
+        color = color.lighter(120);
     }
-  } else if (sun_direction % 4 == 0) {
+  } else if (set_.sun_direction % 4 == 0) {
     if ((colors[getValue(blockcache_, x - 1, y, z + 1, j, i)].alpha() == 255
       || colors[getValue(blockcache_, x - 1, y, z - 1, j, i)].alpha() == 255)
      && colors[getValue(blockcache_, x - 1, y, z, j, i)].alpha() == 255) {
-      if (sun_direction == 4)
-        ret = input.lighter(120);
-      if (sun_direction == 0)
-        ret = input.darker(120);
+      if (set_.sun_direction == 4)
+        color = color.lighter(120);
+      if (set_.sun_direction == 0)
+        color = color.darker(120);
     }
     if ((colors[getValue(blockcache_, x + 1, y, z - 1, j, i)].alpha() == 255
       || colors[getValue(blockcache_, x + 1, y, z + 1, j, i)].alpha() == 255)
      && colors[getValue(blockcache_, x + 1, y, z, j, i)].alpha() == 255) {
-      if (sun_direction == 4)
-        ret = input.darker(120);
-      if (sun_direction == 0)
-        ret = input.lighter(120);
+      if (set_.sun_direction == 4)
+        color = color.darker(120);
+      if (set_.sun_direction == 0)
+        color = color.lighter(120);
     }
   }
-  return ret;
+  return color;
+}
+
+QColor nbt::calculateShadow(QColor input, int x, int y, int z, int j, int i) const {
+  QColor color = input;
+  if (set_.shadow) {
+    QColor light(0, 0, 0, 0);
+    while (++y < 128) {
+      if (set_.sun_direction == 7
+       || set_.sun_direction == 0
+       || set_.sun_direction == 1) {
+        --x;
+      } else if (set_.sun_direction == 3
+              || set_.sun_direction == 4
+              || set_.sun_direction == 5) {
+        ++x;
+      }
+      if (set_.sun_direction == 5
+       || set_.sun_direction == 6
+       || set_.sun_direction == 7) {
+        --z;
+      } else if (set_.sun_direction == 1
+              || set_.sun_direction == 2
+              || set_.sun_direction == 3) {
+        ++z;
+      }
+      uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
+      if (blknr != 0) {
+        light = blend(colors[blknr], light);
+        if (light.alpha() == 255) {
+          break;
+        }
+      }
+    }
+    color = color.darker(static_cast<int>(50.0 * light.alphaF()) + 100);
+  }
+  return color;
+}
+
+QColor nbt::calculateRelief(QColor input, int x, int y, int z, int j, int i) const {
+  QColor color = input;
+  if (set_.topview) {
+    if (set_.relief) {
+      if (set_.sun_direction % 2 == 1) {
+        color = checkReliefDiagonal(color, x, y, z, j, i);
+      } else {
+        color = checkReliefNormal(color, x, y, z, j, i);
+      }
+    }
+  }
+  return color;
+}
+
+QColor nbt::calculateMap(QColor input, int x, int y, int z, int j, int i) const {
+  QColor color = input;
+  if (set_.topview) {
+    if (set_.heightmap) {
+      if (set_.color) {
+        color.setHsvF(atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5, 1.0, 1.0, 1.0);
+      } else {
+        color.setRgba(QColor(y, y, y, 255).rgba());
+      }
+    } else {
+      int height_low_bound = y;
+      while (colors[getValue(blockcache_, x, height_low_bound--, z, j, i)].alpha() != 255);
+      for (int h = height_low_bound; h <= y; ++h) {
+        uint8_t blknr = getValue(blockcache_, x, h, z, j, i);
+        color = blend(colors[blknr], color);
+      }
+    }
+  }
+  return color;
 }
 
 QImage nbt::getImage(int32_t j, int32_t i) const {
@@ -238,11 +309,6 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
     int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
     const std::string& heightMap = comp->sub("HeightMap")->
                                          pay_<tag::byte_array>().p;
-    const std::string& blocks = comp->sub("Blocks")->
-                                         pay_<tag::byte_array>().p;
-    const std::string& skylight = comp->sub("SkyLight")->
-                                         pay_<tag::byte_array>().p;
-
     for (int jj = j + 3; jj >= j - 3; --jj) {
       for (int ii = i + 3; ii >= i - 3; --ii) {
         if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
@@ -254,7 +320,6 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
         }
       }
     }
-
     uint64_t xtmp = (xPos - xPos_min()) * 16;
     uint64_t ztmp = (zPos - zPos_min()) * 16;
     int32_t max_int = std::numeric_limits<int32_t>::max();
@@ -268,82 +333,16 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
     int index = 0;
     for (int32_t ii = zPos_img; ii < zPos_img + 16; ++ii) {
       for (int32_t jj = xPos_img; jj < xPos_img + 16; ++jj) {
-        int32_t ii0 = ii - zPos_img;
-        int32_t jj0 = jj - xPos_img;
-        uint8_t height = heightMap[index++];
+        int32_t x = jj - xPos_img;
+        int32_t z = ii - zPos_img;
+        uint8_t y = heightMap[index++];
         QColor color;
-        if (set_.heightmap) {
-          if (set_.color) {
-            color.setHsvF(atan(((1.0 - height / 127.0) - 0.5) * 10) / M_PI + 0.5, 1.0, 1.0, 1.0);
-          } else {
-            color.setRgba(QColor(height, height, height, 255).rgba());
-          }
-        } else {
-          int height_low_bound = height;
-          while (colors[blocks[height_low_bound-- + ii0 * 128
-                                       + jj0 * 128 * 16]].alpha() != 255);
-          for (int h = height_low_bound; h <= height; ++h) {
-            uint8_t blknr = blocks[h + ii0 * 128 + jj0 * 128 * 16];
-            color = blend(colors[blknr], color);
-          }
-          // painter.setPen(color.lighter((height - 64) / 2 + 64));
-          // painter.drawPoint(static_cast<int32_t>(jj), static_cast<int32_t>(ii));
-          // label.repaint();
-          // label.update();
-        }
-        if (set_.shadow) {
-          int32_t x = jj0, y = height, z = ii0;
-          QColor light(0, 0, 0, 0);
-          while (++y < 128) {
-            if (set_.sun_direction == 7
-             || set_.sun_direction == 0
-             || set_.sun_direction == 1) {
-              --x;
-            } else if (set_.sun_direction == 3
-                    || set_.sun_direction == 4
-                    || set_.sun_direction == 5) {
-              ++x;
-            }
-            if (set_.sun_direction == 5
-             || set_.sun_direction == 6
-             || set_.sun_direction == 7) {
-              --z;
-            } else if (set_.sun_direction == 1
-                    || set_.sun_direction == 2
-                    || set_.sun_direction == 3) {
-              ++z;
-            }
-            uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
-            if (blknr != 0) {
-              light = blend(colors[blknr], light);
-              if (light.alpha() == 255) {
-                break;
-              }
-            }
-          }
-          color = color.darker(50.0 * light.alphaF() + 100);
-        }
-        if (set_.relief) {
-          if (set_.sun_direction % 2 == 1) {
-            color = checkReliefDiagonal(color, set_.sun_direction, jj0, height, ii0, j, i);
-          } else {
-            color = checkReliefNormal(color, set_.sun_direction, jj0, height, ii0, j, i);
-          }
-        }
-        img.setPixel(static_cast<int32_t>(jj0), static_cast<int32_t>(ii0),
-                     color.lighter((height - 64) / 2 + 64).rgba());
-        // uint8_t light = skylight[(height + ii0 * 128 + jj0 * 128 * 16) / 2];
-        // if (height % 2 == 1) {
-        //   light >>= 4;
-        // } else {
-        //   light &= 0x0F;
-        // }
-        // light <<= 4;
-
+        color = calculateMap(color, x, y, z, j, i);
+        color = calculateShadow(color, x, y, z, j, i);
+        color = calculateRelief(color, x, y, z, j, i);
+        img.setPixel(x, z, color.lighter((y - 64) / 2 + 64).rgba());
       }
     }
-    // std::cout << j << " " << xPos << "  "
-    //           << i << " " << zPos << std::endl;
   }
   return img;
 }
