@@ -28,7 +28,7 @@ int main(int ac, char* av[]) {
   set.color = false;
   set.shadow = true;
   set.relief = true;
-  set.sun_direction = 4;
+  set.sun_direction = 2;
   bf.setSettings(set);
   QGraphicsScene scene;
   MainForm label(&scene, &bf);

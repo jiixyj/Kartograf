@@ -258,15 +258,28 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
           color = color.darker(50.0 * light.alphaF() + 100);
         }
         if (set_.relief) {
-          if ((colors[getValue(blockcache_, jj0 + 1, height, ii0, j, i)].alpha() == 255
-            || colors[getValue(blockcache_, jj0, height, ii0 + 1, j, i)].alpha() == 255)
-           && colors[getValue(blockcache_, jj0 + 1, height, ii0 + 1, j, i)].alpha() == 255) {
-            color = color.lighter(120);
-          }
-          if ((colors[getValue(blockcache_, jj0 - 1, height, ii0, j, i)].alpha() == 255
-            || colors[getValue(blockcache_, jj0, height, ii0 - 1, j, i)].alpha() == 255)
-           && colors[getValue(blockcache_, jj0 - 1, height, ii0 - 1, j, i)].alpha() == 255) {
-            color = color.darker(120);
+          int j_diff = 0, i_diff = 0;
+          if (set_.sun_direction % 2 == 1) {
+            if (set_.sun_direction == 7 || set_.sun_direction == 1) {
+              ++j_diff;
+            } else if (set_.sun_direction == 3 || set_.sun_direction == 5) {
+              --j_diff;
+            }
+            if (set_.sun_direction == 7 || set_.sun_direction == 5) {
+              ++i_diff;
+            } else if (set_.sun_direction == 3 || set_.sun_direction == 1) {
+              --i_diff;
+            }
+            if ((colors[getValue(blockcache_, jj0 + j_diff, height, ii0, j, i)].alpha() == 255
+              || colors[getValue(blockcache_, jj0, height, ii0 + i_diff, j, i)].alpha() == 255)
+             && colors[getValue(blockcache_, jj0 + j_diff, height, ii0 + i_diff, j, i)].alpha() == 255) {
+                color = color.lighter(120);
+            }
+            if ((colors[getValue(blockcache_, jj0 - j_diff, height, ii0, j, i)].alpha() == 255
+              || colors[getValue(blockcache_, jj0, height, ii0 - i_diff, j, i)].alpha() == 255)
+             && colors[getValue(blockcache_, jj0 - j_diff, height, ii0 - i_diff, j, i)].alpha() == 255) {
+                color = color.darker(120);
+            }
           }
         }
         img.setPixel(static_cast<int32_t>(jj0), static_cast<int32_t>(ii0),
