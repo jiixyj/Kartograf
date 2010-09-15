@@ -228,13 +228,13 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
         if (set_.shadow) {
           int32_t x = jj0, y = height, z = ii0;
           QColor light(0, 0, 0, 0);
-          while (++y < 127) {
+          while (++y < 128) {
             --x;
             --z;
             uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
             if (blknr != 0) {
               light = blend(colors[blknr], light);
-              if (colors[blknr].alpha() == 255) {
+              if (light.alpha() == 255) {
                 break;
               }
             }
