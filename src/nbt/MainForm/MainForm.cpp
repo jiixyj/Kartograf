@@ -18,6 +18,11 @@ void MainForm::populateScene() {
     QTest::qWait(1);
   }
   bf_->clearCache();
+  // QPen pen;
+  // pen.setColor(QColor(255, 0, 0, 255));
+  // scene()->addEllipse(185, 50, 5, 5, pen);
+  // rotate(270.0f);
+  // 187 52
   // setTransform(QTransform().scale(1, 1));
 }
 

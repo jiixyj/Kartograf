@@ -229,8 +229,24 @@ QImage nbt::getImage(int32_t j, int32_t i) const {
           int32_t x = jj0, y = height, z = ii0;
           QColor light(0, 0, 0, 0);
           while (++y < 128) {
-            --x;
-            --z;
+            if (set_.sun_direction == 7
+             || set_.sun_direction == 0
+             || set_.sun_direction == 1) {
+              --x;
+            } else if (set_.sun_direction == 3
+                    || set_.sun_direction == 4
+                    || set_.sun_direction == 5) {
+              ++x;
+            }
+            if (set_.sun_direction == 5
+             || set_.sun_direction == 6
+             || set_.sun_direction == 7) {
+              --z;
+            } else if (set_.sun_direction == 1
+                    || set_.sun_direction == 2
+                    || set_.sun_direction == 3) {
+              ++z;
+            }
             uint8_t blknr = getValue(blockcache_, x, y, z, j, i);
             if (blknr != 0) {
               light = blend(colors[blknr], light);
