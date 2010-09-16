@@ -8,13 +8,79 @@ set(EXECUTABLE_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR})
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi -pedantic -Wfatal-errors -isystem${${PROJECT_NAME}_MAIN_DIR}/include -isystem${QT_INCLUDE_DIR} -isystem${QT_QTGUI_INCLUDE_DIR} -isystem${QT_QTCORE_INCLUDE_DIR} -Wall -Wextra -Wshadow -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Winit-self -Wmissing-include-dirs -Wunused-parameter -Wunknown-pragmas -Wstrict-overflow=1 -Wfloat-equal -Wundef -Wno-endif-labels -Wcast-qual -Wcast-align -Wwrite-strings -Wmissing-format-attribute -Wno-multichar -Wpacked -Wredundant-decls -Winvalid-pch -Wdisabled-optimization -Wconversion -Wabi -Wstrict-null-sentinel -Weffc++ -Wno-non-template-friend -Wsign-promo -Wswitch-default -Wsync-nand -Wlogical-op -Wvla -Wstack-protector -Wold-style-cast -Wno-pmf-conversions -funsafe-loop-optimizations -fopenmp")
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+set(WARNINGS "
+  -Wfatal-errors
+  -Wall
+  -Wextra
+  -Wformat=2
+  -Wcomment
+  -Wshadow
+  -Wctor-dtor-privacy
+  -Wnon-virtual-dtor
+  -Wreorder
+  -Winit-self
+  -Wmissing-include-dirs
+  -Wunused
+  -Wunused-parameter
+  -Wunknown-pragmas
+  -Wstrict-overflow=1
+  -Wstrict-aliasing
+  -Wfloat-equal
+  -Wundef
+  -Wcast-qual
+  -Wcast-align
+  -Wwrite-strings
+  -Wmissing-format-attribute
+  -Wno-multichar
+  -Wpacked
+  -Wredundant-decls
+  -Winvalid-pch
+  -Wlong-long
+  -Wdisabled-optimization
+  -Wconversion
+  -Wabi
+  -Wstrict-null-sentinel
+  -Weffc++
+  -Wno-non-template-friend
+  -Wsign-promo
+  -Wswitch-default
+  -Wsync-nand
+  -Wlogical-op
+  -Wvla
+  -Wstack-protector
+  -Wold-style-cast
+  -Wno-pmf-conversions
+ ")
+set(NOWARNINGS "
+  -Wstrict-overflow=4
+  -Winline
+  -Wmissing-noreturn
+  -Wswitch-enum
+  -Wsign-conversion
+  -Waggregate-return
+  -Wpadded
+
+  -Wunsafe-loop-optimizations
+ ")
+
+set(SYSTEMINCLUDES "
+  -isystem${${PROJECT_NAME}_MAIN_DIR}/include
+  -isystem${QT_INCLUDE_DIR}
+  -isystem${QT_QTGUI_INCLUDE_DIR}
+  -isystem${QT_QTCORE_INCLUDE_DIR}
+ ")
+set(OPTIMIZATIONS "
+  -fstack-protector-all
+  -funsafe-loop-optimizations
+  -fopenmp
+ ")
+
+set(CMAKE_CXX_FLAGS "-ansi -pedantic ${WARNINGS} ${SYSTEMINCLUDES} ${OPTIMIZATIONS}")
+string(REPLACE "\n " "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 if(MINGW)
   add_definitions("-DWIN32")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-all")
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
