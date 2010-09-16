@@ -71,17 +71,11 @@ set(SYSTEMINCLUDES "
   -isystem${QT_QTCORE_INCLUDE_DIR}
  ")
 set(OPTIMIZATIONS "
-  -fstack-protector-all
   -funsafe-loop-optimizations
-  -fopenmp
  ")
 
 set(CMAKE_CXX_FLAGS "-ansi -pedantic ${WARNINGS} ${SYSTEMINCLUDES} ${OPTIMIZATIONS}")
 string(REPLACE "\n " "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-
-if(MINGW)
-  add_definitions("-DWIN32")
-endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
