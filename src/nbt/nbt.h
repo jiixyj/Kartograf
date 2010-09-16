@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <tbb/concurrent_hash_map.h>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -27,20 +28,23 @@ class nbt {
   const tag_ptr tag_at(int32_t x, int32_t z) const;
 
   void setSettings(Settings set);
-  QImage getImage(int32_t x, int32_t z) const;
+  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
+  uint8_t getValue(const map& cache,
+                   int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
+  QImage getImage(int32_t x, int32_t z, bool* result) const;
   void clearCache() const;
 
   tag_ptr tag_;
  private:
-  QColor checkReliefDiagonal(QColor input, int x, int y, int z,
+  QColor checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int y, int z,
                                            int j, int i) const;
-  QColor checkReliefNormal(QColor input, int x, int y, int z,
+  QColor checkReliefNormal(const nbt::map& cache, QColor input, int x, int y, int z,
                                          int j, int i) const;
-  QColor calculateMap(QColor input, int x, int y, int z,
+  QColor calculateMap(const nbt::map& cache, QColor input, int x, int y, int z,
                                     int j, int i) const;
-  QColor calculateShadow(QColor input, int x, int y, int z,
+  QColor calculateShadow(const nbt::map& cache, QColor input, int x, int y, int z,
                                        int j, int i) const;
-  QColor calculateRelief(QColor input, int x, int y, int z,
+  QColor calculateRelief(const nbt::map& cache, QColor input, int x, int y, int z,
                                        int j, int i) const;
   int32_t xPos_min_;
   int32_t zPos_min_;
@@ -50,8 +54,7 @@ class nbt {
   QDir dir_;
   Settings set_;
 
-  mutable QMutex blockcache_mutex_;
-  mutable std::map<std::pair<int, int>, std::string> blockcache_;
+  mutable map blockcache_;
 
   void construct_world();
 

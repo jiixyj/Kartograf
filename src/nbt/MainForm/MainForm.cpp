@@ -11,16 +11,26 @@ MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
 }
 
 void MainForm::populateScene() {
+  int index = 0;
   for (int i = bf_->zPos_min(); i <= bf_->zPos_max(); ++i) {
     int j;
     #pragma omp parallel for
     for (j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
-      const QImage& img = bf_->getImage(j, i);
+      bool result = false;
+      const QImage& img = bf_->getImage(j, i, &result);
+      if (!result) continue;
+      #pragma omp atomic
+      index += 1;
       #pragma omp critical
       {
         images.push(img);
         coords.push(QPair<int, int>(j, i));
       }
+      if (index > 10000) {
+        #pragma omp critical
+        bf_->clearCache();
+      }
+      #pragma omp critical
       emit renderNewImage();
     }
   }
@@ -47,11 +57,14 @@ void MainForm::populateSceneItem() {
   QImage img;
   QPair<int, int> coor;
   if (images.try_pop(img) && coords.try_pop(coor)) {
-    QGraphicsPixmapItem* pi =
-    scene()->addPixmap(QPixmap::fromImage(img));
+    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img));
     pi->setFlag(QGraphicsItem::ItemIsMovable, false);
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
+    // std::cout << 16 * coor.first << " " << 16 * coor.second << std::endl;
     pi->setPos(16 * coor.first, 16 * coor.second);
+  } else {
+    std::cerr << "must not happen!" << std::endl;
+    exit(1);
   }
 }
 
