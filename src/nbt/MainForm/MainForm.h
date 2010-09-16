@@ -17,6 +17,7 @@ class MainForm : public QGraphicsView {
   void populateSceneItem();
   void scale();
   void saveToFile();
+  void renderNewImageEmitter();
 
  signals:
   void scaleSig();
@@ -28,13 +29,14 @@ class MainForm : public QGraphicsView {
   void mouseDoubleClickEvent(QMouseEvent* event);
 
  private:
+  friend class ApplyFoo;
+
   QGraphicsScene* scene_;
   nbt* bf_;
 
   int scale_;
-
-  tbb::strict_ppl::concurrent_queue<QImage> images;
-  tbb::strict_ppl::concurrent_queue<QPair<int, int> > coords;
+  typedef QPair<QImage, QPair<int, int> > image_coords;
+  tbb::strict_ppl::concurrent_queue<image_coords> images;
 
   MainForm(const MainForm&);
   MainForm& operator=(const MainForm&);

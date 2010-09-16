@@ -28,6 +28,7 @@ class nbt {
   const tag_ptr tag_at(int32_t x, int32_t z) const;
 
   void setSettings(Settings set);
+  Settings set() const { return set_; }
   typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
   uint8_t getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;

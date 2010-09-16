@@ -2,34 +2,53 @@
 
 #include <QtGui>
 #include <iostream>
+#include <tbb/tbb.h>
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
                  : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1) {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
   connect(this, SIGNAL(renderNewImage()), this, SLOT(populateSceneItem()));
   connect(this, SIGNAL(saveToFileSignal()), this, SLOT(saveToFile()));
+  rotate(90 * bf_->set().rotate);
 }
 
-void MainForm::populateScene() {
-  int index = 0;
-  for (int i = bf_->zPos_min(); i <= bf_->zPos_max(); ++i) {
-    int j;
-    #pragma omp parallel for
-    for (j = bf_->xPos_min(); j <= bf_->xPos_max(); ++j) {
+class ApplyFoo {
+  MainForm* mainform_;
+  int i_;
+  tbb::atomic<int>* index_;
+ public:
+  void operator()( const tbb::blocked_range<int32_t>& r ) const {
+    for(int32_t j=r.begin(); j!=r.end(); ++j) {
       bool result = false;
-      const QImage& img = bf_->getImage(j, i, &result);
-      if (!result) continue;
-      #pragma omp atomic
-      index += 1;
-      #pragma omp critical
-      {
-        images.push(img);
-        coords.push(QPair<int, int>(j, i));
+      const QImage& img = mainform_->bf_->getImage(j, i_, &result);
+      if (!result) {
+        continue;
       }
-      #pragma omp critical
-      emit renderNewImage();
+      *index_ += 1;
+      mainform_->images.push(MainForm::image_coords(img, QPair<int, int>(j, i_)));
+      mainform_->renderNewImageEmitter();
     }
+  }
+  ApplyFoo(MainForm* mainform, int i, tbb::atomic<int>* index)
+          : mainform_(mainform), i_(i), index_(index) {}
+  /* just for the compiler */
+  ApplyFoo(const ApplyFoo& rhs)
+          : mainform_(rhs.mainform_), i_(rhs.i_), index_(rhs.index_) {}
+ private:
+  ApplyFoo& operator=(const ApplyFoo&);
+};
+
+
+void MainForm::populateScene() {
+  tbb::atomic<int> index;
+  index = 0;
+  for (int i = bf_->zPos_min(); i <= bf_->zPos_max(); ++i) {
+    tbb::parallel_for(tbb::blocked_range<int32_t>(bf_->xPos_min(),
+                                                  bf_->xPos_max() + 1),
+                                                  ApplyFoo(this, i, &index));
     if (index > 10000) {
+      std::cerr << "cache cleared!" << std::endl;
+      index = 0;
       bf_->clearCache();
     }
   }
@@ -44,24 +63,27 @@ void MainForm::populateScene() {
   // setTransform(QTransform().scale(1, 1));
 }
 
+void MainForm::renderNewImageEmitter() {
+  emit renderNewImage();
+}
+
 void MainForm::saveToFile() {
-  QImage image(scene()->sceneRect().toAlignedRect().size(), QImage::Format_ARGB32_Premultiplied);
+  QImage image(mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1).size(), QImage::Format_ARGB32_Premultiplied);
   image.fill(0);
   QPainter painter(&image);
-  scene()->render(&painter);
+  render(&painter, painter.viewport(), mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1));
   image.save("image.png");
   exit(1);
 }
 
 void MainForm::populateSceneItem() {
-  QImage img;
-  QPair<int, int> coor;
-  if (images.try_pop(img) && coords.try_pop(coor)) {
-    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img));
+  MainForm::image_coords img_coor;
+  if (images.try_pop(img_coor)) {
+    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img_coor.first));
     pi->setFlag(QGraphicsItem::ItemIsMovable, false);
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
     // std::cout << 16 * coor.first << " " << 16 * coor.second << std::endl;
-    pi->setPos(16 * coor.first, 16 * coor.second);
+    pi->setPos(16 * img_coor.second.first, 16 * img_coor.second.second);
   } else {
     std::cerr << "must not happen!" << std::endl;
     exit(1);
@@ -70,10 +92,10 @@ void MainForm::populateSceneItem() {
 
 void MainForm::scale() {
   if (scale_ <= 0) {
-    setTransform(QTransform().scale(1.0/pow(2.0, abs(scale_ - 1)),
+    setTransform(QTransform().rotate(90 * bf_->set().rotate).scale(1.0/pow(2.0, abs(scale_ - 1)),
                                     1.0/pow(2.0, abs(scale_ - 1))));
   } else {
-    setTransform(QTransform().scale(scale_, scale_));
+    setTransform(QTransform().rotate(90 * bf_->set().rotate).scale(scale_, scale_));
   }
 }
 
