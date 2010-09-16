@@ -141,8 +141,8 @@ const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   exit(1);
 }
 
-void nbt::setSettings(Settings set) {
-  set_ = set;
+void nbt::setSettings(Settings set__) {
+  set_ = set__;
   return;
 }
 

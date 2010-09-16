@@ -5,7 +5,8 @@
 #include <tbb/tbb.h>
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
-                 : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1) {
+                 : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1),
+                   images() {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
   connect(this, SIGNAL(renderNewImage()), this, SLOT(populateSceneItem()));
   connect(this, SIGNAL(saveToFileSignal()), this, SLOT(saveToFile()));
