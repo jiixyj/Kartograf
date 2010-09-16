@@ -26,12 +26,11 @@ void MainForm::populateScene() {
         images.push(img);
         coords.push(QPair<int, int>(j, i));
       }
-      if (index > 10000) {
-        #pragma omp critical
-        bf_->clearCache();
-      }
       #pragma omp critical
       emit renderNewImage();
+    }
+    if (index > 10000) {
+      bf_->clearCache();
     }
   }
   bf_->clearCache();
@@ -51,6 +50,7 @@ void MainForm::saveToFile() {
   QPainter painter(&image);
   scene()->render(&painter);
   image.save("image.png");
+  exit(1);
 }
 
 void MainForm::populateSceneItem() {
