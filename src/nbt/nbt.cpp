@@ -329,8 +329,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     }
     const std::string& heightMap = comp->sub("HeightMap")->
                                          pay_<tag::byte_array>().p;
-    for (int jj = j + 3; jj >= j - 3; --jj) {
-      for (int ii = i + 3; ii >= i - 3; --ii) {
+    for (int jj = j + 7; jj >= j - 7; --jj) {
+      for (int ii = i + 7; ii >= i - 7; --ii) {
         if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
           const nbt::tag_ptr newtag = tag_at(jj, ii);
           if (newtag) {
