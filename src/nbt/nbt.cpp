@@ -370,8 +370,6 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     if (zPos != i || xPos != j) {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
-    const std::string& heightMap = comp->sub("HeightMap")->
-                                         pay_<tag::byte_array>().p;
     for (int jj = j + 7; jj >= j - 7; --jj) {
       for (int ii = i + 7; ii >= i - 7; --ii) {
         if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
@@ -395,7 +393,6 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "Map is too large for an image!" << std::endl;
       exit(1);
     }
-    int index = 0;
     if (set_.topview) {
       for (int32_t z = 0; z < 16; ++z) {
         for (int32_t x = 0; x < 16; ++x) {
