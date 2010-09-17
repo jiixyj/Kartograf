@@ -408,12 +408,12 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       /* iterate over image pixels */
       for (int32_t zz = 0; zz < 16 + 128; ++zz) {
         for (int32_t x = 0; x < 16; ++x) {
-          int32_t y = 142 - zz;
+          int32_t y = 143 - zz;
           if (y > 127) y = 127;
           int32_t z = zz;
           if (zz > 15) z = 15;
           /* at this point x, y and z are block coordinates */
-          bool zigzag = true;
+          bool zigzag = (zz > 15) ? false : true;
           while (getValue(cache, x, y, z, j, i) == 0) {
             if (zigzag) {
               --z;
