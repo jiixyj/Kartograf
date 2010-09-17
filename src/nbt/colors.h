@@ -17,18 +17,47 @@ QColor blend(const QColor& B, const QColor& A) {
 typedef std::map<int, int>::const_iterator intmapit;
 
 static std::map<int, int> upperHalf = boost::assign::map_list_of
-  (37, 0)  // flowers are
-  (38, 0)  // very small
+  (6, 0)   // sapling
+  (37, 0)  // yellow flower
+  (38, 0)  // red flower
+  (39, 0)  // brown mushroom
+  (40, 0)  // red mushroom
+  (44, 0)  // single step
+  (50, 0)  // torch
+  (51, 0)  // fire
+  (55, 0)  // redstone wire
+  (59, 0)  // crops
+  (60, 0)  // soil
+  (63, 0)  // sign
+  (69, 0)  // lever
+  (70, 0)  // stone pressure plate
+  (72, 0)  // wooden pressure plate
+  (75, 0)  // redstone torch (off)
+  (76, 0)  // redstone torch (on)
+  (79, 0)  // ice
+  (85, 0)  // fence
 ;
 
 static std::map<int, int> lowerHalf = boost::assign::map_list_of
-  (2, 3)  // grass is dirt underneath
+  (2, 3)   // grass is dirt underneath
+  (78, 3)  // dito for snow
 ;
 
 static std::set<int> noShadow = boost::assign::list_of
   (2)
   (37)
   (38)
+  (39)
+  (40)
+  (50)
+  (51)
+  (55)
+  (60)
+  (69)
+  (70)
+  (72)
+  (76)
+  (79)
 ;
 
 static std::map<int, QColor> colors = boost::assign::map_list_of
