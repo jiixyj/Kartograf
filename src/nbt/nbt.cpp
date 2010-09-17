@@ -267,7 +267,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
         ++z;
       }
       uint8_t blknr = getValue(cache, x, y, z, j, i);
-      if (blknr != 0 && blknr != 37 && blknr != 38) {
+      if (noShadow.count(blknr) == 0) {
         light = blend(colors[blknr], light);
         if (light.alpha() == 255) {
           break;
@@ -317,16 +317,13 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
     do {
       int32_t blockid = getValue(cache, x, y, z, j, i);
       if (zigzag) {
-        if (blockid == 37 || blockid == 38) {
-          goto dontpush;
-        }
+        intmapit it = upperHalf.find(blockid);
+        if (it != upperHalf.end()) blockid = (*it).second;
       } else {
-        if (blockid == 2) {
-          blockid = 3;
-        }
+        intmapit it = lowerHalf.find(blockid);
+        if (it != lowerHalf.end()) blockid = (*it).second;
       }
       colorstack.push(colors[blockid]);
-      dontpush:
       if (zigzag) {
         --z;
         zigzag = false;
