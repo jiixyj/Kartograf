@@ -42,7 +42,7 @@ class nbt {
   QColor checkReliefNormal(const nbt::map& cache, QColor input, int x, int y, int z,
                                          int j, int i) const;
   QColor calculateMap(const nbt::map& cache, QColor input, int x, int y, int z,
-                                    int j, int i) const;
+                                    int j, int i, bool zigzag = false) const;
   QColor calculateShadow(const nbt::map& cache, QColor input, int x, int y, int z,
                                        int j, int i) const;
   QColor calculateRelief(const nbt::map& cache, QColor input, int x, int y, int z,

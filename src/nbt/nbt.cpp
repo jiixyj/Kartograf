@@ -8,6 +8,7 @@
 #include <list>
 #include <map>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <utility>
 
@@ -245,6 +246,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
   QColor color = input;
   if (set_.shadow) {
     QColor light(0, 0, 0, 0);
+    if (set_.topview) ++y;
     while (++y < 128) {
       if (set_.sun_direction == 7
        || set_.sun_direction == 0
@@ -265,7 +267,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
         ++z;
       }
       uint8_t blknr = getValue(cache, x, y, z, j, i);
-      if (blknr != 0) {
+      if (blknr != 0 && blknr != 37 && blknr != 38) {
         light = blend(colors[blknr], light);
         if (light.alpha() == 255) {
           break;
@@ -280,20 +282,18 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
 QColor nbt::calculateRelief(const nbt::map& cache, QColor input, int x, int y, int z,
                                           int j, int i) const {
   QColor color = input;
-  if (set_.topview) {
-    if (set_.relief) {
-      if (set_.sun_direction % 2 == 1) {
-        color = checkReliefDiagonal(cache, color, x, y, z, j, i);
-      } else {
-        color = checkReliefNormal(cache, color, x, y, z, j, i);
-      }
+  if (set_.relief) {
+    if (set_.sun_direction % 2 == 1) {
+      color = checkReliefDiagonal(cache, color, x, y, z, j, i);
+    } else {
+      color = checkReliefNormal(cache, color, x, y, z, j, i);
     }
   }
   return color;
 }
 
 QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int z,
-                                       int j, int i) const {
+                                       int j, int i, bool zigzag) const {
   QColor color = input;
   if (set_.topview) {
     if (set_.heightmap) {
@@ -312,12 +312,55 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
         color = blend(colors[blknr], color);
       }
     }
+  } else if (set_.oblique) {
+    std::stack<QColor> colorstack;
+    do {
+      int32_t blockid = getValue(cache, x, y, z, j, i);
+      if (zigzag) {
+        if (blockid == 37 || blockid == 38) {
+          goto dontpush;
+        }
+      } else {
+        if (blockid == 2) {
+          blockid = 3;
+        }
+      }
+      colorstack.push(colors[blockid]);
+      dontpush:
+      if (zigzag) {
+        --z;
+        zigzag = false;
+      } else {
+        --y;
+        zigzag = true;
+      }
+      if (!colorstack.empty() && colorstack.top().alpha() == 255) break;
+      if (z == -1) {
+        while (!colorstack.empty()) {
+          color = blend(colorstack.top(), color);
+          colorstack.pop();
+        }
+        if (color.alpha() == 0) return color;
+      }
+    } while (y >= 0);
+    QColor tmp(Qt::transparent);
+    while (!colorstack.empty()) {
+      tmp = blend(colorstack.top(), tmp);
+      colorstack.pop();
+    }
+    color = blend(color, tmp);
   }
   return color;
 }
 
 QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
-  QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
+  QImage img;
+  if (set_.topview)
+    img = QImage(16, 16, QImage::Format_ARGB32_Premultiplied);
+  else if (set_.oblique)
+    img = QImage(16, 16 + 128, QImage::Format_ARGB32_Premultiplied);
+  else
+    exit(1);
   img.fill(0);
   const nbt::tag_ptr tag = tag_at(j, i);
   if (tag) {
@@ -352,19 +395,52 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "Map is too large for an image!" << std::endl;
       exit(1);
     }
-    int32_t xPos_img = static_cast<int32_t>(xtmp);
-    int32_t zPos_img = static_cast<int32_t>(ztmp);
     int index = 0;
-    for (int32_t ii = zPos_img; ii < zPos_img + 16; ++ii) {
-      for (int32_t jj = xPos_img; jj < xPos_img + 16; ++jj) {
-        int32_t x = jj - xPos_img;
-        int32_t z = ii - zPos_img;
-        uint8_t y = heightMap[index++];
-        QColor color;
-        color = calculateMap(cache, color, x, y, z, j, i);
-        color = calculateShadow(cache, color, x, y, z, j, i);
-        color = calculateRelief(cache, color, x, y, z, j, i);
-        img.setPixel(x, z, color.lighter((y - 64) / 2 + 64).rgba());
+    if (set_.topview) {
+      for (int32_t z = 0; z < 16; ++z) {
+        for (int32_t x = 0; x < 16; ++x) {
+          uint8_t y = 127;
+          while (getValue(cache, x, y, z, j, i) == 0) {
+            --y;
+          }
+          QColor color(Qt::transparent);
+          color = calculateMap(cache, color, x, y, z, j, i);
+          color = calculateShadow(cache, color, x, y, z, j, i);
+          color = calculateRelief(cache, color, x, y, z, j, i);
+          img.setPixel(x, z, color.lighter((y - 64) / 2 + 64).rgba());
+        }
+      }
+    } else if (set_.oblique) {
+      /* iterate over image pixels */
+      for (int32_t zz = 0; zz < 16 + 128; ++zz) {
+        for (int32_t x = 0; x < 16; ++x) {
+          int32_t y = 142 - zz;
+          if (y > 127) y = 127;
+          int32_t z = zz;
+          if (zz > 15) z = 15;
+          /* at this point x, y and z are block coordinates */
+          bool zigzag = true;
+          while (getValue(cache, x, y, z, j, i) == 0) {
+            if (zigzag) {
+              --z;
+              zigzag = false;
+            } else {
+              --y;
+              zigzag = true;
+            }
+            if (y < 0 || z < 0) {
+              goto endloop;
+            }
+          }
+          {
+            QColor color(Qt::transparent);
+            color = calculateMap(cache, color, x, y, z, j, i, zigzag);
+            color = calculateShadow(cache, color, x, y, z, j, i);
+            color = calculateRelief(cache, color, x, y, z, j, i);
+            img.setPixel(x, zz, color.lighter((y - 64) / 2 + 64).rgba());
+          }
+          endloop:;
+        }
       }
     }
     *result = true;

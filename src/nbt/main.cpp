@@ -20,13 +20,14 @@ int main(int ac, char* av[]) {
   }
   std::cout << bf->string();
   Settings set;
-  set.topview = true;
+  set.topview = false;
+  set.oblique = true;
   set.heightmap = false;
   set.color = false;
   set.shadow = true;
   set.relief = true;
-  set.sun_direction = 1;
-  set.rotate = 1;
+  set.sun_direction = 7;
+  set.rotate = 0;
   bf->setSettings(set);
   QGraphicsScene scene;
   MainForm label(&scene, bf);
