@@ -74,17 +74,22 @@ void MainForm::saveToFile() {
   QPainter painter(&image);
   render(&painter, painter.viewport(), mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1));
   image.save("image.png");
-  // exit(1);
+  exit(1);
 }
 
 void MainForm::populateSceneItem() {
   MainForm::image_coords img_coor;
   if (images.try_pop(img_coor)) {
-    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img_coor.first));
+    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img_coor.first.transformed(QMatrix().rotate(90 * (4 - bf_->set().rotate)))));
     pi->setFlag(QGraphicsItem::ItemIsMovable, false);
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
     // std::cout << 16 * coor.first << " " << 16 * coor.second << std::endl;
     pi->setPos(16 * img_coor.second.first, 16 * img_coor.second.second);
+    if (bf_->set().rotate == 1) {
+      pi->setZValue(img_coor.second.first);
+    } else if (bf_->set().rotate == 0) {
+      pi->setZValue(img_coor.second.second);
+    }
   } else {
     std::cerr << "must not happen!" << std::endl;
     exit(1);
