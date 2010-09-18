@@ -401,7 +401,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateMap(cache, color, x, y, z, j, i);
           color = calculateShadow(cache, color, x, y, z, j, i);
           color = calculateRelief(cache, color, x, y, z, j, i);
-          img.setPixel(x, z, color.lighter((y - 64) / 2 + 64).rgba());
+          img.setPixel(x, z, color.lighter((y - 64) / 2 + 96).rgba());
         }
       }
     } else if (set_.oblique) {
@@ -431,7 +431,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
             color = calculateMap(cache, color, x, y, z, j, i, zigzag);
             color = calculateShadow(cache, color, x, y, z, j, i);
             color = calculateRelief(cache, color, x, y, z, j, i);
-            img.setPixel(x, zz, color.lighter((y - 64) / 2 + 64).rgba());
+            img.setPixel(x, zz, color.lighter((y - 64) / 2 + 96).rgba());
           }
           endloop:;
         }
