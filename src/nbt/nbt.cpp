@@ -333,11 +333,14 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
       }
       if (!colorstack.empty() && colorstack.top().alpha() == 255) break;
       if (z == -1) {
+        std::stack<QColor> colorstack_inner = colorstack;
+        bool clear = true;
         while (!colorstack.empty()) {
-          color = blend(colorstack.top(), color);
+          if (colorstack.top().alpha() != 0) clear = false;
           colorstack.pop();
         }
-        if (color.alpha() == 0) return color;
+        if (clear) return QColor(Qt::transparent);
+        colorstack = colorstack_inner;
       }
     } while (y >= 0);
     QColor tmp(Qt::transparent);
