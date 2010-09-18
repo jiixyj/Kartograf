@@ -334,7 +334,7 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
     }
   } else if (set_.oblique) {
     std::stack<QColor> colorstack;
-    int& dec = (set_.rotate == 0) ? z : x;
+    int& dec = (set_.rotate % 2 == 0) ? z : x;
     do {
       int32_t blockid = getValue(cache, x, y, z, j, i);
       if (zigzag) {
@@ -346,14 +346,18 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
       }
       colorstack.push(colors[blockid]);
       if (zigzag) {
-        --dec;
+        if (set_.rotate <= 1) {
+          --dec;
+        } else {
+          ++dec;
+        }
         zigzag = false;
       } else {
         --y;
         zigzag = true;
       }
       if (!colorstack.empty() && colorstack.top().alpha() == 255) break;
-      if (dec == -1) {
+      if (dec == -1 || dec == 16) {
         std::stack<QColor> colorstack_inner = colorstack;
         bool clear = true;
         while (!colorstack.empty()) {
@@ -445,21 +449,37 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
             if (y > 127) y = 127;
             x = zz;
             if (zz > 15) x = 15;
+          } else if (set_.rotate == 2) {
+            z = 15 - zz;
+            y = 143 - zz;
+            if (y > 127) y = 127;
+            x = 15 - xx;
+            if (zz > 15) z = 0;
+          } else if (set_.rotate == 3) {
+            z = xx;
+            y = 143 - zz;
+            if (y > 127) y = 127;
+            x =  15 - zz;
+            if (zz > 15) x = 0;
           } else {
             exit(1);
           }
           /* at this point x, y and z are block coordinates */
           bool zigzag = (zz > 15) ? false : true;
-          int& dec = (set_.rotate == 0) ? z : x;
+          int& dec = (set_.rotate % 2 == 0) ? z : x;
           while (getValue(cache, x, y, z, j, i) == 0) {
             if (zigzag) {
-              --dec;
+              if (set_.rotate <= 1) {
+                --dec;
+              } else {
+                ++dec;
+              }
               zigzag = false;
             } else {
               --y;
               zigzag = true;
             }
-            if (y < 0 || dec < 0) {
+            if (y < 0 || dec < 0 || dec > 15) {
               goto endloop;
             }
           }

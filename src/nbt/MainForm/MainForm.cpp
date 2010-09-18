@@ -85,10 +85,14 @@ void MainForm::populateSceneItem() {
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
     // std::cout << 16 * coor.first << " " << 16 * coor.second << std::endl;
     pi->setPos(16 * img_coor.second.first, 16 * img_coor.second.second);
-    if (bf_->set().rotate == 1) {
-      pi->setZValue(img_coor.second.first);
-    } else if (bf_->set().rotate == 0) {
+    if (bf_->set().rotate == 0) {
       pi->setZValue(img_coor.second.second);
+    } else if (bf_->set().rotate == 1) {
+      pi->setZValue(img_coor.second.first);
+    } else if (bf_->set().rotate == 2) {
+      pi->setZValue(-img_coor.second.second);
+    } else if (bf_->set().rotate == 3) {
+      pi->setZValue(-img_coor.second.first);
     }
   } else {
     std::cerr << "must not happen!" << std::endl;
