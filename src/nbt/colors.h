@@ -59,6 +59,11 @@ static std::set<int> noShadow = boost::assign::list_of
   (79)
 ;
 
+static std::set<int> emitLight = boost::assign::list_of
+  (50)
+  (76)
+;
+
 static std::map<int, QColor> colors = boost::assign::map_list_of
   (0, QColor(0, 0, 0, 0))
   (1, QColor(125, 125, 125, 255))  // OK

@@ -245,6 +245,9 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
                                           int j, int i) const {
   QColor color = input;
   if (set_.shadow) {
+    if (emitLight.count(getValue(cache, x, y, z, j, i)) == 1) {
+      return color;
+    }
     ++y;
     int yy = y;
     int xx = x;
