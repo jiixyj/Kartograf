@@ -190,12 +190,12 @@ QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int 
   if ((colors[getValue(cache, x + xd, y, z, j, i)].alpha() == 255
     || colors[getValue(cache, x, y, z + zd, j, i)].alpha() == 255)
    && colors[getValue(cache, x + xd, y, z + zd, j, i)].alpha() == 255) {
-      color = color.lighter(120);
+      color = color.lighter(100 + set_.relief_strength);
   }
   if ((colors[getValue(cache, x - xd, y, z, j, i)].alpha() == 255
     || colors[getValue(cache, x, y, z - zd, j, i)].alpha() == 255)
    && colors[getValue(cache, x - xd, y, z - zd, j, i)].alpha() == 255) {
-      color = color.darker(120);
+      color = color.darker(100 + set_.relief_strength);
   }
   return color;
 }
@@ -208,34 +208,34 @@ QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input, int x, int y,
       || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 255)
      && colors[getValue(cache, x, y, z - 1, j, i)].alpha() == 255) {
       if (set_.sun_direction == 2)
-        color = color.lighter(120);
+        color = color.lighter(100 + set_.relief_strength);
       if (set_.sun_direction == 6)
-        color = color.darker(120);
+        color = color.darker(100 + set_.relief_strength);
     }
     if ((colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 255
       || colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 255)
      && colors[getValue(cache, x, y, z + 1, j, i)].alpha() == 255) {
       if (set_.sun_direction == 2)
-        color = color.darker(120);
+        color = color.darker(100 + set_.relief_strength);
       if (set_.sun_direction == 6)
-        color = color.lighter(120);
+        color = color.lighter(100 + set_.relief_strength);
     }
   } else if (set_.sun_direction % 4 == 0) {
     if ((colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 255
       || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 255)
      && colors[getValue(cache, x - 1, y, z, j, i)].alpha() == 255) {
       if (set_.sun_direction == 4)
-        color = color.lighter(120);
+        color = color.lighter(100 + set_.relief_strength);
       if (set_.sun_direction == 0)
-        color = color.darker(120);
+        color = color.darker(100 + set_.relief_strength);
     }
     if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 255
       || colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 255)
      && colors[getValue(cache, x + 1, y, z, j, i)].alpha() == 255) {
       if (set_.sun_direction == 4)
-        color = color.darker(120);
+        color = color.darker(100 + set_.relief_strength);
       if (set_.sun_direction == 0)
-        color = color.lighter(120);
+        color = color.lighter(100 + set_.relief_strength);
     }
   }
   return color;
@@ -245,36 +245,53 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
                                           int j, int i) const {
   QColor color = input;
   if (set_.shadow) {
-    QColor light(0, 0, 0, 0);
-    if (set_.topview) ++y;
-    while (++y < 128) {
-      if (set_.sun_direction == 7
-       || set_.sun_direction == 0
-       || set_.sun_direction == 1) {
-        --x;
-      } else if (set_.sun_direction == 3
-              || set_.sun_direction == 4
-              || set_.sun_direction == 5) {
-        ++x;
-      }
-      if (set_.sun_direction == 5
-       || set_.sun_direction == 6
-       || set_.sun_direction == 7) {
-        --z;
-      } else if (set_.sun_direction == 1
-              || set_.sun_direction == 2
-              || set_.sun_direction == 3) {
-        ++z;
-      }
-      uint8_t blknr = getValue(cache, x, y, z, j, i);
-      if (noShadow.count(blknr) == 0) {
-        light = blend(colors[blknr], light);
-        if (light.alpha() == 255) {
-          break;
+    ++y;
+    int yy = y;
+    int xx = x;
+    int zz = z;
+    bool zigzag = true;
+    for (int iii = 0; iii < set_.shadow_quality + 1; ++iii) {
+      QColor light(0, 0, 0, 0);
+      while (y < 127) {
+        if (!zigzag) {
+          ++y;
+          zigzag = true;
+        } else {
+          if (set_.sun_direction == 7
+           || set_.sun_direction == 0
+           || set_.sun_direction == 1) {
+            --x;
+          } else if (set_.sun_direction == 3
+                  || set_.sun_direction == 4
+                  || set_.sun_direction == 5) {
+            ++x;
+          }
+          if (set_.sun_direction == 5
+           || set_.sun_direction == 6
+           || set_.sun_direction == 7) {
+            --z;
+          } else if (set_.sun_direction == 1
+                  || set_.sun_direction == 2
+                  || set_.sun_direction == 3) {
+            ++z;
+          }
+          zigzag = false;
+        }
+        uint8_t blknr = getValue(cache, x, y, z, j, i);
+        if (noShadow.count(blknr) == 0) {
+          light = blend(colors[blknr], light);
+          if (light.alpha() == 255) {
+            break;
+          }
         }
       }
+      color = color.darker(static_cast<int>(set_.shadow_strength
+                           / (set_.shadow_quality + 1) * light.alphaF()) + 100);
+      y = yy;
+      z = zz;
+      x = xx;
+      zigzag = false;
     }
-    color = color.darker(static_cast<int>(50.0 * light.alphaF()) + 100);
   }
   return color;
 }

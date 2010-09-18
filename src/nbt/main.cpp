@@ -20,13 +20,16 @@ int main(int ac, char* av[]) {
   }
   std::cout << bf->string();
   Settings set;
-  set.topview = false;
-  set.oblique = true;
+  set.topview = true;
+  set.oblique = false;
   set.heightmap = false;
   set.color = false;
   set.shadow = true;
-  set.relief = false;
-  set.sun_direction = 0;
+  set.shadow_quality = true;
+  set.shadow_strength = 70;
+  set.relief = true;
+  set.relief_strength = 10;
+  set.sun_direction = 7;
   set.rotate = 0;
   bf->setSettings(set);
   QGraphicsScene scene;
