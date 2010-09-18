@@ -44,7 +44,6 @@ static std::map<int, int> lowerHalf = boost::assign::map_list_of
 ;
 
 static std::set<int> noShadow = boost::assign::list_of
-  (2)
   (37)
   (38)
   (39)

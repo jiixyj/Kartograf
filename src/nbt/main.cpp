@@ -25,8 +25,8 @@ int main(int ac, char* av[]) {
   set.heightmap = false;
   set.color = false;
   set.shadow = true;
-  set.relief = true;
-  set.sun_direction = 7;
+  set.relief = false;
+  set.sun_direction = 0;
   set.rotate = 0;
   bf->setSettings(set);
   QGraphicsScene scene;
