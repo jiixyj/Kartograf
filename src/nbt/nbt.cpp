@@ -280,28 +280,33 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
     int xx = x;
     int zz = z;
     int sun_direction = (set_.sun_direction + ((set_.rotate + 1) % 4) * 2) % 8;
-    int shadow_amount = ((sun_direction == 3 || sun_direction == 4 || sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
-    int32_t blockid2;
-    if (set_.rotate == 0) {
-      blockid = getValue(cache, x - 1, y - 1, z, j, i);
-      blockid2 = getValue(cache, x + 1, y - 1, z, j, i);
-    } else if (set_.rotate == 1) {
-      blockid = getValue(cache, x, y - 1, z + 1, j, i);
-      blockid2 = getValue(cache, x, y - 1, z - 1, j, i);
-    } else if (set_.rotate == 2) {
-      blockid = getValue(cache, x + 1, y - 1, z, j, i);
-      blockid2 = getValue(cache, x - 1, y - 1, z, j, i);
+    int shadow_amount;
+    if (set_.topview) {
+      shadow_amount = 0;
     } else {
-      blockid = getValue(cache, x, y - 1, z - 1, j, i);
-      blockid2 = getValue(cache, x, y - 1, z + 1, j, i);
-    }
-    if ((sun_direction == 1 &&
-         colors[blockid].alpha() == 0)
-     || (sun_direction == 2)
-     || (sun_direction == 6)
-     || (sun_direction == 7 &&
-         colors[blockid2].alpha() == 0)) {
-      shadow_amount /= 2;
+      shadow_amount = ((sun_direction == 3 || sun_direction == 4 || sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
+      int32_t blockid2;
+      if (set_.rotate == 0) {
+        blockid = getValue(cache, x - 1, y - 1, z, j, i);
+        blockid2 = getValue(cache, x + 1, y - 1, z, j, i);
+      } else if (set_.rotate == 1) {
+        blockid = getValue(cache, x, y - 1, z + 1, j, i);
+        blockid2 = getValue(cache, x, y - 1, z - 1, j, i);
+      } else if (set_.rotate == 2) {
+        blockid = getValue(cache, x + 1, y - 1, z, j, i);
+        blockid2 = getValue(cache, x - 1, y - 1, z, j, i);
+      } else {
+        blockid = getValue(cache, x, y - 1, z - 1, j, i);
+        blockid2 = getValue(cache, x, y - 1, z + 1, j, i);
+      }
+      if ((sun_direction == 1 &&
+           colors[blockid].alpha() == 0)
+       || (sun_direction == 2)
+       || (sun_direction == 6)
+       || (sun_direction == 7 &&
+           colors[blockid2].alpha() == 0)) {
+        shadow_amount /= 2;
+      }
     }
     zigzag = true;
     for (int iii = 0; iii < set_.shadow_quality + 1; ++iii) {
@@ -382,12 +387,13 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
                                                                .alpha() != 255);
       for (int h = height_low_bound; h <= y; ++h) {
         uint8_t blknr = getValue(cache, x, h, z, j, i);
-        color = blend(colors[blknr], color);
+        color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i), color);
       }
     }
   } else if (set_.oblique) {
     std::stack<QColor> colorstack;
     int& dec = (set_.rotate % 2 == 0) ? z : x;
+    bool first_block_hit = false;
     do {
       int32_t blockid = getValue(cache, x, y, z, j, i);
       if (zigzag) {
@@ -397,7 +403,12 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
         intmapit it = lowerHalf.find(blockid);
         if (it != lowerHalf.end()) blockid = (*it).second;
       }
-      colorstack.push(colors[blockid]);
+      if (set_.shadow_quality_ultra || !first_block_hit) {
+        colorstack.push(calculateShadow(cache, colors[blockid], x, y, z, j, i, zigzag));
+        first_block_hit = true;
+      } else {
+        colorstack.push(colors[blockid]);
+      }
       if (zigzag) {
         if (set_.rotate <= 1) {
           --dec;
@@ -502,7 +513,6 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           }
           QColor color(Qt::transparent);
           color = calculateMap(cache, color, x, y, z, j, i);
-          color = calculateShadow(cache, color, x, y, z, j, i);
           color = calculateRelief(cache, color, x, y, z, j, i);
           color.lighter((y - 64) / 2 + 96);
           if (set_.dither) {
@@ -567,7 +577,6 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           {
             QColor color(Qt::transparent);
             color = calculateMap(cache, color, x, y, z, j, i, zigzag);
-            color = calculateShadow(cache, color, x, y, z, j, i, zigzag);
             color = calculateRelief(cache, color, x, y, z, j, i);
             color = color.lighter((y - 64) / 2 + 96);
             if (set_.dither) {

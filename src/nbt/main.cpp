@@ -20,12 +20,13 @@ int main(int ac, char* av[]) {
   }
   std::cout << bf->string();
   Settings set;
-  set.topview = false;
+  set.topview = true;
   set.oblique = true;
   set.heightmap = false;
   set.color = false;
   set.shadow_strength = 60;
   set.shadow_quality = true;
+  set.shadow_quality_ultra = true;
   set.relief_strength = 10;
   set.sun_direction = 1;
   set.rotate = 0;

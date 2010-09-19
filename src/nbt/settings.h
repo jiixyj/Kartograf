@@ -10,6 +10,7 @@ struct  Settings {
   bool oblique;
   bool shadow;
   bool shadow_quality;
+  bool shadow_quality_ultra;
   int shadow_strength;
   /* 0 = N, 1 = NW, 2 = W, 3 = SW, 4 = S, 5 = SE, 6 = E, 7 = NE */
   int sun_direction;
