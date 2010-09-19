@@ -11,6 +11,7 @@ MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
   connect(this, SIGNAL(renderNewImage()), this, SLOT(populateSceneItem()));
   connect(this, SIGNAL(saveToFileSignal()), this, SLOT(saveToFile()));
   rotate(90 * bf_->set().rotate);
+  setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
 class ApplyFoo {
@@ -76,7 +77,7 @@ void MainForm::saveToFile() {
   QPainter painter(&image);
   render(&painter, painter.viewport(), mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1));
   image.save("image.png");
-  exit(1);
+  // exit(1);
 }
 
 void MainForm::populateSceneItem() {

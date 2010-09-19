@@ -1,10 +1,6 @@
 #ifndef SRC_NBT_SETTINGS_H_
 #define SRC_NBT_SETTINGS_H_
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
-
 struct  Settings {
   bool topview;
     bool heightmap;
