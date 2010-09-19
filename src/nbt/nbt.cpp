@@ -11,6 +11,9 @@
 #include <stack>
 #include <string>
 #include <utility>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
 
 #include "./colors.h"
 
@@ -378,6 +381,10 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
   return color;
 }
 
+inline int clamp(int value) {
+  return (value > 255) ? 255 : ((value < 0) ? 0 : value);
+}
+
 QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   QImage img;
   if (set_.topview)
@@ -389,6 +396,10 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   img.fill(0);
   const nbt::tag_ptr tag = tag_at(j, i);
   if (tag) {
+    boost::mt19937 gen((((j - std::numeric_limits<int16_t>::min()) << 16) & 0xFFFF0000)
+                      | ((i - std::numeric_limits<int16_t>::min())        & 0x0000FFFF));
+    boost::uniform_int<> dist(-1, 1);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > dither(gen, dist);
     nbt::tag_ptr comp(tag->sub("Level"));
     int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
     int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
@@ -443,7 +454,15 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateMap(cache, color, x, y, z, j, i);
           color = calculateShadow(cache, color, x, y, z, j, i);
           color = calculateRelief(cache, color, x, y, z, j, i);
-          img.setPixel(xx, zz, color.lighter((y - 64) / 2 + 96).rgba());
+          color.lighter((y - 64) / 2 + 96);
+          if (set_.dither) {
+            int random1 = dither();
+            int random2 = dither();
+            color.setRed(clamp(color.red() + random1 + random2));
+            color.setGreen(clamp(color.green() + random1 + random2));
+            color.setBlue(clamp(color.blue() + random1 + random2));
+          }
+          img.setPixel(xx, zz, color.rgba());
         }
       }
     } else if (set_.oblique) {
@@ -500,7 +519,15 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
             color = calculateMap(cache, color, x, y, z, j, i, zigzag);
             color = calculateShadow(cache, color, x, y, z, j, i);
             color = calculateRelief(cache, color, x, y, z, j, i);
-            img.setPixel(xx, zz, color.lighter((y - 64) / 2 + 96).rgba());
+            color = color.lighter((y - 64) / 2 + 96);
+            if (set_.dither) {
+              int random1 = dither();
+              int random2 = dither();
+              color.setRed(clamp(color.red() + random1 + random2));
+              color.setGreen(clamp(color.green() + random1 + random2));
+              color.setBlue(clamp(color.blue() + random1 + random2));
+            }
+            img.setPixel(xx, zz, color.rgba());
           }
           endloop:;
         }

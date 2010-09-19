@@ -69,6 +69,8 @@ void MainForm::renderNewImageEmitter() {
 }
 
 void MainForm::saveToFile() {
+  scale_ = 1;
+  scale();
   QImage image(mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1).size(), QImage::Format_ARGB32_Premultiplied);
   image.fill(0);
   QPainter painter(&image);
