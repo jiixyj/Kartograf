@@ -279,14 +279,28 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
     int yy = y;
     int xx = x;
     int zz = z;
-    int shadow_amount = ((set_.sun_direction == 3 || set_.sun_direction == 4 || set_.sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
-    /* TODO: different rotates than 1 */
-    if ((set_.sun_direction == 1 &&
-         colors[getValue(cache, x, y - 1, z + 1, j, i)].alpha() == 0)
-     || (set_.sun_direction == 2)
-     || (set_.sun_direction == 6)
-     || (set_.sun_direction == 7 &&
-         colors[getValue(cache, x, y - 1, z - 1, j, i)].alpha() == 0)) {
+    int sun_direction = (set_.sun_direction + ((set_.rotate + 1) % 4) * 2) % 8;
+    int shadow_amount = ((sun_direction == 3 || sun_direction == 4 || sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
+    int32_t blockid2;
+    if (set_.rotate == 0) {
+      blockid = getValue(cache, x - 1, y - 1, z, j, i);
+      blockid2 = getValue(cache, x + 1, y - 1, z, j, i);
+    } else if (set_.rotate == 1) {
+      blockid = getValue(cache, x, y - 1, z + 1, j, i);
+      blockid2 = getValue(cache, x, y - 1, z - 1, j, i);
+    } else if (set_.rotate == 2) {
+      blockid = getValue(cache, x + 1, y - 1, z, j, i);
+      blockid2 = getValue(cache, x - 1, y - 1, z, j, i);
+    } else {
+      blockid = getValue(cache, x, y - 1, z - 1, j, i);
+      blockid2 = getValue(cache, x, y - 1, z + 1, j, i);
+    }
+    if ((sun_direction == 1 &&
+         colors[blockid].alpha() == 0)
+     || (sun_direction == 2)
+     || (sun_direction == 6)
+     || (sun_direction == 7 &&
+         colors[blockid2].alpha() == 0)) {
       shadow_amount /= 2;
     }
     zigzag = true;
