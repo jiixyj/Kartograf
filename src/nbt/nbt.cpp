@@ -200,8 +200,8 @@ QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int 
     || colors[getValue(cache, x, y, z + zd, j, i)].alpha() == 0)
    && colors[getValue(cache, x + xd, y, z + zd, j, i)].alpha() == 0) {
     lighter_amount -= set_.relief_strength;
-    if (!set_.topview && lighter_amount < 0) lighter_amount = 0;
   }
+  if (!set_.topview && lighter_amount < 0) lighter_amount = 0;
   if (lighter_amount < 0) {
     color = color.darker(100 - lighter_amount);
   } else if (lighter_amount > 0) {
@@ -213,40 +213,47 @@ QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int 
 QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input, int x, int y, int z,
                                             int j, int i) const {
   QColor color = input;
+  int lighter_amount = 0;
   if (set_.sun_direction % 4 == 2) {
-    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 255
-      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 255)
-     && colors[getValue(cache, x, y, z - 1, j, i)].alpha() == 255) {
+    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 0
+      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 0)
+     && colors[getValue(cache, x, y, z - 1, j, i)].alpha() == 0) {
       if (set_.sun_direction == 2)
-        color = color.lighter(100 + set_.relief_strength);
+        lighter_amount -= set_.relief_strength;
       if (set_.sun_direction == 6)
-        color = color.darker(100 + set_.relief_strength);
+        lighter_amount += set_.relief_strength;
     }
-    if ((colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 255
-      || colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 255)
-     && colors[getValue(cache, x, y, z + 1, j, i)].alpha() == 255) {
+    if ((colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 0
+      || colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 0)
+     && colors[getValue(cache, x, y, z + 1, j, i)].alpha() == 0) {
       if (set_.sun_direction == 2)
-        color = color.darker(100 + set_.relief_strength);
+        lighter_amount += set_.relief_strength;
       if (set_.sun_direction == 6)
-        color = color.lighter(100 + set_.relief_strength);
+        lighter_amount -= set_.relief_strength;
     }
   } else if (set_.sun_direction % 4 == 0) {
-    if ((colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 255
-      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 255)
-     && colors[getValue(cache, x - 1, y, z, j, i)].alpha() == 255) {
+    if ((colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 0
+      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 0)
+     && colors[getValue(cache, x - 1, y, z, j, i)].alpha() == 0) {
       if (set_.sun_direction == 4)
-        color = color.lighter(100 + set_.relief_strength);
+        lighter_amount -= set_.relief_strength;
       if (set_.sun_direction == 0)
-        color = color.darker(100 + set_.relief_strength);
+        lighter_amount += set_.relief_strength;
     }
-    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 255
-      || colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 255)
-     && colors[getValue(cache, x + 1, y, z, j, i)].alpha() == 255) {
+    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 0
+      || colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 0)
+     && colors[getValue(cache, x + 1, y, z, j, i)].alpha() == 0) {
       if (set_.sun_direction == 4)
-        color = color.darker(100 + set_.relief_strength);
+        lighter_amount += set_.relief_strength;
       if (set_.sun_direction == 0)
-        color = color.lighter(100 + set_.relief_strength);
+        lighter_amount -= set_.relief_strength;
     }
+  }
+  if (!set_.topview && lighter_amount < 0) lighter_amount = 0;
+  if (lighter_amount < 0) {
+    color = color.darker(100 - lighter_amount);
+  } else if (lighter_amount > 0) {
+    color = color.lighter(100 + lighter_amount);
   }
   return color;
 }
@@ -273,7 +280,13 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
     int xx = x;
     int zz = z;
     int shadow_amount = ((set_.sun_direction == 3 || set_.sun_direction == 4 || set_.sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
-    if (colors[getValue(cache, x, y - 1, z + 1, j, i)].alpha() == 0) {
+    /* TODO: different rotates than 1 */
+    if ((set_.sun_direction == 1 &&
+         colors[getValue(cache, x, y - 1, z + 1, j, i)].alpha() == 0)
+     || (set_.sun_direction == 2)
+     || (set_.sun_direction == 6)
+     || (set_.sun_direction == 7 &&
+         colors[getValue(cache, x, y - 1, z - 1, j, i)].alpha() == 0)) {
       shadow_amount /= 2;
     }
     zigzag = true;
