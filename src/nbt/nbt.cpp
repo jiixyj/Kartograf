@@ -190,15 +190,22 @@ QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int 
   } else if (set_.sun_direction == 3 || set_.sun_direction == 1) {
     --zd;
   }
-  if ((colors[getValue(cache, x + xd, y, z, j, i)].alpha() == 255
-    || colors[getValue(cache, x, y, z + zd, j, i)].alpha() == 255)
-   && colors[getValue(cache, x + xd, y, z + zd, j, i)].alpha() == 255) {
-      color = color.lighter(100 + set_.relief_strength);
+  int lighter_amount = 0;
+  if ((colors[getValue(cache, x - xd, y, z, j, i)].alpha() == 0
+    || colors[getValue(cache, x, y, z - zd, j, i)].alpha() == 0)
+   && colors[getValue(cache, x - xd, y, z - zd, j, i)].alpha() == 0) {
+    lighter_amount += set_.relief_strength;
   }
-  if ((colors[getValue(cache, x - xd, y, z, j, i)].alpha() == 255
-    || colors[getValue(cache, x, y, z - zd, j, i)].alpha() == 255)
-   && colors[getValue(cache, x - xd, y, z - zd, j, i)].alpha() == 255) {
-      color = color.darker(100 + set_.relief_strength);
+  if ((colors[getValue(cache, x + xd, y, z, j, i)].alpha() == 0
+    || colors[getValue(cache, x, y, z + zd, j, i)].alpha() == 0)
+   && colors[getValue(cache, x + xd, y, z + zd, j, i)].alpha() == 0) {
+    lighter_amount -= set_.relief_strength;
+    if (!set_.topview && lighter_amount < 0) lighter_amount = 0;
+  }
+  if (lighter_amount < 0) {
+    color = color.darker(100 - lighter_amount);
+  } else if (lighter_amount > 0) {
+    color = color.lighter(100 + lighter_amount);
   }
   return color;
 }
@@ -245,17 +252,31 @@ QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input, int x, int y,
 }
 
 QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, int z,
-                                          int j, int i) const {
+                                          int j, int i, bool zigzag) const {
   QColor color = input;
   if (set_.shadow) {
-    if (emitLight.count(getValue(cache, x, y, z, j, i)) == 1) {
+    int blockid = getValue(cache, x, y, z, j, i);
+    if (!set_.topview) {
+      if (zigzag) {
+        intmapit it = upperHalf.find(blockid);
+        if (it != upperHalf.end()) blockid = (*it).second;
+      } else {
+        intmapit it = lowerHalf.find(blockid);
+        if (it != lowerHalf.end()) blockid = (*it).second;
+      }
+    }
+    if (emitLight.count(blockid) == 1) {
       return color;
     }
     ++y;
     int yy = y;
     int xx = x;
     int zz = z;
-    bool zigzag = true;
+    int shadow_amount = ((set_.sun_direction == 3 || set_.sun_direction == 4 || set_.sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
+    if (colors[getValue(cache, x, y - 1, z + 1, j, i)].alpha() == 0) {
+      shadow_amount /= 2;
+    }
+    zigzag = true;
     for (int iii = 0; iii < set_.shadow_quality + 1; ++iii) {
       QColor light(0, 0, 0, 0);
       while (y < 127) {
@@ -291,13 +312,14 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
           }
         }
       }
-      color = color.darker(static_cast<int>(set_.shadow_strength
-                           / (set_.shadow_quality + 1) * light.alphaF()) + 100);
       y = yy;
       z = zz;
       x = xx;
       zigzag = false;
+      shadow_amount += static_cast<int>(set_.shadow_strength
+                     / (set_.shadow_quality + 1) * light.alphaF());
     }
+    color = color.darker(100 + shadow_amount);
   }
   return color;
 }
@@ -305,6 +327,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
 QColor nbt::calculateRelief(const nbt::map& cache, QColor input, int x, int y, int z,
                                           int j, int i) const {
   QColor color = input;
+  //++y;
   if (set_.relief) {
     if (set_.sun_direction % 2 == 1) {
       color = checkReliefDiagonal(cache, color, x, y, z, j, i);
@@ -517,7 +540,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           {
             QColor color(Qt::transparent);
             color = calculateMap(cache, color, x, y, z, j, i, zigzag);
-            color = calculateShadow(cache, color, x, y, z, j, i);
+            color = calculateShadow(cache, color, x, y, z, j, i, zigzag);
             color = calculateRelief(cache, color, x, y, z, j, i);
             color = color.lighter((y - 64) / 2 + 96);
             if (set_.dither) {

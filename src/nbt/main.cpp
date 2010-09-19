@@ -20,7 +20,7 @@ int main(int ac, char* av[]) {
   }
   std::cout << bf->string();
   Settings set;
-  set.topview = true;
+  set.topview = false;
   set.oblique = true;
   set.heightmap = false;
   set.color = false;
@@ -28,7 +28,7 @@ int main(int ac, char* av[]) {
   set.shadow_quality = true;
   set.relief_strength = 10;
   set.sun_direction = 1;
-  set.rotate = 0;
+  set.rotate = 1;
   set.dither = true;
   set.sun_direction = (set.sun_direction + ((set.rotate + 3) % 4) * 2) % 8;
   if (set.shadow_strength != 0) {

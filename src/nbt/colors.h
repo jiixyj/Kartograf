@@ -23,14 +23,15 @@ static std::map<int, int> upperHalf = boost::assign::map_list_of
   (39, 0)  // brown mushroom
   (40, 0)  // red mushroom
   (44, 0)  // single step
-  (50, 0)  // torch
   (51, 0)  // fire
   (55, 0)  // redstone wire
   (59, 0)  // crops
   (60, 0)  // soil
   (63, 0)  // sign
+  (64, 0)  // wooden door
   (69, 0)  // lever
   (70, 0)  // stone pressure plate
+  (71, 0)  // iron door
   (72, 0)  // wooden pressure plate
   (75, 0)  // redstone torch (off)
   (76, 0)  // redstone torch (on)
@@ -40,6 +41,7 @@ static std::map<int, int> upperHalf = boost::assign::map_list_of
 
 static std::map<int, int> lowerHalf = boost::assign::map_list_of
   (2, 3)   // grass is dirt underneath
+  (50, 0)  // torch
   (78, 3)  // dito for snow
 ;
 
