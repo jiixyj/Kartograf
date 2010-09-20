@@ -58,10 +58,8 @@ class nbt {
   mutable map blockcache_;
 
   void construct_world();
-  void setUpTopviewCoords(uint32_t& x, uint32_t& y, uint32_t& z,
-                          int32_t xx, int32_t zz) const;
-  void setUpObliqueCoords(int32_t& x, int32_t& y, int32_t& z,
-                          int32_t xx, int32_t zz) const;
+  void projectCoords(int32_t& x, int32_t& y, int32_t& z,
+                     int32_t xx, int32_t zz) const;
 
   nbt(const nbt&);
   nbt& operator=(const nbt&);

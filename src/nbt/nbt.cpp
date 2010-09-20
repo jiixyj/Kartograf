@@ -452,50 +452,49 @@ inline int clamp(int value) {
   return (value > 255) ? 255 : ((value < 0) ? 0 : value);
 }
 
-void nbt::setUpTopviewCoords(uint32_t& x, uint32_t& y, uint32_t& z,
-                             int32_t xx, int32_t zz) const {
-  if (set_.rotate == 0) {
-    x = xx;
-    z = zz;
-  } else if (set_.rotate == 1) {
-    x = zz;
-    z = 15 - xx;
-  } else if (set_.rotate == 2) {
-    x = 15 - xx;
-    z = 15 - zz;
-  } else {
-    x = 15 - zz;
-    z = xx;
-  }
-  y = 127;
-}
-
-void nbt::setUpObliqueCoords(int32_t& x, int32_t& y, int32_t& z,
-                             int32_t xx, int32_t zz) const {
-  if (set_.rotate == 0) {
-    x = xx;
-    y = 143 - zz;
-    if (y > 127) y = 127;
-    z = zz;
-    if (zz > 15) z = 15;
-  } else if (set_.rotate == 1) {
-    z = 15 - xx;
-    y = 143 - zz;
-    if (y > 127) y = 127;
-    x = zz;
-    if (zz > 15) x = 15;
-  } else if (set_.rotate == 2) {
-    z = 15 - zz;
-    y = 143 - zz;
-    if (y > 127) y = 127;
-    x = 15 - xx;
-    if (zz > 15) z = 0;
-  } else {
-    z = xx;
-    y = 143 - zz;
-    if (y > 127) y = 127;
-    x =  15 - zz;
-    if (zz > 15) x = 0;
+void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
+                        int32_t xx, int32_t zz) const {
+  if (set_.topview) {
+    if (set_.rotate == 0) {
+      x = xx;
+      z = zz;
+    } else if (set_.rotate == 1) {
+      x = zz;
+      z = 15 - xx;
+    } else if (set_.rotate == 2) {
+      x = 15 - xx;
+      z = 15 - zz;
+    } else {
+      x = 15 - zz;
+      z = xx;
+    }
+    y = 127;
+  } else if (set_.oblique) {
+    if (set_.rotate == 0) {
+      x = xx;
+      y = 143 - zz;
+      if (y > 127) y = 127;
+      z = zz;
+      if (zz > 15) z = 15;
+    } else if (set_.rotate == 1) {
+      z = 15 - xx;
+      y = 143 - zz;
+      if (y > 127) y = 127;
+      x = zz;
+      if (zz > 15) x = 15;
+    } else if (set_.rotate == 2) {
+      z = 15 - zz;
+      y = 143 - zz;
+      if (y > 127) y = 127;
+      x = 15 - xx;
+      if (zz > 15) z = 0;
+    } else {
+      z = xx;
+      y = 143 - zz;
+      if (y > 127) y = 127;
+      x =  15 - zz;
+      if (zz > 15) x = 0;
+    }
   }
 }
 
@@ -567,10 +566,10 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       exit(1);
     }
     if (set_.topview) {
-      for (int32_t zz = 0; zz < 16; ++zz) {
-        for (int32_t xx = 0; xx < 16; ++xx) {
-          uint32_t x, y, z;
-          setUpTopviewCoords(x, y, z, xx, zz);
+      for (int32_t zz = 0; zz < img.height(); ++zz) {
+        for (int32_t xx = 0; xx < img.width(); ++xx) {
+          int32_t x, y, z;
+          projectCoords(x, y, z, xx, zz);
           while (getValue(cache, x, y, z, j, i) == 0) {
             --y;
           }
@@ -590,10 +589,10 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       }
     } else if (set_.oblique) {
       /* iterate over image pixels */
-      for (int32_t zz = 0; zz < 16 + 128; ++zz) {
-        for (int32_t xx = 0; xx < 16; ++xx) {
+      for (int32_t zz = 0; zz < img.height(); ++zz) {
+        for (int32_t xx = 0; xx < img.width(); ++xx) {
           int32_t x, y, z;
-          setUpObliqueCoords(x, y, z, xx, zz);
+          projectCoords(x, y, z, xx, zz);
           /* at this point x, y and z are block coordinates */
           bool zigzag = (zz > 15) ? false : true;
           int& dec = (set_.rotate % 2 == 0) ? z : x;
