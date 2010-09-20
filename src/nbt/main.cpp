@@ -26,7 +26,7 @@ int main(int ac, char* av[]) {
   set.color = false;
   set.shadow_strength = 60;
   set.shadow_quality = true;
-  set.shadow_quality_ultra = false;
+  set.shadow_quality_ultra = true;
   set.relief_strength = 10;
   set.sun_direction = 1;
   set.rotate = 1;
