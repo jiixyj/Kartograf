@@ -5,14 +5,7 @@
 #include <QtGui>
 #include <map>
 
-QColor blend(const QColor& B, const QColor& A) {
-  QColor C;
-  C.setRedF(B.redF() + (1 - B.alphaF()) * A.redF());
-  C.setGreenF(B.greenF() + (1 - B.alphaF()) * A.greenF());
-  C.setBlueF(B.blueF() + (1 - B.alphaF()) * A.blueF());
-  C.setAlphaF(B.alphaF() + (1 - B.alphaF()) * A.alphaF());
-  return C;
-}
+QColor blend(const QColor& B, const QColor& A);
 
 typedef std::map<int, int>::const_iterator intmapit;
 
@@ -33,15 +26,14 @@ static std::map<int, int> upperHalf = boost::assign::map_list_of
   (70, 0)  // stone pressure plate
   (71, 0)  // iron door
   (72, 0)  // wooden pressure plate
-  (75, 0)  // redstone torch (off)
-  (76, 0)  // redstone torch (on)
-  (79, 0)  // ice
   (85, 0)  // fence
 ;
 
 static std::map<int, int> lowerHalf = boost::assign::map_list_of
   (2, 3)   // grass is dirt underneath
   (50, 0)  // torch
+  (75, 0)  // redstone torch (off)
+  (76, 0)  // redstone torch (on)
   (78, 3)  // dito for snow
 ;
 
@@ -66,6 +58,7 @@ static std::set<int> emitLight = boost::assign::list_of
   (76)
 ;
 
+typedef std::map<int, QColor>::iterator colorit;
 static std::map<int, QColor> colors = boost::assign::map_list_of
   (0, QColor(0, 0, 0, 0))
   (1, QColor(125, 125, 125, 255))  // OK

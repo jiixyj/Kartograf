@@ -24,7 +24,8 @@ nbt::nbt() : tag_(),
              zPos_max_(std::numeric_limits<int32_t>::min()),
              dir_(QDir::home()),
              set_(),
-             blockcache_() {}
+             blockcache_() {
+             }
 
 nbt::nbt(int world) : tag_(),
                       xPos_min_(std::numeric_limits<int32_t>::max()),
@@ -176,8 +177,8 @@ uint8_t nbt::getValue(const nbt::map& cache,
   }
 }
 
-QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int y, int z,
-                                              int j, int i) const {
+QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input,
+                                int x, int y, int z, int j, int i) const {
   int xd = 0, zd = 0;
   QColor color = input;
   if (set_.sun_direction == 7 || set_.sun_direction == 1) {
@@ -210,8 +211,8 @@ QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int 
   return color;
 }
 
-QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input, int x, int y, int z,
-                                            int j, int i) const {
+QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input,
+                              int x, int y, int z, int j, int i) const {
   QColor color = input;
   int lighter_amount = 0;
   if (set_.sun_direction % 4 == 2) {
@@ -258,8 +259,9 @@ QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input, int x, int y,
   return color;
 }
 
-QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, int z,
-                                          int j, int i, bool zigzag) const {
+QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
+                            int x, int y, int z, int j, int i,
+                            bool zigzag) const {
   QColor color = input;
   if (set_.shadow) {
     int blockid = getValue(cache, x, y, z, j, i);
@@ -284,7 +286,9 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
     if (set_.topview) {
       shadow_amount = 0;
     } else {
-      shadow_amount = ((sun_direction == 3 || sun_direction == 4 || sun_direction == 5) ? 0 : 1) * !zigzag * set_.relief_strength * 2;
+      shadow_amount = ((sun_direction == 3 || sun_direction == 4
+                     || sun_direction == 5) ? 0 : 1)
+                    * !zigzag * set_.relief_strength * 2;
       int32_t blockid2;
       if (set_.rotate == 0) {
         blockid = getValue(cache, x - 1, y - 1, z, j, i);
@@ -356,8 +360,8 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input, int x, int y, i
   return color;
 }
 
-QColor nbt::calculateRelief(const nbt::map& cache, QColor input, int x, int y, int z,
-                                          int j, int i) const {
+QColor nbt::calculateRelief(const nbt::map& cache, QColor input,
+                            int x, int y, int z, int j, int i) const {
   QColor color = input;
   //++y;
   if (set_.relief) {
@@ -370,8 +374,8 @@ QColor nbt::calculateRelief(const nbt::map& cache, QColor input, int x, int y, i
   return color;
 }
 
-QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int z,
-                                       int j, int i, bool zigzag) const {
+QColor nbt::calculateMap(const nbt::map& cache, QColor input,
+                         int x, int y, int z, int j, int i, bool zigzag) const {
   QColor color = input;
   if (set_.topview) {
     if (set_.heightmap) {
@@ -387,7 +391,8 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
                                                                .alpha() != 255);
       for (int h = height_low_bound; h <= y; ++h) {
         uint8_t blknr = getValue(cache, x, h, z, j, i);
-        color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i), color);
+        color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
+                                                                         color);
       }
     }
   } else if (set_.oblique) {
@@ -404,7 +409,8 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input, int x, int y, int 
         if (it != lowerHalf.end()) blockid = (*it).second;
       }
       if (set_.shadow_quality_ultra || !first_block_hit) {
-        colorstack.push(calculateShadow(cache, colors[blockid], x, y, z, j, i, zigzag));
+        colorstack.push(calculateShadow(cache, colors[blockid], x, y, z, j, i,
+                                                                       zigzag));
         first_block_hit = true;
       } else {
         colorstack.push(colors[blockid]);
@@ -446,7 +452,27 @@ inline int clamp(int value) {
   return (value > 255) ? 255 : ((value < 0) ? 0 : value);
 }
 
+bool colors_changed = false;
+QMutex colors_changed_mutex;
 QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
+
+  // colors_changed_mutex.lock();
+  // int denom = 96;
+  // if (!colors_changed) {
+  //   for (colorit it = colors.begin(); it != colors.end(); ++it) {
+  //     if (it->first == 10 || it->first == 11) continue;
+  //     it->second.setAlpha(it->second.alpha() / denom);
+  //     it->second.setRed(it->second.red() / denom);
+  //     it->second.setGreen(it->second.green() / denom);
+  //     it->second.setBlue(it->second.blue() / denom);
+  //    // it->second.setAlpha(0);
+  //    // it->second.setRed(0);
+  //    // it->second.setGreen(0);
+  //    // it->second.setBlue(0);
+  //   }
+  // }
+  // colors_changed_mutex.unlock();
+  // colors_changed = true;
   QImage img;
   if (set_.topview)
     img = QImage(16, 16, QImage::Format_ARGB32_Premultiplied);
@@ -457,10 +483,13 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   img.fill(0);
   const nbt::tag_ptr tag = tag_at(j, i);
   if (tag) {
-    boost::mt19937 gen((((j - std::numeric_limits<int16_t>::min()) << 16) & 0xFFFF0000)
-                      | ((i - std::numeric_limits<int16_t>::min())        & 0x0000FFFF));
+    boost::mt19937 gen((((j - std::numeric_limits<int16_t>::min()) << 16)
+                                                                 & 0xFFFF0000)
+                      | ((i - std::numeric_limits<int16_t>::min())
+                                                                 & 0x0000FFFF));
     boost::uniform_int<> dist(-1, 1);
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > dither(gen, dist);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+                                                              dither(gen, dist);
     nbt::tag_ptr comp(tag->sub("Level"));
     int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
     int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
