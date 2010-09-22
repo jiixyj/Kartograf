@@ -281,7 +281,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
     int yy = y;
     int xx = x;
     int zz = z;
-    int sun_direction = (set_.sun_direction + ((set_.rotate + 1) % 4) * 2) % 8;
+    int sun_direction = ((set_.sun_direction - ((set_.rotate + 3) % 4) * 2) + 8) % 8;
     int shadow_amount;
     if (set_.topview) {
       shadow_amount = 0;
