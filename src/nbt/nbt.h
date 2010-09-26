@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <tbb/concurrent_hash_map.h>
+#include <tbb/mutex.h>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -56,6 +57,7 @@ class nbt {
   QDir dir_;
   Settings set_;
 
+  mutable tbb::mutex cache_mutex_;
   mutable map blockcache_;
 
   void construct_world();

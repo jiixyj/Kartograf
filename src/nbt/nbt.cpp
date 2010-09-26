@@ -567,6 +567,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     if (zPos != i || xPos != j) {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
+    cache_mutex_.lock();
     for (int jj = j + 7; jj >= j - 7; --jj) {
       for (int ii = i + 7; ii >= i - 7; --ii) {
         if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
@@ -582,6 +583,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       }
     }
     nbt::map cache(blockcache_);
+    cache_mutex_.unlock();
     uint64_t xtmp = (xPos - xPos_min()) * 16;
     uint64_t ztmp = (zPos - zPos_min()) * 16;
     int32_t max_int = std::numeric_limits<int32_t>::max();
@@ -663,7 +665,10 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
 }
 
 void nbt::clearCache() const {
-  blockcache_.clear();
+  cache_mutex_.lock();
+  nbt::map emptymap;
+  blockcache_.swap(emptymap);
+  cache_mutex_.unlock();
 }
 
 std::string nbt::string() const {
