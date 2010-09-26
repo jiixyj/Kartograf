@@ -177,6 +177,30 @@ uint8_t nbt::getValue(const nbt::map& cache,
   }
 }
 
+bool nbt::allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const {
+  for (int n = 1; n <= 16; ++n) {
+    if (set_.rotate == 0) {
+      nbt::map::const_accessor acc;
+      if (cache.find(acc, std::pair<int, int>(j, i - n)))
+        return false;
+    } else if (set_.rotate == 1) {
+      nbt::map::const_accessor acc;
+      if (cache.find(acc, std::pair<int, int>(j - n, i)))
+        return false;
+    } else if (set_.rotate == 2) {
+      nbt::map::const_accessor acc;
+      if (cache.find(acc, std::pair<int, int>(j, i + n)))
+        return false;
+    } else if (set_.rotate == 3) {
+      nbt::map::const_accessor acc;
+      if (cache.find(acc, std::pair<int, int>(j + n, i)))
+        return false;
+    }
+  }
+  // std::cout << i << " " << j << std::endl;
+  return true;
+}
+
 QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input,
                                 int x, int y, int z, int j, int i) const {
   int xd = 0, zd = 0;
@@ -436,6 +460,7 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
         }
         if (clear) return QColor(Qt::transparent);
         colorstack = colorstack_inner;
+        if (allEmptyBehind(cache, j, i)) break;
       }
     } while (y >= 0);
     QColor tmp(Qt::transparent);

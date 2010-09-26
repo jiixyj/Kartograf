@@ -32,6 +32,7 @@ class nbt {
   typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
   uint8_t getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
+  bool allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const;
   QImage getImage(int32_t x, int32_t z, bool* result) const;
   void clearCache() const;
 
