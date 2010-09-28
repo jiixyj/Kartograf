@@ -465,7 +465,14 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
     } while (y >= 0);
     QColor tmp(Qt::transparent);
     while (!colorstack.empty()) {
-      tmp = blend(colorstack.top(), tmp);
+      QColor col = colorstack.top();
+      double old_alpha = col.alphaF();
+      double new_alpha = old_alpha * old_alpha;
+      col.setRedF(col.redF() / old_alpha * new_alpha);
+      col.setGreenF(col.greenF() / old_alpha * new_alpha);
+      col.setBlueF(col.blueF() / old_alpha * new_alpha);
+      col.setAlphaF(new_alpha);
+      tmp = blend(col, tmp);
       colorstack.pop();
     }
     color = blend(color, tmp);
