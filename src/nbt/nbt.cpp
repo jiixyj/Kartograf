@@ -169,9 +169,9 @@ uint8_t nbt::getValue(const nbt::map& cache,
     ++i;
     z -= 16;
   }
-  nbt::map::const_accessor acc;
-  if (cache.find(acc, std::pair<int, int>(j, i))) {
-    return acc->second[y + z * 128 + x * 128 * 16];
+  nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i));
+  if (it != cache.end()) {
+    return it->second[y + z * 128 + x * 128 * 16];
   } else {
     return 0;
   }
@@ -180,20 +180,20 @@ uint8_t nbt::getValue(const nbt::map& cache,
 bool nbt::allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const {
   for (int n = 1; n <= 16; ++n) {
     if (set_.rotate == 0) {
-      nbt::map::const_accessor acc;
-      if (cache.find(acc, std::pair<int, int>(j, i - n)))
+      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i - n));
+      if (it != cache.end())
         return false;
     } else if (set_.rotate == 1) {
-      nbt::map::const_accessor acc;
-      if (cache.find(acc, std::pair<int, int>(j - n, i)))
+      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j - n, i));
+      if (it != cache.end())
         return false;
     } else if (set_.rotate == 2) {
-      nbt::map::const_accessor acc;
-      if (cache.find(acc, std::pair<int, int>(j, i + n)))
+      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i + n));
+      if (it != cache.end())
         return false;
     } else if (set_.rotate == 3) {
-      nbt::map::const_accessor acc;
-      if (cache.find(acc, std::pair<int, int>(j + n, i)))
+      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j + n, i));
+      if (it != cache.end())
         return false;
     }
   }
@@ -567,22 +567,25 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     if (zPos != i || xPos != j) {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
+    nbt::map cache;
     cache_mutex_.lock();
     for (int jj = j + 7; jj >= j - 7; --jj) {
       for (int ii = i + 7; ii >= i - 7; --ii) {
-        if (blockcache_.count(std::pair<int, int>(jj, ii)) == 0) {
+        nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
+        if (it == blockcache_.end()) {
           const nbt::tag_ptr newtag = tag_at(jj, ii);
           if (newtag) {
             const std::string& pl = newtag->sub("Level")->
                                        sub("Blocks")->pay_<tag::byte_array>().p;
-            nbt::map::accessor acc;
-            blockcache_.insert(acc, std::pair<int, int>(jj, ii));
-            acc->second = pl;
+            blockcache_.insert(nbt::map::value_type(std::pair<int, int>(jj, ii),
+                                                    pl));
+            cache.insert(nbt::map::value_type(std::pair<int, int>(jj, ii), pl));
           }
+        } else {
+          cache.insert(*it);
         }
       }
     }
-    nbt::map cache(blockcache_);
     cache_mutex_.unlock();
     uint64_t xtmp = (xPos - xPos_min()) * 16;
     uint64_t ztmp = (zPos - zPos_min()) * 16;
@@ -666,8 +669,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
 
 void nbt::clearCache() const {
   cache_mutex_.lock();
-  nbt::map emptymap;
-  blockcache_.swap(emptymap);
+  blockcache_.clear();
   cache_mutex_.unlock();
 }
 
