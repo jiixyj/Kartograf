@@ -413,11 +413,19 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
       int height_low_bound = y;
       while (colors[getValue(cache, x, height_low_bound--, z, j, i)]
                                                                .alpha() != 255);
-      for (int h = height_low_bound; h <= y; ++h) {
-        uint8_t blknr = getValue(cache, x, h, z, j, i);
-        color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
+      if (set_.shadow_quality_ultra) {
+        for (int h = height_low_bound; h < y; ++h) {
+          uint8_t blknr = getValue(cache, x, h, z, j, i);
+          color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
                                                                          color);
+        }
+      } else {
+        for (int h = height_low_bound; h < y; ++h) {
+          uint8_t blknr = getValue(cache, x, h, z, j, i);
+          color = blend(colors[blknr], color);
+        }
       }
+      color = blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
     }
   } else if (set_.oblique) {
     std::stack<QColor> colorstack;
