@@ -471,6 +471,7 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
       } else {
         colorstack.push(colors_oblique[blockid]);
       }
+      if (blockid == 0) first_block_hit = false;
       if (zigzag) {
         if (set_.rotate <= 1) {
           --dec;
