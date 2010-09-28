@@ -63,6 +63,10 @@ class nbt {
   void construct_world();
   void projectCoords(int32_t& x, int32_t& y, int32_t& z,
                      int32_t xx, int32_t zz) const;
+  int32_t goOneStepIntoScene(const nbt::map& cache,
+                                  int32_t& x, int32_t& y, int32_t& z,
+                                  int32_t j, int32_t i,
+                                  int32_t& state) const;
 
   nbt(const nbt&);
   nbt& operator=(const nbt&);

@@ -525,6 +525,30 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
 
 bool colors_changed = false;
 QMutex colors_changed_mutex;
+
+int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
+                                int32_t& x, int32_t& y, int32_t& z,
+                                int32_t j, int32_t i,
+                                int32_t& state) const {
+  if (set_.topview) {
+    --y;
+  } else if (set_.oblique) {
+    int& dec = (set_.rotate % 2 == 0) ? z : x;
+    if (state) {
+      if (set_.rotate <= 1) {
+        --dec;
+      } else {
+        ++dec;
+      }
+      state = false;
+    } else {
+      --y;
+      state = true;
+    }
+  }
+  return getValue(cache, x, y, z, j, i);
+}
+
 QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
 
   // colors_changed_mutex.lock();
@@ -595,18 +619,26 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "Map is too large for an image!" << std::endl;
       exit(1);
     }
-    if (set_.topview) {
-      for (int32_t zz = 0; zz < img.height(); ++zz) {
-        for (int32_t xx = 0; xx < img.width(); ++xx) {
-          int32_t x, y, z;
-          projectCoords(x, y, z, xx, zz);
-          while (getValue(cache, x, y, z, j, i) == 0) {
-            --y;
+    for (int32_t zz = 0; zz < img.height(); ++zz) {
+      for (int32_t xx = 0; xx < img.width(); ++xx) {
+        int32_t x, y, z;
+        projectCoords(x, y, z, xx, zz);
+        /* at this point x, y and z are block coordinates */
+        int32_t state = -1;
+        if (set_.oblique)
+          state = (zz > 15) ? false : true;
+        int32_t block_type = getValue(cache, x, y, z, j, i);
+        while (block_type == 0) {
+          block_type = goOneStepIntoScene(cache, x, y, z, j, i, state);
+          if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
+            goto endloop1;
           }
+        }
+        {
           QColor color(Qt::transparent);
-          color = calculateMap(cache, color, x, y, z, j, i);
+          color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
-          color.lighter((y - 64) / 2 + 96);
+          color = color.lighter((y - 64) / 2 + 96);
           if (set_.dither) {
             int random1 = dither();
             int random2 = dither();
@@ -616,48 +648,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           }
           img.setPixel(xx, zz, color.rgba());
         }
-      }
-    } else if (set_.oblique) {
-      /* iterate over image pixels */
-      for (int32_t zz = 0; zz < img.height(); ++zz) {
-        for (int32_t xx = 0; xx < img.width(); ++xx) {
-          int32_t x, y, z;
-          projectCoords(x, y, z, xx, zz);
-          /* at this point x, y and z are block coordinates */
-          bool zigzag = (zz > 15) ? false : true;
-          int& dec = (set_.rotate % 2 == 0) ? z : x;
-          while (getValue(cache, x, y, z, j, i) == 0) {
-            if (zigzag) {
-              if (set_.rotate <= 1) {
-                --dec;
-              } else {
-                ++dec;
-              }
-              zigzag = false;
-            } else {
-              --y;
-              zigzag = true;
-            }
-            if (y < 0 || dec < 0 || dec > 15) {
-              goto endloop;
-            }
-          }
-          {
-            QColor color(Qt::transparent);
-            color = calculateMap(cache, color, x, y, z, j, i, zigzag);
-            color = calculateRelief(cache, color, x, y, z, j, i);
-            color = color.lighter((y - 64) / 2 + 96);
-            if (set_.dither) {
-              int random1 = dither();
-              int random2 = dither();
-              color.setRed(clamp(color.red() + random1 + random2));
-              color.setGreen(clamp(color.green() + random1 + random2));
-              color.setBlue(clamp(color.blue() + random1 + random2));
-            }
-            img.setPixel(xx, zz, color.rgba());
-          }
-          endloop:;
-        }
+        endloop1:;
       }
     }
     *result = true;
