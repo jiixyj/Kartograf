@@ -428,6 +428,30 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
       color = blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
     }
   } else if (set_.oblique) {
+    static bool converted_colors = false;
+    static std::map<int, QColor> colors_oblique;
+    static tbb::mutex colors_oblique_mutex;
+    if (!converted_colors) {
+      colors_oblique_mutex.lock();
+      if (!converted_colors) {
+        std::map<int, QColor>::const_iterator it;
+        for (it = colors.begin(); it != colors.end(); ++it) {
+          QColor col = it->second;
+          if (col.alpha() != 0) {
+            double old_alpha = col.alphaF();
+            double new_alpha;
+            new_alpha = old_alpha * old_alpha;
+            col.setRedF(col.redF() / old_alpha * new_alpha);
+            col.setGreenF(col.greenF() / old_alpha * new_alpha);
+            col.setBlueF(col.blueF() / old_alpha * new_alpha);
+            col.setAlphaF(new_alpha);
+          }
+          colors_oblique.insert(std::map<int, QColor>::value_type(it->first, col));
+        }
+        converted_colors = true;
+      }
+      colors_oblique_mutex.unlock();
+    }
     std::stack<QColor> colorstack;
     int& dec = (set_.rotate % 2 == 0) ? z : x;
     bool first_block_hit = false;
@@ -441,11 +465,11 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
         if (it != lowerHalf.end()) blockid = (*it).second;
       }
       if (set_.shadow_quality_ultra || !first_block_hit) {
-        colorstack.push(calculateShadow(cache, colors[blockid], x, y, z, j, i,
+        colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
                                                                        zigzag));
         first_block_hit = true;
       } else {
-        colorstack.push(colors[blockid]);
+        colorstack.push(colors_oblique[blockid]);
       }
       if (zigzag) {
         if (set_.rotate <= 1) {
@@ -473,14 +497,7 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
     } while (y >= 0);
     QColor tmp(Qt::transparent);
     while (!colorstack.empty()) {
-      QColor col = colorstack.top();
-      double old_alpha = col.alphaF();
-      double new_alpha = old_alpha * old_alpha;
-      col.setRedF(col.redF() / old_alpha * new_alpha);
-      col.setGreenF(col.greenF() / old_alpha * new_alpha);
-      col.setBlueF(col.blueF() / old_alpha * new_alpha);
-      col.setAlphaF(new_alpha);
-      tmp = blend(col, tmp);
+      tmp = blend(colorstack.top(), tmp);
       colorstack.pop();
     }
     color = blend(color, tmp);
