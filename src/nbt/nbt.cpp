@@ -515,7 +515,7 @@ inline int clamp(int value) {
 }
 
 void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
-                        int32_t xx, int32_t zz) const {
+                        int32_t xx, int32_t zz, int32_t& state) const {
   if (set_.topview) {
     if (set_.rotate == 0) {
       x = xx;
@@ -532,6 +532,7 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
     }
     y = 127;
   } else if (set_.oblique) {
+    state = (zz > 15) ? false : true;
     if (set_.rotate == 0) {
       x = xx;
       y = 143 - zz;
@@ -658,12 +659,9 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     }
     for (int32_t zz = 0; zz < img.height(); ++zz) {
       for (int32_t xx = 0; xx < img.width(); ++xx) {
-        int32_t x, y, z;
-        projectCoords(x, y, z, xx, zz);
+        int32_t x, y, z, state = -1;
+        projectCoords(x, y, z, xx, zz, state);
         /* at this point x, y and z are block coordinates */
-        int32_t state = -1;
-        if (set_.oblique)
-          state = (zz > 15) ? false : true;
         int32_t block_type = getValue(cache, x, y, z, j, i);
         while (block_type == 0) {
           block_type = goOneStepIntoScene(cache, x, y, z, j, i, state);
