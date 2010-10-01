@@ -103,8 +103,12 @@ void nbt::construct_world() {
 
 const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   QDir tmp = dir_;
-  QString dirname(QString::number((x + 64) % 64, 36) + "/"
-                + QString::number((z + 64) % 64, 36));
+  int32_t x_tmp = x;
+  int32_t z_tmp = z;
+  while (x_tmp < 0) x_tmp += 64;
+  while (z_tmp < 0) z_tmp += 64;
+  QString dirname(QString::number(x_tmp % 64, 36) + "/"
+                + QString::number(z_tmp % 64, 36));
   if (!tmp.cd(dirname)) {
     return tag_ptr();
   }
