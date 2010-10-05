@@ -60,16 +60,14 @@ template <> tag_<list>::tag_(gzFile* file, bool named)
 template <> tag_<compound>::tag_(gzFile* file, bool named)
           : tag(file, named), p(file) {}
 
+template <typename T>
+inline void dont_print_char(std::stringstream& ss, const T& p) {
+  ss << p;
+}
+
 template <>
-std::string tag_<int8_t>::str() {
-  std::stringstream ss;
-  ss.precision(12);
-  ss << std::string(indent, ' ') << tagid_string[id()];
-  if (name.get()) {
-    ss << "(\"" << name->p.p << "\")";
-  }
-  ss << ": " << static_cast<int>(p) << "\n";
-  return ss.str();
+inline void dont_print_char<int8_t>(std::stringstream& ss, const int8_t& p) {
+  ss << static_cast<int>(p);
 }
 
 template <typename T>
@@ -80,7 +78,9 @@ std::string tag_<T>::str() {
   if (name.get()) {
     ss << "(\"" << name->p.p << "\")";
   }
-  ss << ": " << p << "\n";
+  ss << ": ";
+  dont_print_char<T>(ss, p);
+  ss << "\n";
   return ss.str();
 }
 
