@@ -133,44 +133,44 @@ std::ostream& operator <<(std::ostream& os, const byte_array& obj) {
   return os;
 }
 
+
 list::list(gzFile* file) : tagid(file, false), length(file, false),
                            tags(length.p) {
   for (int i = 0; i < length.p; ++i) {
     push_in_tags(&tags, file, tagid.p, false, i);
   }
 }
-std::ostream& operator <<(std::ostream& os, const list& obj) {
-  os << obj.tags.size() << " entries of type "
-     << tagid_string[obj.tagid.p] << "\n";
-  os << std::string(indent, ' ') << "{\n";
-
-  std::vector<std::tr1::shared_ptr<tag> >::const_iterator i = obj.tags.begin();
-  indent += 2;
-  for (; i != obj.tags.end(); ++i)
-    os << (*i)->str();
-  indent -= 2;
-
-  os << std::string(indent, ' ') << "}";
-  return os;
-}
-
 compound::compound(gzFile* file) : tags() {
   int buffer;
   while ((buffer = gzgetc(*file)) != 0) {
     push_in_tags(&tags, file, buffer, true);
   }
 }
-std::ostream& operator <<(std::ostream& os, const compound& obj) {
-  os << obj.tags.size() << " entries\n";
+
+template<typename T, typename I> void output_stuff(std::ostream& os,
+                                                   const T& obj) {
   os << std::string(indent, ' ') << "{\n";
 
-  std::list<std::tr1::shared_ptr<tag> >::const_iterator i = obj.tags.begin();
+  I i = obj.tags.begin();
   indent += 2;
   for (; i != obj.tags.end(); ++i)
     os << (*i)->str();
   indent -= 2;
 
   os << std::string(indent, ' ') << "}";
+}
+std::ostream& operator <<(std::ostream& os, const list& obj) {
+  os << obj.tags.size() << " entries of type "
+     << tagid_string[obj.tagid.p] << "\n";
+  output_stuff<list, std::vector<std::tr1::shared_ptr<tag> >::const_iterator>
+              (os, obj);
+  return os;
+}
+std::ostream& operator <<(std::ostream& os, const compound& obj) {
+  os << obj.tags.size() << " entries\n";
+  os << std::string(indent, ' ') << "{\n";
+  output_stuff<compound, std::list<std::tr1::shared_ptr<tag> >::const_iterator>
+              (os, obj);
   return os;
 }
 
