@@ -158,8 +158,11 @@ void nbt::setSettings(Settings set__) {
   return;
 }
 
-uint8_t nbt::getValue(const nbt::map& cache,
+char nbt::getValue(const nbt::map& cache,
                  int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
+  if (y < 0) {
+    std::cerr << "y in nbt::getValue must be positive!" << std::endl;
+  }
   while (x < 0) {
     --j;
     x += 16;
@@ -178,7 +181,7 @@ uint8_t nbt::getValue(const nbt::map& cache,
   }
   nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i));
   if (it != cache.end()) {
-    return it->second[y + z * 128 + x * 128 * 16];
+    return it->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
   } else {
     return 0;
   }
@@ -623,10 +626,12 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   img.fill(0);
   const nbt::tag_ptr tag = tag_at(j, i);
   if (tag) {
-    boost::mt19937 gen((((j - std::numeric_limits<int16_t>::min()) << 16)
-                                                                 & 0xFFFF0000)
-                      | ((i - std::numeric_limits<int16_t>::min())
-                                                                 & 0x0000FFFF));
+    int16_t minval = std::numeric_limits<int16_t>::min();
+    uint32_t a = static_cast<uint32_t>(j - minval) << 16;
+    uint32_t b = static_cast<uint32_t>(i - minval);
+    uint32_t h_mask = 0xFFFF0000;
+    uint32_t l_mask = 0x0000FFFF;
+    boost::mt19937 gen((a & h_mask) | (b & l_mask));
     boost::uniform_int<> dist(-1, 1);
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
                                                               dither(gen, dist);
@@ -656,8 +661,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       }
     }
     cache_mutex_.unlock();
-    uint64_t xtmp = (xPos - xPos_min()) * 16;
-    uint64_t ztmp = (zPos - zPos_min()) * 16;
+    uint64_t xtmp = static_cast<unsigned>(xPos - xPos_min()) * 16;
+    uint64_t ztmp = static_cast<unsigned>(zPos - zPos_min()) * 16;
     int32_t max_int = std::numeric_limits<int32_t>::max();
     if (xtmp + 15 > static_cast<uint64_t>(max_int)
      || ztmp + 15 > static_cast<uint64_t>(max_int)) {
