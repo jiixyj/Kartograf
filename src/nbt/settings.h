@@ -8,6 +8,7 @@ struct  Settings {
     bool relief;
     int relief_strength;
   bool oblique;
+  bool isometric;
   bool shadow;
   bool shadow_quality;
   bool shadow_quality_ultra;

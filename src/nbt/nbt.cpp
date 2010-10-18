@@ -558,6 +558,8 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       x =  15 - zz;
       if (zz > 15) x = 0;
     }
+  } else if (set_.isometric) {
+    
   }
 }
 
@@ -611,6 +613,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     img = QImage(16, 16, QImage::Format_ARGB32_Premultiplied);
   else if (set_.oblique)
     img = QImage(16, 16 + 128, QImage::Format_ARGB32_Premultiplied);
+  else if (set_.isometric)
+    img = QImage(64, 32 + 256, QImage::Format_ARGB32_Premultiplied);
   else
     exit(1);
   img.fill(0);
