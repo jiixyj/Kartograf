@@ -24,6 +24,7 @@ nbt::nbt() : tag_(),
              zPos_max_(std::numeric_limits<int32_t>::min()),
              dir_(QDir::home()),
              set_(),
+             cache_mutex_(),
              blockcache_() {
              }
 
@@ -34,6 +35,7 @@ nbt::nbt(int world) : tag_(),
                       zPos_max_(std::numeric_limits<int32_t>::min()),
                       dir_(QDir::home()),
                       set_(),
+                      cache_mutex_(),
                       blockcache_() {
   if (!dir_.cd(QString(".minecraft/saves/World") + QString::number(world))) {
     qFatal("Minecraft is not installed!");
@@ -51,6 +53,7 @@ nbt::nbt(const std::string& filename)
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(),
             set_(),
+            cache_mutex_(),
             blockcache_() {
   if ((dir_ = QDir(QString::fromStdString(filename))).exists()) {
     construct_world();
