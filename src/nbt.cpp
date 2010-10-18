@@ -160,8 +160,8 @@ void nbt::setSettings(Settings set__) {
 
 char nbt::getValue(const nbt::map& cache,
                  int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
-  if (y < 0) {
-    std::cerr << "y in nbt::getValue must be positive!" << std::endl;
+  if (y < 0 || y >= 128) {
+    return 0;
   }
   while (x < 0) {
     --j;
@@ -422,7 +422,9 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
     } else {
       int height_low_bound = y;
       while (colors[getValue(cache, x, height_low_bound--, z, j, i)]
-                                                               .alpha() != 255);
+                                                              .alpha() != 255) {
+        if (height_low_bound == -1) break;
+      }
       if (set_.shadow_quality_ultra) {
         for (int h = height_low_bound; h < y; ++h) {
           char blknr = getValue(cache, x, h, z, j, i);
