@@ -1,89 +1,42 @@
-cmake_minimum_required(VERSION 2.8)
+################################################################################
+# This CMakeLists.txt is devided into three sections:                          #
+#                                                                              #
+#    1) CMake environment setup                                                #
+#    2) Library Setup                                                          #
+#    3) Compiler Setup                                                         #
+#                                                                              #
+################################################################################
+
+
+######################################
+##### CMake environment setup    #####
+######################################
 project(Cartographer)
-
-set(${PROJECT_NAME}_MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(CMAKE_MODULE_PATH ${${PROJECT_NAME}_MAIN_DIR}/cmake)
+cmake_minimum_required(VERSION 2.8)
+set(CMAKE_MODULE_PATH ${${PROJECT_NAME}_SOURCE_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR})
+include_directories(SYSTEM ${${PROJECT_NAME}_SOURCE_DIR}/include)
 
+
+######################################
+##### Library setup              #####
+######################################
+
+##### Qt
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-include(${QT_USE_FILE})
-
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-set(WARNINGS "
-  -Wfatal-errors
-  -Wall
-  -Wextra
-  -Wformat=2
-  -Wcomment
-  -Wshadow
-  -Wctor-dtor-privacy
-  -Wnon-virtual-dtor
-  -Wreorder
-  -Winit-self
-  -Wmissing-include-dirs
-  -Wunused
-  -Wunused-parameter
-  -Wunknown-pragmas
-  -Wstrict-overflow=1
-  -Wstrict-aliasing
-  -Wfloat-equal
-  -Wundef
-  -Wcast-qual
-  -Wcast-align
-  -Wwrite-strings
-  -Wmissing-format-attribute
-  -Wno-multichar
-  -Wpacked
-  -Wredundant-decls
-  -Winvalid-pch
-  -Wlong-long
-  -Wdisabled-optimization
-  -Wconversion
-  -Wabi
-  -Wstrict-null-sentinel
-  -Weffc++
-  -Wno-non-template-friend
-  -Wsign-promo
-  -Wswitch-default
-  -Wsync-nand
-  -Wlogical-op
-  -Wvla
-  -Wstack-protector
-  -Wold-style-cast
-  -Wno-pmf-conversions
- ")
-set(NOWARNINGS "
-  -Wstrict-overflow=4
-  -Winline
-  -Wmissing-noreturn
-  -Wswitch-enum
-  -Wsign-conversion
-  -Waggregate-return
-  -Wpadded
-
-  -Wunsafe-loop-optimizations
- ")
-
-set(SYSTEMINCLUDES "
-  -isystem${${PROJECT_NAME}_MAIN_DIR}/include
-  -isystem${QT_INCLUDE_DIR}
-  -isystem${QT_QTGUI_INCLUDE_DIR}
-  -isystem${QT_QTCORE_INCLUDE_DIR}
- ")
-set(OPTIMIZATIONS "
-  -funsafe-loop-optimizations
- ")
-
-set(CMAKE_CXX_FLAGS "-ansi -pedantic ${WARNINGS} ${SYSTEMINCLUDES} ${OPTIMIZATIONS}")
-string(REPLACE "\n " "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+include(${QT_USE_FILE})
+include_directories(SYSTEM ${QT_INCLUDE_DIR})
+include_directories(SYSTEM ${QT_QTGUI_INCLUDE_DIR})
+include_directories(SYSTEM ${QT_QTCORE_INCLUDE_DIR})
 
-link_directories(
-)
 
-include_directories(
-  ${${PROJECT_NAME}_MAIN_DIR}/include
-)
+######################################
+##### Compiler setup             #####
+######################################
+include("CompilerFlags.txt")  # This sets WARNINGS and OPTIMIZATIONS
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi -pedantic ${WARNINGS} ${OPTIMIZATIONS}")
+include("CrossCompile.txt")   # This is for MinGW cross compile support
+
 
 add_subdirectory(src)
