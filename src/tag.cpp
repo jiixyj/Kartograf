@@ -52,8 +52,8 @@ template <> int tag_<list>::id() { return 9; }
 template <> int tag_<compound>::id() { return 10; }
 
 // Not specified, but useful
-template <> int tag_<uint16_t>::id() { return 0; }
-template <> int tag_<uint32_t>::id() { return 0; }
+template <> int tag_<uint16_t>::id() { return 2; }
+template <> int tag_<uint32_t>::id() { return 3; }
 
 template <> tag_<byte_array>::tag_(gzFile* file, bool named)
           : tag(file, named), p(file) {}
