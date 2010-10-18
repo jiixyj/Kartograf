@@ -1,0 +1,29 @@
+# vim:ft=cmake:
+
+# MinGW cross compile setup - disregard if compiling for Linux
+if(WIN32)
+  # suppress warning about auto import
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
+  # MinGW should link libstdc++ statically
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -L.")
+  list(INSERT CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a")
+  find_library(STDCPP stdc++)
+  list(REMOVE_AT CMAKE_FIND_LIBRARY_SUFFIXES 0)
+  get_filename_component(STDCPPNAME ${STDCPP} NAME)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${poissonpainter_BINARY_DIR}/src/main)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${STDCPP} ${poissonpainter_BINARY_DIR}/src/main/${STDCPPNAME})
+  unset(STDCPP CACHE)
+  # copy all needed dlls into executable directory
+  list(APPEND LIBRARY_NAMES ${QT_LIBRARIES} qt-bin/libgcc_s_dw2-1.dll ${OpenCV_LIBS} gcc_s_sjlj-1 stdc++-6 mingwm10 tbb)
+  foreach(__LIB ${LIBRARY_NAMES})
+    if("${__LIB}" MATCHES "^/.*")
+      set(__LIBNAME ${__LIB})
+    else()
+      find_library(__LIBNAME ${__LIB})
+    endif()
+    message(STATUS "Copying: ${__LIBNAME}")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${__LIBNAME} ${poissonpainter_BINARY_DIR})
+    set(__LIBNAME NOTFOUND)
+  endforeach()
+  unset(__LIBNAME CACHE)
+endif()

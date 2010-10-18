@@ -1,0 +1,88 @@
+# vim:ft=cmake:
+
+set(WARNINGS "
+  -Wfatal-errors
+  -Wall
+  -Wextra
+  -Wformat=2
+  -Wcomment
+  -Wshadow
+  -Wctor-dtor-privacy
+  -Wnon-virtual-dtor
+  -Wreorder
+  -Winit-self
+  -Wmissing-include-dirs
+  -Wunused
+  -Wunused-parameter
+  -Wunknown-pragmas
+  -Wstrict-overflow=2
+  -Wstrict-overflow=3
+  -Wstrict-overflow=4
+  -Wstrict-aliasing
+  -Wfloat-equal
+  -Wundef
+  -Wcast-qual
+  -Wcast-align
+  -Wwrite-strings
+  -Wmissing-format-attribute
+  -Wno-multichar
+  -Wpacked
+  -Wredundant-decls
+  -Winvalid-pch
+  -Wlong-long
+  -Wdisabled-optimization
+  -Wconversion
+  -Wabi
+  -Wstrict-null-sentinel
+  -Weffc++
+  -Wno-non-template-friend
+  -Wsign-promo
+  -Wswitch-default
+  -Wsync-nand
+  -Wlogical-op
+  -Wvla
+  -Wstack-protector
+  -Wold-style-cast
+  -Wno-pmf-conversions
+#  -Winline
+  -Wmissing-noreturn
+  -Wunsafe-loop-optimizations
+#  -Waggregate-return   # with this on, only POD may be returned from functions
+  -Wsign-conversion    # *very* pedantic sign warnings
+#  -Wpadded             # we don't need padding warnings on a quad core
+#  -Wswitch-enum        # warnings in mousePressEvent
+ ")
+
+set(OPTIMIZATIONS "
+#  -fPIC
+  -funsafe-loop-optimizations
+  -fno-strict-aliasing
+  -funit-at-a-time      # needed for GCC 4.3.3
+ ")
+
+execute_process(
+  COMMAND "${CMAKE_CXX_COMPILER}" "-dumpversion"
+  OUTPUT_VARIABLE COMPILER_VERSION
+)
+
+# remove unsupported warning flags
+if("${CMAKE_CXX_COMPILER}" MATCHES ".*c\\+\\+")
+  if(COMPILER_VERSION STRLESS "4.3.4")
+    string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""               WARNINGS ${WARNINGS})
+  endif()
+elseif("${CMAKE_CXX_COMPILER}" MATCHES ".*clang.*")
+  string(REGEX REPLACE "[^\n]*-Wstrict-null-sentinel[^\n]*\n" ""      WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-Wno-non-template-friend[^\n]*\n" ""    WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""                 WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-Wlogical-op[^\n]*\n" ""                WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-Wno-pmf-conversions[^\n]*\n" ""        WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" "" WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""           WARNINGS ${WARNINGS})
+  string(REGEX REPLACE "[^\n]*-funsafe-loop-optimizations[^\n]*\n" "" OPTIMIZATIONS ${OPTIMIZATIONS})
+endif()
+
+# strip comments and newlines
+string(REGEX REPLACE "\ *#[^\n]*\n" "" WARNINGS ${WARNINGS})
+string(REGEX REPLACE "\n\ *" " "       WARNINGS ${WARNINGS})
+string(REGEX REPLACE "\ *#[^\n]*\n" "" OPTIMIZATIONS ${OPTIMIZATIONS})
+string(REGEX REPLACE "\n\ *" " "       OPTIMIZATIONS ${OPTIMIZATIONS})

@@ -343,7 +343,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
        || (sun_direction == 6)
        || (sun_direction == 7 &&
            colors[blockid2].alpha() == 0)) {
-        shadow_amount /= 2;
+        shadow_amount >>= 2;
       }
     }
     zigzag = true;

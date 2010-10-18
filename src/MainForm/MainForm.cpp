@@ -105,10 +105,12 @@ void MainForm::populateSceneItem() {
 
 void MainForm::scale() {
   if (scale_ <= 0) {
-    setTransform(QTransform().rotate(90 * bf_->set().rotate).scale(1.0/pow(2.0, abs(scale_ - 1)),
-                                    1.0/pow(2.0, abs(scale_ - 1))));
+    setTransform(QTransform().rotate(90 * bf_->set().rotate)
+                             .scale(1.0 / pow(2.0, abs(scale_ - 1)),
+                                    1.0 / pow(2.0, abs(scale_ - 1))));
   } else {
-    setTransform(QTransform().rotate(90 * bf_->set().rotate).scale(scale_, scale_));
+    setTransform(QTransform().rotate(90 * bf_->set().rotate)
+                             .scale(scale_, scale_));
   }
 }
 

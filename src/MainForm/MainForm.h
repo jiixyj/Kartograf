@@ -34,7 +34,7 @@ class MainForm : public QGraphicsView {
   QGraphicsScene* scene_;
   nbt* bf_;
 
-  int scale_;
+  int16_t scale_;
   typedef QPair<QImage, QPair<int, int> > image_coords;
   tbb::strict_ppl::concurrent_queue<image_coords> images;
 
