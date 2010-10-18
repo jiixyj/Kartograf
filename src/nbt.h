@@ -25,7 +25,7 @@ class nbt {
   int32_t xPos_max() const { return xPos_max_; }
   int32_t zPos_max() const { return zPos_max_; }
 
-  typedef std::tr1::shared_ptr<tag::tag> tag_ptr;
+  typedef boost::shared_ptr<tag::tag> tag_ptr;
   const tag_ptr tag_at(int32_t x, int32_t z) const;
 
   void setSettings(Settings set);

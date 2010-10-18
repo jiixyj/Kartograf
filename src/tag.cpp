@@ -22,7 +22,7 @@ T endian_swap(T d) {
   return a;
 }
 
-std::map<int8_t, std::string> tagid_string = boost::assign::map_list_of
+std::map<int, std::string> tagid_string = boost::assign::map_list_of
   (0, "TAG_End")
   (1, "TAG_Byte")
   (2, "TAG_Short")
@@ -36,7 +36,7 @@ std::map<int8_t, std::string> tagid_string = boost::assign::map_list_of
   (10, "TAG_Compound")
 ;
 
-const std::tr1::shared_ptr<tag> tag::sub(const std::string& subname) const {
+const boost::shared_ptr<tag> tag::sub(const std::string& subname) const {
   return reinterpret_cast<const tag_<compound>*>(this)->pay().sub(subname);
 }
 
@@ -166,32 +166,34 @@ template<typename T, typename I> void output_stuff(std::ostream& os,
 std::ostream& operator <<(std::ostream& os, const list& obj) {
   os << obj.tags.size() << " entries of type "
      << tagid_string[obj.tagid.p] << "\n";
-  output_stuff<list, std::vector<std::tr1::shared_ptr<tag> >::const_iterator>
+  output_stuff<list, std::vector<boost::shared_ptr<tag> >::const_iterator>
               (os, obj);
   return os;
 }
 std::ostream& operator <<(std::ostream& os, const compound& obj) {
   os << obj.tags.size() << " entries\n";
   os << std::string(indent, ' ') << "{\n";
-  output_stuff<compound, std::list<std::tr1::shared_ptr<tag> >::const_iterator>
+  output_stuff<compound, std::list<boost::shared_ptr<tag> >::const_iterator>
               (os, obj);
   return os;
 }
 
-const std::tr1::shared_ptr<tag> compound::sub(const std::string& name) const {
-  std::list<std::tr1::shared_ptr<tag> >::const_iterator it = tags.begin();
+#include <iostream>
+const boost::shared_ptr<tag> compound::sub(const std::string& name) const {
+  std::list<boost::shared_ptr<tag> >::const_iterator it = tags.begin();
   while (it != tags.end()) {
     if ((*it)->name->p.p.compare(name) == 0) {
       return *it;
     }
     ++it;
   }
-  return std::tr1::shared_ptr<tag>();
+  std::cerr << "BLUB" << std::endl;
+  return boost::shared_ptr<tag>();
 }
 
-void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
+void push_in_tags(std::vector<boost::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string, size_t i) {
-  typedef std::tr1::shared_ptr<tag> tp;
+  typedef boost::shared_ptr<tag> tp;
   switch (switcher) {
     case -1:
       std::cerr << "file read error! " << filename << std::endl;
@@ -214,9 +216,9 @@ void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
   }
 }
 
-void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
+void push_in_tags(std::list<boost::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string) {
-  typedef std::tr1::shared_ptr<tag> tp;
+  typedef boost::shared_ptr<tag> tp;
   switch (switcher) {
     case -1:
       std::cerr << "file read error! " << filename << std::endl;

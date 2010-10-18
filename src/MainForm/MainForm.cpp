@@ -77,7 +77,7 @@ void MainForm::saveToFile() {
   QPainter painter(&image);
   render(&painter, painter.viewport(), mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1));
   image.save("image.png");
-  exit(1);
+  // exit(1);
 }
 
 void MainForm::populateSceneItem() {

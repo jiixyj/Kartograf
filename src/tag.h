@@ -3,7 +3,7 @@
 
 #include <zlib.h>
 
-#include <tr1/memory>
+#include <boost/shared_ptr.hpp>
 #include <stdint.h>
 #include <cstdlib>
 #include <iostream>
@@ -31,8 +31,8 @@ struct tag {
     const tag_<T>* payload = reinterpret_cast<const tag_<T>*>(this);
     return payload->p;
   }
-  const std::tr1::shared_ptr<tag> sub(const std::string&) const;
-  const std::tr1::shared_ptr<tag_<string> > name;
+  const boost::shared_ptr<tag> sub(const std::string&) const;
+  const boost::shared_ptr<tag_<string> > name;
 };
 
 template <typename T>
@@ -63,14 +63,14 @@ struct list {
   explicit list(gzFile* file);
   tag_<int8_t> tagid;
   tag_<uint32_t> length;
-  std::vector<std::tr1::shared_ptr<tag> > tags;
+  std::vector<boost::shared_ptr<tag> > tags;
   friend std::ostream& operator <<(std::ostream& os, const list& obj);
 };
 
 struct compound {
   explicit compound(gzFile* file);
-  std::list<std::tr1::shared_ptr<tag> > tags;
-  const std::tr1::shared_ptr<tag> sub(const std::string& subname) const;
+  std::list<boost::shared_ptr<tag> > tags;
+  const boost::shared_ptr<tag> sub(const std::string& subname) const;
   friend std::ostream& operator <<(std::ostream& os, const compound& obj);
 };
 
@@ -79,9 +79,9 @@ std::ostream& operator <<(std::ostream& os, const string& obj);
 std::ostream& operator <<(std::ostream& os, const list& obj);
 std::ostream& operator <<(std::ostream& os, const compound& obj);
 
-void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
+void push_in_tags(std::vector<boost::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string, size_t index);
-void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
+void push_in_tags(std::list<boost::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string);
 }
 

@@ -374,7 +374,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
           }
           zigzag = false;
         }
-        uint8_t blknr = getValue(cache, x, y, z, j, i);
+        char blknr = getValue(cache, x, y, z, j, i);
         if (noShadow.count(blknr) == 0) {
           light = blend(colors[blknr], light);
           if (light.alpha() == 255) {
@@ -425,13 +425,13 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
                                                                .alpha() != 255);
       if (set_.shadow_quality_ultra) {
         for (int h = height_low_bound; h < y; ++h) {
-          uint8_t blknr = getValue(cache, x, h, z, j, i);
+          char blknr = getValue(cache, x, h, z, j, i);
           color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
                                                                          color);
         }
       } else {
         for (int h = height_low_bound; h < y; ++h) {
-          uint8_t blknr = getValue(cache, x, h, z, j, i);
+          char blknr = getValue(cache, x, h, z, j, i);
           color = blend(colors[blknr], color);
         }
       }
