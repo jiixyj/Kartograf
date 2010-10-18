@@ -4,6 +4,7 @@
 #include <zlib.h>
 
 #include <tr1/memory>
+#include <stdint.h>
 #include <cstdlib>
 #include <iostream>
 #include <list>
@@ -46,14 +47,14 @@ struct tag_ : public tag {
 
 struct byte_array {
   explicit byte_array(gzFile* file);
-  tag_<int32_t> length;
+  tag_<uint32_t> length;
   std::string p;
   friend std::ostream& operator <<(std::ostream& os, const byte_array& obj);
 };
 
 struct string {
   explicit string(gzFile* file);
-  tag_<int16_t> length;
+  tag_<uint16_t> length;
   std::string p;
   friend std::ostream& operator <<(std::ostream& os, const string& obj);
 };
@@ -61,7 +62,7 @@ struct string {
 struct list {
   explicit list(gzFile* file);
   tag_<int8_t> tagid;
-  tag_<int32_t> length;
+  tag_<uint32_t> length;
   std::vector<std::tr1::shared_ptr<tag> > tags;
   friend std::ostream& operator <<(std::ostream& os, const list& obj);
 };
@@ -79,7 +80,7 @@ std::ostream& operator <<(std::ostream& os, const list& obj);
 std::ostream& operator <<(std::ostream& os, const compound& obj);
 
 void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
-                  int switcher, bool with_string, int index);
+                  int switcher, bool with_string, size_t index);
 void push_in_tags(std::list<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
                   int switcher, bool with_string);
 }

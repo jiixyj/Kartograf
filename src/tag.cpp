@@ -9,7 +9,7 @@
 
 namespace tag {
 
-static int indent = 0;
+static size_t indent = 0;
 
 template <typename T>
 T endian_swap(T d) {
@@ -50,6 +50,10 @@ template <> int tag_<byte_array>::id() { return 7; }
 template <> int tag_<string>::id() { return 8; }
 template <> int tag_<list>::id() { return 9; }
 template <> int tag_<compound>::id() { return 10; }
+
+// Not specified, but useful
+template <> int tag_<uint16_t>::id() { return 0; }
+template <> int tag_<uint32_t>::id() { return 0; }
 
 template <> tag_<byte_array>::tag_(gzFile* file, bool named)
           : tag(file, named), p(file) {}
@@ -136,7 +140,7 @@ std::ostream& operator <<(std::ostream& os, const byte_array& obj) {
 
 list::list(gzFile* file) : tagid(file, false), length(file, false),
                            tags(length.p) {
-  for (int i = 0; i < length.p; ++i) {
+  for (size_t i = 0; i < length.p; ++i) {
     push_in_tags(&tags, file, tagid.p, false, i);
   }
 }
@@ -186,7 +190,7 @@ const std::tr1::shared_ptr<tag> compound::sub(const std::string& name) const {
 }
 
 void push_in_tags(std::vector<std::tr1::shared_ptr<tag> >* tags, gzFile* file,
-                  int switcher, bool with_string, int i) {
+                  int switcher, bool with_string, size_t i) {
   typedef std::tr1::shared_ptr<tag> tp;
   switch (switcher) {
     case -1:
