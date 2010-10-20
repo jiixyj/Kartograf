@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 
-#include "./nbt.h"
 #include "./MainForm/MainForm.h"
 
 int main(int ac, char* av[]) {

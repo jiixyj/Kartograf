@@ -22,12 +22,12 @@ class ApplyFoo {
   void operator()( const tbb::blocked_range<int32_t>& r ) const {
     for(int32_t j=r.begin(); j!=r.end(); ++j) {
       bool result = false;
-      const QImage& img = mainform_->bf_->getImage(j, i_, &result);
+      const Image<uint8_t>& image = mainform_->bf_->getImage(j, i_, &result);
       if (!result) {
         continue;
       }
       *index_ += 1;
-      mainform_->images.push(MainForm::image_coords(img, QPair<int, int>(j, i_)));
+      mainform_->images.push(MainForm::image_coords(image, QPair<int, int>(j, i_)));
       mainform_->renderNewImageEmitter();
     }
   }
@@ -83,7 +83,12 @@ void MainForm::saveToFile() {
 void MainForm::populateSceneItem() {
   MainForm::image_coords img_coor;
   if (images.try_pop(img_coor)) {
-    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img_coor.first.transformed(QMatrix().rotate(90 * (4 - bf_->set().rotate)))));
+    QImage img(&(img_coor.first.data[0]),
+               img_coor.first.cols,
+               img_coor.first.rows,
+               QImage::Format_ARGB32_Premultiplied);
+    img = img.transformed(QMatrix().rotate(90 * (4 - bf_->set().rotate)));
+    QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img));
     pi->setFlag(QGraphicsItem::ItemIsMovable, false);
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
     // std::cout << 16 * coor.first << " " << 16 * coor.second << std::endl;

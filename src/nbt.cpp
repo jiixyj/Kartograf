@@ -15,9 +15,6 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 
-#include "./colors.h"
-#include "./image.h"
-
 nbt::nbt() : tag_(),
              xPos_min_(std::numeric_limits<int32_t>::max()),
              zPos_min_(std::numeric_limits<int32_t>::max()),
@@ -598,7 +595,7 @@ int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
   return getValue(cache, x, y, z, j, i);
 }
 
-QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
+Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
 
   // colors_changed_mutex.lock();
   // int denom = 96;
@@ -698,8 +695,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
     *result = false;
   }
   Image<uint8_t> dithered = myimg.floyd_steinberg();
-  return QImage(&(dithered.data[0]), dithered.cols, dithered.rows,
-                QImage::Format_ARGB32_Premultiplied).copy();
+  return dithered;
 }
 
 void nbt::clearCache() const {

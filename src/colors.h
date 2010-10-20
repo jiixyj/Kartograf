@@ -2,9 +2,9 @@
 #define SRC_NBT_COLORS_H_
 
 #include <boost/assign.hpp>
-#include <QtGui>
 #include <map>
 #include <stdint.h>
+#include <cstdio>
 
 class Color {
  public:
@@ -51,6 +51,9 @@ class Color {
       h = (2.0 + (c[0] - c[2]) / (max - min)) / 6.0;
     } else if (max <= c[0]) {
       h = (4.0 + (c[2] - c[1]) / (max - min)) / 6.0;
+    } else {
+      fprintf(stderr, "Should not happen! toHSV");
+      h = 0.0;
     }
     if (h < 0.0) h += 1.0;
     if (max <= 0.0) {

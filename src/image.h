@@ -1,3 +1,6 @@
+#ifndef _IMAGE_H
+#define _IMAGE_H
+
 template<typename T>
 class Image {
  public:
@@ -19,7 +22,7 @@ class Image {
 };
 
 template<>
-Image<uint8_t> Image<Color>::floyd_steinberg() const {
+inline Image<uint8_t> Image<Color>::floyd_steinberg() const {
   Image<Color> orig = *this;
   Image<uint8_t> ret(rows, cols, 4);
   for (size_t i = 0; i < rows; ++i) {
@@ -42,3 +45,5 @@ Image<uint8_t> Image<Color>::floyd_steinberg() const {
   }
   return ret;
 }
+
+#endif  // _IMAGE_H

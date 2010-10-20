@@ -3,16 +3,17 @@
 
 #include <stdint.h>
 
-#include <QtGui>
 #include <map>
 #include <string>
 #include <utility>
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/mutex.h>
+#include <QtCore>
 
 #include "./tag.h"
 #include "./settings.h"
 #include "./colors.h"
+#include "./image.h"
 
 class nbt {
  public:
@@ -35,7 +36,7 @@ class nbt {
   char getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
   bool allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const;
-  QImage getImage(int32_t x, int32_t z, bool* result) const;
+  Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
   void clearCache() const;
 
   tag_ptr tag_;
