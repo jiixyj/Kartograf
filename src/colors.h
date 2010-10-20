@@ -10,16 +10,16 @@ class Color {
  public:
   Color() : c(4, 0.0) {}
   Color(int red, int green, int blue, int alpha = 255) : c(4) {
-    c[0] = alpha / 255.0;
-    c[1] = blue / 255.0;
-    c[2] = green / 255.0;
-    c[3] = red / 255.0;
+    c[0] = blue / 255.0;
+    c[1] = green / 255.0;
+    c[2] = red / 255.0;
+    c[3] = alpha / 255.0;
   }
   Color(double red, double green, double blue, double alpha = 1.0) : c(4) {
-    c[0] = alpha;
-    c[1] = blue;
-    c[2] = green;
-    c[3] = red;
+    c[0] = blue;
+    c[1] = green;
+    c[2] = red;
+    c[3] = alpha;
   }
   // TODO: dither this!
   static inline uint8_t check_bounds(double val) {
@@ -28,18 +28,18 @@ class Color {
     }
     return static_cast<uint8_t>(val + 0.5);
   }
-  unsigned red() const { return   check_bounds(c[3] * 255.0); }
-  unsigned green() const { return check_bounds(c[2] * 255.0); }
-  unsigned blue() const { return  check_bounds(c[1] * 255.0); }
-  unsigned alpha() const { return check_bounds(c[0] * 255.0); }
-  double redF() const { return c[3]; }
-  double greenF() const { return c[2]; }
-  double blueF() const { return c[1]; }
-  double alphaF() const { return c[0]; }
-  void setRedF(double red) { c[3] = red; }
-  void setGreenF(double green) { c[2] = green; }
-  void setBlueF(double blue) { c[1] = blue; }
-  void setAlphaF(double alpha) { c[0] = alpha; }
+  unsigned red() const { return   check_bounds(c[2] * 255.0); }
+  unsigned green() const { return check_bounds(c[1] * 255.0); }
+  unsigned blue() const { return  check_bounds(c[0] * 255.0); }
+  unsigned alpha() const { return check_bounds(c[3] * 255.0); }
+  double redF() const { return c[2]; }
+  double greenF() const { return c[1]; }
+  double blueF() const { return c[0]; }
+  double alphaF() const { return c[3]; }
+  void setRedF(double red) { c[2] = red; }
+  void setGreenF(double green) { c[1] = green; }
+  void setBlueF(double blue) { c[0] = blue; }
+  void setAlphaF(double alpha) { c[3] = alpha; }
 
   static inline void double_clamp(double& val, std::string debug = "") {
     if (val < 0.0) val = 0.0;
@@ -50,17 +50,17 @@ class Color {
     }
   }
   void toHSV() {
-    double max = *std::max_element(&(c[1]), &(c[1]) + 3);
-    double min = *std::min_element(&(c[1]), &(c[1]) + 3);
+    double max = *std::max_element(&(c[0]), &(c[0]) + 3);
+    double min = *std::min_element(&(c[0]), &(c[0]) + 3);
     double h, s, v;
     if (max >= min && max <= min) {
       h = 0.0;
-    } else if (max <= c[3]) {
-      h = (0.0 + (c[2] - c[1]) / (max - min)) / 6.0;
     } else if (max <= c[2]) {
-      h = (2.0 + (c[1] - c[3]) / (max - min)) / 6.0;
+      h = (0.0 + (c[1] - c[0]) / (max - min)) / 6.0;
     } else if (max <= c[1]) {
-      h = (4.0 + (c[3] - c[2]) / (max - min)) / 6.0;
+      h = (2.0 + (c[0] - c[2]) / (max - min)) / 6.0;
+    } else if (max <= c[0]) {
+      h = (4.0 + (c[2] - c[1]) / (max - min)) / 6.0;
     }
     if (h < 0.0) h += 1.0;
     if (max <= 0.0) {
@@ -69,47 +69,47 @@ class Color {
       s = (max - min) / max;
     }
     v = max;
-    c[3] = h;
-    c[2] = s;
-    c[1] = v;
+    c[2] = h;
+    c[1] = s;
+    c[0] = v;
   }
   void toRGB() {
-    int hi = static_cast<int>(c[3] * 6.0);
-    double f = c[3] * 6.0 - hi;
-    double p = c[1] * (1.0 - c[2]);
-    double q = c[1] * (1.0 - c[2] * f);
-    double t = c[1] * (1.0 - c[2] * (1.0 - f));
+    int hi = static_cast<int>(c[2] * 6.0);
+    double f = c[2] * 6.0 - hi;
+    double p = c[0] * (1.0 - c[1]);
+    double q = c[0] * (1.0 - c[1] * f);
+    double t = c[0] * (1.0 - c[1] * (1.0 - f));
     switch (hi) {
       case 0:
       case 6:
-        c[3] = c[1];
-        c[2] = t;
-        c[1] = p;
+        c[2] = c[0];
+        c[1] = t;
+        c[0] = p;
         break;
       case 1:
-        c[3] = q;
-        c[2] = c[1];
-        c[1] = p;
+        c[2] = q;
+        c[1] = c[0];
+        c[0] = p;
         break;
       case 2:
-        c[3] = p;
-        c[2] = c[1];
-        c[1] = t;
+        c[2] = p;
+        c[1] = c[0];
+        c[0] = t;
         break;
       case 3:
-        c[3] = p;
-        c[2] = q;
-        c[1] = c[1];
-        break;
-      case 4:
-        c[3] = t;
-        c[2] = p;
-        c[1] = c[1];
-        break;
-      case 5:
-        c[3] = c[1];
         c[2] = p;
         c[1] = q;
+        c[0] = c[0];
+        break;
+      case 4:
+        c[2] = t;
+        c[1] = p;
+        c[0] = c[0];
+        break;
+      case 5:
+        c[2] = c[0];
+        c[1] = p;
+        c[0] = q;
         break;
       default:
         fprintf(stderr, "should not happen!");
@@ -119,16 +119,16 @@ class Color {
   Color darker(int amount) const {
     Color ret = *this;
     ret.toHSV();
-    ret.c[1] /= amount / 100.0;
-    double_clamp(ret.c[1], "darker");
+    ret.c[0] /= amount / 100.0;
+    double_clamp(ret.c[0], "darker");
     ret.toRGB();
     return ret;
   }
   Color lighter(int amount) const {
     Color ret = *this;
     ret.toHSV();
-    ret.c[1] *= amount / 100.0;
-    double_clamp(ret.c[1], "lighter");
+    ret.c[0] *= amount / 100.0;
+    double_clamp(ret.c[0], "lighter");
     ret.toRGB();
     return ret;
   }
