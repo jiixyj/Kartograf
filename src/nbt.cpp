@@ -12,6 +12,7 @@
 #include <stack>
 #include <string>
 #include <utility>
+#include <boost/math/constants/constants.hpp>
 
 namespace bf = boost::filesystem;
 
@@ -44,17 +45,28 @@ nbt::nbt(int world)
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
             zPos_max_(std::numeric_limits<int32_t>::min()),
-            dir_(getenv("HOME")),
+            dir_(),
             set_(),
             cache_mutex_(),
             blockcache_() {
+  char* home_dir;
+  if ((home_dir = getenv("HOME"))) {
+  } else if ((home_dir = getenv("APPDATA"))) {
+  } else {
+    fprintf(stderr, "Broken environent!");
+    exit(1);
+  }
   std::stringstream ss;
   ss << "World" << world;
-  if (!bf::exists(dir_ = dir_ / ".minecraft/saves/" / ss.str())) {
+  if (bf::exists(dir_ = bf::path(home_dir) / ".minecraft/saves/" / ss.str())) {
+    construct_world();
+  } else if (bf::exists(dir_ = bf::path(home_dir) / "Library/"
+                          "Application Support/minecraft/saves/" / ss.str())) {
+    construct_world();
+  } else {
     fprintf(stderr, "Minecraft is not installed!\n");
     exit(1);
   }
-  construct_world();
 }
 
 nbt::nbt(const std::string& filename)
@@ -420,7 +432,8 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
   if (set_.topview) {
     if (set_.heightmap) {
       if (set_.color) {
-        color = Color(std::atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5,
+        double pi = boost::math::constants::pi<double>();
+        color = Color(std::atan(((1.0 - y / 127.0) - 0.5) * 10) / pi + 0.5,
                       1.0, 1.0, 1.0);
       } else {
         color = Color(y, y, y, 255);
@@ -580,24 +593,6 @@ int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
 }
 
 Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
-
-  // colors_changed_mutex.lock();
-  // int denom = 96;
-  // if (!colors_changed) {
-  //   for (colorit it = colors.begin(); it != colors.end(); ++it) {
-  //     if (it->first == 10 || it->first == 11) continue;
-  //     it->second.setAlpha(it->second.alpha() / denom);
-  //     it->second.setRed(it->second.red() / denom);
-  //     it->second.setGreen(it->second.green() / denom);
-  //     it->second.setBlue(it->second.blue() / denom);
-  //    // it->second.setAlpha(0);
-  //    // it->second.setRed(0);
-  //    // it->second.setGreen(0);
-  //    // it->second.setBlue(0);
-  //   }
-  // }
-  // colors_changed_mutex.unlock();
-  // colors_changed = true;
   Image<Color> myimg;
   if (set_.topview) {
     myimg = Image<Color>(16, 16, 1);
