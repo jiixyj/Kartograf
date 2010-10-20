@@ -227,14 +227,14 @@ Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
     --zd;
   }
   int lighter_amount = 0;
-  if ((colors[getValue(cache, x - xd, y, z, j, i)].alpha() == 0
-    || colors[getValue(cache, x, y, z - zd, j, i)].alpha() == 0)
-   && colors[getValue(cache, x - xd, y, z - zd, j, i)].alpha() == 0) {
+  if ((colors[getValue(cache, x - xd, y, z, j, i)].alphaF() <= 0
+    || colors[getValue(cache, x, y, z - zd, j, i)].alphaF() <= 0)
+   && colors[getValue(cache, x - xd, y, z - zd, j, i)].alphaF() <= 0) {
     lighter_amount += set_.relief_strength;
   }
-  if ((colors[getValue(cache, x + xd, y, z, j, i)].alpha() == 0
-    || colors[getValue(cache, x, y, z + zd, j, i)].alpha() == 0)
-   && colors[getValue(cache, x + xd, y, z + zd, j, i)].alpha() == 0) {
+  if ((colors[getValue(cache, x + xd, y, z, j, i)].alphaF() <= 0
+    || colors[getValue(cache, x, y, z + zd, j, i)].alphaF() <= 0)
+   && colors[getValue(cache, x + xd, y, z + zd, j, i)].alphaF() <= 0) {
     lighter_amount -= set_.relief_strength;
   }
   if (!set_.topview && lighter_amount < 0) lighter_amount = 0;
@@ -251,34 +251,34 @@ Color nbt::checkReliefNormal(const nbt::map& cache, Color input,
   Color color = input;
   int lighter_amount = 0;
   if (set_.sun_direction % 4 == 2) {
-    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 0
-      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 0)
-     && colors[getValue(cache, x, y, z - 1, j, i)].alpha() == 0) {
+    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alphaF() <= 0
+      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alphaF() <= 0)
+     && colors[getValue(cache, x, y, z - 1, j, i)].alphaF() <= 0) {
       if (set_.sun_direction == 2)
         lighter_amount -= set_.relief_strength;
       if (set_.sun_direction == 6)
         lighter_amount += set_.relief_strength;
     }
-    if ((colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 0
-      || colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 0)
-     && colors[getValue(cache, x, y, z + 1, j, i)].alpha() == 0) {
+    if ((colors[getValue(cache, x + 1, y, z + 1, j, i)].alphaF() <= 0
+      || colors[getValue(cache, x - 1, y, z + 1, j, i)].alphaF() <= 0)
+     && colors[getValue(cache, x, y, z + 1, j, i)].alphaF() <= 0) {
       if (set_.sun_direction == 2)
         lighter_amount += set_.relief_strength;
       if (set_.sun_direction == 6)
         lighter_amount -= set_.relief_strength;
     }
   } else if (set_.sun_direction % 4 == 0) {
-    if ((colors[getValue(cache, x - 1, y, z + 1, j, i)].alpha() == 0
-      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alpha() == 0)
-     && colors[getValue(cache, x - 1, y, z, j, i)].alpha() == 0) {
+    if ((colors[getValue(cache, x - 1, y, z + 1, j, i)].alphaF() <= 0
+      || colors[getValue(cache, x - 1, y, z - 1, j, i)].alphaF() <= 0)
+     && colors[getValue(cache, x - 1, y, z, j, i)].alphaF() <= 0) {
       if (set_.sun_direction == 4)
         lighter_amount -= set_.relief_strength;
       if (set_.sun_direction == 0)
         lighter_amount += set_.relief_strength;
     }
-    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 0
-      || colors[getValue(cache, x + 1, y, z + 1, j, i)].alpha() == 0)
-     && colors[getValue(cache, x + 1, y, z, j, i)].alpha() == 0) {
+    if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alphaF() <= 0
+      || colors[getValue(cache, x + 1, y, z + 1, j, i)].alphaF() <= 0)
+     && colors[getValue(cache, x + 1, y, z, j, i)].alphaF() <= 0) {
       if (set_.sun_direction == 4)
         lighter_amount += set_.relief_strength;
       if (set_.sun_direction == 0)
@@ -339,11 +339,11 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
         blockid2 = getValue(cache, x, y - 1, z + 1, j, i);
       }
       if ((sun_direction == 1 &&
-           colors[blockid].alpha() == 0)
+           colors[blockid].alphaF() <= 0)
        || (sun_direction == 2)
        || (sun_direction == 6)
        || (sun_direction == 7 &&
-           colors[blockid2].alpha() == 0)) {
+           colors[blockid2].alphaF() <= 0)) {
         shadow_amount >>= 2;
       }
     }
@@ -378,7 +378,7 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
         char blknr = getValue(cache, x, y, z, j, i);
         if (noShadow.count(blknr) == 0) {
           light = blend(colors[blknr], light);
-          if (light.alpha() == 255) {
+          if (light.alphaF() >= 1) {
             break;
           }
         }
@@ -423,7 +423,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     } else {
       int height_low_bound = y;
       while (colors[getValue(cache, x, height_low_bound--, z, j, i)]
-                                                              .alpha() != 255) {
+                                                              .alphaF() < 1) {
         if (height_low_bound == -1) break;
       }
       if (set_.shadow_quality_ultra) {
@@ -450,7 +450,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         std::map<int, Color>::const_iterator it;
         for (it = colors.begin(); it != colors.end(); ++it) {
           Color col = it->second;
-          if (col.alpha() != 0) {
+          if (col.alphaF() > 0) {
             double old_alpha = col.alphaF();
             double new_alpha;
             new_alpha = old_alpha * old_alpha;
@@ -496,12 +496,12 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         --y;
         zigzag = true;
       }
-      if (!colorstack.empty() && colorstack.top().alpha() == 255) break;
+      if (!colorstack.empty() && colorstack.top().alphaF() >= 1) break;
       if (dec == -1 || dec == 16) {
         std::stack<Color> colorstack_inner = colorstack;
         bool clear = true;
         while (!colorstack.empty()) {
-          if (colorstack.top().alpha() != 0) clear = false;
+          if (colorstack.top().alphaF() > 0) clear = false;
           colorstack.pop();
         }
         if (clear) return Color(0, 0, 0, 0);
@@ -672,8 +672,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "Map is too large for an image!" << std::endl;
       exit(1);
     }
-    for (int32_t zz = 0; zz < myimg.rows; ++zz) {
-      for (int32_t xx = 0; xx < myimg.cols; ++xx) {
+    for (uint16_t zz = 0; zz < myimg.rows; ++zz) {
+      for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;
         projectCoords(x, y, z, xx, zz, state);
         /* at this point x, y and z are block coordinates */
