@@ -8,24 +8,19 @@
 
 class Color {
  public:
-  Color() : c(4, 0.0), cu(4, 0) {}
-  Color(int _red, int _green, int _blue, int _alpha = 255) : c(4), cu(4, 0) {
+  Color() : c(4, 0.0) {}
+  Color(int _red, int _green, int _blue, int _alpha = 255) : c(4) {
     c[0] = _blue / 255.0;
     c[1] = _green / 255.0;
     c[2] = _red / 255.0;
     c[3] = _alpha / 255.0;
   }
   Color(double _red, double _green, double _blue, double _alpha = 1.0)
-          : c(4), cu(4, 0) {
+          : c(4) {
     c[0] = _blue;
     c[1] = _green;
     c[2] = _red;
     c[3] = _alpha;
-  }
-  void to_cu() {
-    for (size_t i = 0; i < 4; ++i) {
-      cu[i] = check_bounds(c[i] * 255.0);
-    }
   }
   double redF() const { return c[2]; }
   double greenF() const { return c[1]; }
@@ -127,23 +122,7 @@ class Color {
     ret.toRGB();
     return ret;
   }
-  unsigned rgba() {
-    return (alpha() << 24) | (red() << 16) | (green() << 8) | (blue());
-  }
   std::vector<double> c;
-  std::vector<uint8_t> cu;
- private:
-  // TODO: dither this!
-  static inline uint8_t check_bounds(double val) {
-    if (val < 0.0 || val > 255.0) {
-      fprintf(stderr, "invalid color value: %f!\n", val);
-    }
-    return static_cast<uint8_t>(val + 0.5);
-  }
-  unsigned red() const { return   check_bounds(c[2] * 255.0); }
-  unsigned green() const { return check_bounds(c[1] * 255.0); }
-  unsigned blue() const { return  check_bounds(c[0] * 255.0); }
-  unsigned alpha() const { return check_bounds(c[3] * 255.0); }
 };
 
 Color blend(const Color& B, const Color& A);
