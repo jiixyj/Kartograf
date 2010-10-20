@@ -30,33 +30,33 @@ std::string itoa(int value, int base) {
   return ret;
 }
 
-nbt::nbt() : tag_(),
-             xPos_min_(std::numeric_limits<int32_t>::max()),
-             zPos_min_(std::numeric_limits<int32_t>::max()),
-             xPos_max_(std::numeric_limits<int32_t>::min()),
-             zPos_max_(std::numeric_limits<int32_t>::min()),
-             dir_(getenv("HOME")),
-             set_(),
-             cache_mutex_(),
-             blockcache_() {
-             }
+nbt::nbt(): tag_(),
+            xPos_min_(std::numeric_limits<int32_t>::max()),
+            zPos_min_(std::numeric_limits<int32_t>::max()),
+            xPos_max_(std::numeric_limits<int32_t>::min()),
+            zPos_max_(std::numeric_limits<int32_t>::min()),
+            dir_(getenv("HOME")),
+            set_(),
+            cache_mutex_(),
+            blockcache_() {
+            }
 
-nbt::nbt(int world) : tag_(),
-                      xPos_min_(std::numeric_limits<int32_t>::max()),
-                      zPos_min_(std::numeric_limits<int32_t>::max()),
-                      xPos_max_(std::numeric_limits<int32_t>::min()),
-                      zPos_max_(std::numeric_limits<int32_t>::min()),
-                      dir_(getenv("HOME")),
-                      set_(),
-                      cache_mutex_(),
-                      blockcache_() {
+nbt::nbt(int world)
+          : tag_(),
+            xPos_min_(std::numeric_limits<int32_t>::max()),
+            zPos_min_(std::numeric_limits<int32_t>::max()),
+            xPos_max_(std::numeric_limits<int32_t>::min()),
+            zPos_max_(std::numeric_limits<int32_t>::min()),
+            dir_(getenv("HOME")),
+            set_(),
+            cache_mutex_(),
+            blockcache_() {
   std::stringstream ss;
   ss << "World" << world;
-  if (!bf::exists(dir_ / ".minecraft/saves/" / ss.str())) {
+  if (!bf::exists(dir_ = dir_ / ".minecraft/saves/" / ss.str())) {
     fprintf(stderr, "Minecraft is not installed!\n");
     exit(1);
   }
-  dir_ = dir_ / ".minecraft/saves/" / ss.str();
   construct_world();
 }
 
