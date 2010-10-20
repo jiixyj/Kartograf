@@ -8,14 +8,15 @@
 
 class Color {
  public:
-  Color() : c(4, 0.0) {}
-  Color(int red, int green, int blue, int alpha = 255) : c(4) {
+  Color() : c(4, 0.0), cu(4, 0) {}
+  Color(int red, int green, int blue, int alpha = 255) : c(4), cu(4, 0) {
     c[0] = blue / 255.0;
     c[1] = green / 255.0;
     c[2] = red / 255.0;
     c[3] = alpha / 255.0;
   }
-  Color(double red, double green, double blue, double alpha = 1.0) : c(4) {
+  Color(double red, double green, double blue, double alpha = 1.0)
+          : c(4), cu(4, 0) {
     c[0] = blue;
     c[1] = green;
     c[2] = red;
@@ -32,6 +33,11 @@ class Color {
   unsigned green() const { return check_bounds(c[1] * 255.0); }
   unsigned blue() const { return  check_bounds(c[0] * 255.0); }
   unsigned alpha() const { return check_bounds(c[3] * 255.0); }
+  void to_cu() {
+    for (size_t i = 0; i < 4; ++i) {
+      cu[i] = check_bounds(c[i] * 255.0);
+    }
+  }
   double redF() const { return c[2]; }
   double greenF() const { return c[1]; }
   double blueF() const { return c[0]; }
@@ -136,6 +142,7 @@ class Color {
     return (alpha() << 24) | (red() << 16) | (green() << 8) | (blue());
   }
   std::vector<double> c;
+  std::vector<uint8_t> cu;
 };
 
 Color blend(const Color& B, const Color& A);

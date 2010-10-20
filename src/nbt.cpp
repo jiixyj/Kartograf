@@ -16,6 +16,7 @@
 #include <boost/random/variate_generator.hpp>
 
 #include "./colors.h"
+#include "./image.h"
 
 nbt::nbt() : tag_(),
              xPos_min_(std::numeric_limits<int32_t>::max()),
@@ -616,16 +617,16 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   // }
   // colors_changed_mutex.unlock();
   // colors_changed = true;
-  QImage img;
-  if (set_.topview)
-    img = QImage(16, 16, QImage::Format_ARGB32_Premultiplied);
-  else if (set_.oblique)
-    img = QImage(16, 16 + 128, QImage::Format_ARGB32_Premultiplied);
-  else if (set_.isometric)
-    img = QImage(64, 32 + 256, QImage::Format_ARGB32_Premultiplied);
-  else
+  Image<uint8_t> myimg;
+  if (set_.topview) {
+    myimg = Image<uint8_t>(16, 16, 4);
+  } else if (set_.oblique) {
+    myimg = Image<uint8_t>(16 + 128, 16, 4);
+  } else if (set_.isometric) {
+    myimg = Image<uint8_t>(32 + 256, 16, 4);
+  } else {
     exit(1);
-  img.fill(0);
+  }
   const nbt::tag_ptr tag = tag_at(j, i);
   if (tag) {
     int16_t minval = std::numeric_limits<int16_t>::min();
@@ -671,8 +672,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "Map is too large for an image!" << std::endl;
       exit(1);
     }
-    for (int32_t zz = 0; zz < img.height(); ++zz) {
-      for (int32_t xx = 0; xx < img.width(); ++xx) {
+    for (int32_t zz = 0; zz < myimg.rows; ++zz) {
+      for (int32_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;
         projectCoords(x, y, z, xx, zz, state);
         /* at this point x, y and z are block coordinates */
@@ -696,7 +697,12 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
             // color.setGreen(clamp(color.green() + random1 + random2));
             // color.setBlue(clamp(color.blue() + random1 + random2));
           }
-          img.setPixel(xx, zz, color.rgba());
+          color.to_cu();
+          memcpy(&myimg.at(zz, xx, 0), &(color.cu[0]), 4);
+          // myimg.at(zz, xx, 0) = color.blue();
+          // myimg.at(zz, xx, 1) = color.green();
+          // myimg.at(zz, xx, 2) = color.red();
+          // myimg.at(zz, xx, 3) = color.alpha();
         }
         endloop1:;
       }
@@ -705,7 +711,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else {
     *result = false;
   }
-  return img;
+  return QImage(&(myimg.data[0]), myimg.cols, myimg.rows,
+                QImage::Format_ARGB32_Premultiplied).copy();
 }
 
 void nbt::clearCache() const {
