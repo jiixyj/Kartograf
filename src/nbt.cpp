@@ -617,13 +617,13 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   // }
   // colors_changed_mutex.unlock();
   // colors_changed = true;
-  Image<double> myimg;
+  Image<Color> myimg;
   if (set_.topview) {
-    myimg = Image<double>(16, 16, 4);
+    myimg = Image<Color>(16, 16, 1);
   } else if (set_.oblique) {
-    myimg = Image<double>(16 + 128, 16, 4);
+    myimg = Image<Color>(16 + 128, 16, 1);
   } else if (set_.isometric) {
-    myimg = Image<double>(32 + 256, 16, 4);
+    myimg = Image<Color>(32 + 256, 16, 1);
   } else {
     exit(1);
   }
@@ -685,11 +685,10 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           }
         }
         {
-          Color color(0, 0, 0, 0);
+          Color& color = myimg.at(zz, xx, 0);
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
           color = color.lighter((y - 64) / 2 + 96);
-          memcpy(&myimg.at(zz, xx, 0), &(color.c[0]), 4 * sizeof(color.c[0]));
         }
         endloop1:;
       }
