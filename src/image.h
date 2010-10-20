@@ -13,27 +13,8 @@ class Image {
     return data[i * cols * channels + j * channels + c];
   }
   Image<uint8_t> floyd_steinberg() const {
-    Image<T> orig = *this;
-    Image<uint8_t> ret(rows, cols, channels);
-    for (size_t i = 0; i < rows; ++i) {
-      for (size_t j = 0; j < cols; ++j) {
-        for (size_t c = 0; c < channels; ++c) {
-          T oldpixel = orig.at(i, j, c);
-          uint8_t newpixel = static_cast<uint8_t>(oldpixel * 255.0 + 0.5);
-          ret.at(i, j, c) = newpixel;
-          double quant_error = oldpixel - newpixel / 255.0;
-          if (j + 1 != cols)
-            orig.at(i, j + 1, c)     += 7.0 / 16.0 * quant_error;
-          if (j != 0 && i + 1 != rows)
-            orig.at(i + 1, j - 1, c) += 3.0 / 16.0 * quant_error;
-          if (i + 1 != rows)
-            orig.at(i + 1, j, c)     += 5.0 / 16.0 * quant_error;
-          if (j + 1 != cols && i + 1 != rows)
-            orig.at(i + 1, j + 1, c) += 1.0 / 16.0 * quant_error;
-        }
-      }
-    }
-    return ret;
+    fprintf(stderr, "Dithering only implemented for Image<Color>!");
+    return Image<uint8_t>(rows, cols, channels);
   }
 };
 
