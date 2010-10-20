@@ -617,13 +617,13 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   // }
   // colors_changed_mutex.unlock();
   // colors_changed = true;
-  Image<uint8_t> myimg;
+  Image<double> myimg;
   if (set_.topview) {
-    myimg = Image<uint8_t>(16, 16, 4);
+    myimg = Image<double>(16, 16, 4);
   } else if (set_.oblique) {
-    myimg = Image<uint8_t>(16 + 128, 16, 4);
+    myimg = Image<double>(16 + 128, 16, 4);
   } else if (set_.isometric) {
-    myimg = Image<uint8_t>(32 + 256, 16, 4);
+    myimg = Image<double>(32 + 256, 16, 4);
   } else {
     exit(1);
   }
@@ -689,20 +689,7 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
           color = color.lighter((y - 64) / 2 + 96);
-          if (set_.dither) {
-            // TODO: rewrite dithering
-            // int random1 = dither();
-            // int random2 = dither();
-            // color.setRed(clamp(color.red() + random1 + random2));
-            // color.setGreen(clamp(color.green() + random1 + random2));
-            // color.setBlue(clamp(color.blue() + random1 + random2));
-          }
-          color.to_cu();
-          memcpy(&myimg.at(zz, xx, 0), &(color.cu[0]), 4);
-          // myimg.at(zz, xx, 0) = color.blue();
-          // myimg.at(zz, xx, 1) = color.green();
-          // myimg.at(zz, xx, 2) = color.red();
-          // myimg.at(zz, xx, 3) = color.alpha();
+          memcpy(&myimg.at(zz, xx, 0), &(color.c[0]), 4 * sizeof(color.c[0]));
         }
         endloop1:;
       }
@@ -711,7 +698,8 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else {
     *result = false;
   }
-  return QImage(&(myimg.data[0]), myimg.cols, myimg.rows,
+  Image<uint8_t> dithered = myimg.floyd_steinberg();
+  return QImage(&(dithered.data[0]), dithered.cols, dithered.rows,
                 QImage::Format_ARGB32_Premultiplied).copy();
 }
 
