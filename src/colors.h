@@ -9,18 +9,18 @@
 class Color {
  public:
   Color() : c(4, 0.0), cu(4, 0) {}
-  Color(int red, int green, int blue, int alpha = 255) : c(4), cu(4, 0) {
-    c[0] = blue / 255.0;
-    c[1] = green / 255.0;
-    c[2] = red / 255.0;
-    c[3] = alpha / 255.0;
+  Color(int _red, int _green, int _blue, int _alpha = 255) : c(4), cu(4, 0) {
+    c[0] = _blue / 255.0;
+    c[1] = _green / 255.0;
+    c[2] = _red / 255.0;
+    c[3] = _alpha / 255.0;
   }
-  Color(double red, double green, double blue, double alpha = 1.0)
+  Color(double _red, double _green, double _blue, double _alpha = 1.0)
           : c(4), cu(4, 0) {
-    c[0] = blue;
-    c[1] = green;
-    c[2] = red;
-    c[3] = alpha;
+    c[0] = _blue;
+    c[1] = _green;
+    c[2] = _red;
+    c[3] = _alpha;
   }
   // TODO: dither this!
   static inline uint8_t check_bounds(double val) {
@@ -42,10 +42,10 @@ class Color {
   double greenF() const { return c[1]; }
   double blueF() const { return c[0]; }
   double alphaF() const { return c[3]; }
-  void setRedF(double red) { c[2] = red; }
-  void setGreenF(double green) { c[1] = green; }
-  void setBlueF(double blue) { c[0] = blue; }
-  void setAlphaF(double alpha) { c[3] = alpha; }
+  void setRedF(double _red) { c[2] = _red; }
+  void setGreenF(double _green) { c[1] = _green; }
+  void setBlueF(double _blue) { c[0] = _blue; }
+  void setAlphaF(double _alpha) { c[3] = _alpha; }
 
   static inline void double_clamp(double& val, std::string debug = "") {
     if (val < 0.0) val = 0.0;
