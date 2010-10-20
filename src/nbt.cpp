@@ -464,7 +464,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
   } else if (set_.oblique) {
     std::stack<Color> colorstack;
     int& dec = (set_.rotate % 2 == 0) ? z : x;
-    bool first_block_hit = false;
+    int blocks_hit = 0;
     do {
       int32_t blockid = getValue(cache, x, y, z, j, i);
       if (zigzag) {
@@ -474,14 +474,14 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         intmapit it = lowerHalf.find(blockid);
         if (it != lowerHalf.end()) blockid = (*it).second;
       }
-      if (set_.shadow_quality_ultra || !first_block_hit) {
+      if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
                                                                        zigzag));
-        first_block_hit = true;
+        ++blocks_hit;
       } else {
         colorstack.push(colors_oblique[blockid]);
       }
-      if (blockid == 0) first_block_hit = false;
+      if (blockid == 0) blocks_hit = false;
       if (zigzag) {
         if (set_.rotate <= 1) {
           --dec;
