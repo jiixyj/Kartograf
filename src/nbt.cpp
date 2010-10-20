@@ -449,30 +449,6 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       color = blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
     }
   } else if (set_.oblique) {
-    static bool converted_colors = false;
-    static std::map<int, Color> colors_oblique;
-    static tbb::mutex colors_oblique_mutex;
-    if (!converted_colors) {
-      colors_oblique_mutex.lock();
-      if (!converted_colors) {
-        std::map<int, Color>::const_iterator it;
-        for (it = colors.begin(); it != colors.end(); ++it) {
-          Color col = it->second;
-          if (col.alphaF() > 0) {
-            double old_alpha = col.alphaF();
-            double new_alpha;
-            new_alpha = old_alpha * old_alpha;
-            col.setRedF(col.redF() / old_alpha * new_alpha);
-            col.setGreenF(col.greenF() / old_alpha * new_alpha);
-            col.setBlueF(col.blueF() / old_alpha * new_alpha);
-            col.setAlphaF(new_alpha);
-          }
-          colors_oblique.insert(std::map<int, Color>::value_type(it->first, col));
-        }
-        converted_colors = true;
-      }
-      colors_oblique_mutex.unlock();
-    }
     std::stack<Color> colorstack;
     int& dec = (set_.rotate % 2 == 0) ? z : x;
     bool first_block_hit = false;

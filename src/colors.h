@@ -251,4 +251,25 @@ static std::map<int, Color> colors = boost::assign::map_list_of
   (85, Color( 68, 54, 30,143))    // OK (?)
 ;
 
+static std::map<int, Color> make_colors_oblique() {
+  std::map<int, Color> colors_oblique;
+  std::map<int, Color>::const_iterator it;
+  for (it = colors.begin(); it != colors.end(); ++it) {
+    Color col = it->second;
+    if (col.alphaF() > 0) {
+      double old_alpha = col.alphaF();
+      double new_alpha;
+      new_alpha = old_alpha * old_alpha;
+      col.setRedF(col.redF() / old_alpha * new_alpha);
+      col.setGreenF(col.greenF() / old_alpha * new_alpha);
+      col.setBlueF(col.blueF() / old_alpha * new_alpha);
+      col.setAlphaF(new_alpha);
+    }
+    colors_oblique.insert(std::map<int, Color>::value_type(it->first, col));
+  }
+  return colors_oblique;
+}
+
+static std::map<int, Color> colors_oblique = make_colors_oblique();
+
 #endif  // SRC_NBT_COLORS_H_
