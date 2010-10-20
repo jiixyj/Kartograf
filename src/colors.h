@@ -5,6 +5,94 @@
 #include <QtGui>
 #include <map>
 
+class Color {
+ public:
+  Color() : c(4, 0.0) {}
+  Color(double red, double green, double blue, double alpha) : c(4) {
+    c[0] = alpha;
+    c[1] = blue;
+    c[2] = green;
+    c[3] = red;
+  }
+  double redF() const { return c[3]; }
+  double greenF() const { return c[2]; }
+  double blueF() const { return c[1]; }
+  double alphaF() const { return c[0]; }
+  void setRedF(double red) { c[3] = red; }
+  void setGreenF(double green) { c[2] = green; }
+  void setBlueF(double blue) { c[1] = blue; }
+  void setAlphaF(double alpha) { c[0] = alpha; }
+
+  void toHSV() {
+    double max = *std::max_element(&(c[0]), &(c[0]) + 4);
+    double min = *std::min_element(&(c[0]), &(c[0]) + 4);
+    double h, s, v;
+    if (max >= min && max <= min) {
+      h = 0.0;
+    } else if (max <= c[3]) {
+      h = (0.0 + (c[2] - c[1]) / (max - min)) / 6.0;
+    } else if (max <= c[2]) {
+      h = (2.0 + (c[1] - c[3]) / (max - min)) / 6.0;
+    } else if (max <= c[1]) {
+      h = (4.0 + (c[3] - c[2]) / (max - min)) / 6.0;
+    }
+    if (h < 0.0) h += 1.0;
+    if (max <= 0.0) {
+      s = 0.0;
+    } else {
+      s = (max - min) / max;
+    }
+    v = max;
+    c[3] = h;
+    c[2] = s;
+    c[1] = v;
+  }
+  void toRGB() {
+    int hi = static_cast<int>(c[3] * 6.0);
+    double f = c[3] * 6.0 - hi;
+    double p = c[1] * (1.0 - c[2]);
+    double q = c[1] * (1.0 - c[2] * f);
+    double t = c[1] * (1.0 - c[2] * (1.0 - f));
+    switch (hi) {
+      case 0:
+      case 6:
+        c[3] = c[1];
+        c[2] = t;
+        c[1] = p;
+        break;
+      case 1:
+        c[3] = q;
+        c[2] = c[1];
+        c[1] = p;
+        break;
+      case 2:
+        c[3] = p;
+        c[2] = c[1];
+        c[1] = t;
+        break;
+      case 3:
+        c[3] = p;
+        c[2] = q;
+        c[1] = c[1];
+        break;
+      case 4:
+        c[3] = t;
+        c[2] = p;
+        c[1] = c[1];
+        break;
+      case 5:
+        c[3] = c[1];
+        c[2] = p;
+        c[1] = q;
+        break;
+      default:
+        break;
+    }
+  }
+
+  std::vector<double> c;
+};
+
 QColor blend(const QColor& B, const QColor& A);
 
 typedef std::map<int, int>::const_iterator intmapit;
