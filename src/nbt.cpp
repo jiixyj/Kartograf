@@ -668,6 +668,11 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
           color = color.lighter((y - 64) / 2 + 96);
+          int random1 = dither();
+          int random2 = dither();
+          color.setRedF(color.redF() + (random1 + random2) / 510.0);
+          color.setGreenF(color.greenF() + (random1 + random2) / 510.0);
+          color.setBlueF(color.blueF() + (random1 + random2) / 510.0);
         }
         endloop1:;
       }
