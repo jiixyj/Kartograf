@@ -22,6 +22,11 @@ include_directories(SYSTEM ${${PROJECT_NAME}_SOURCE_DIR}/include)
 ##### Library setup              #####
 ######################################
 
+##### Boost
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost COMPONENTS filesystem REQUIRED)
+
 ##### Qt
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

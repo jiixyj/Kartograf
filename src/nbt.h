@@ -8,7 +8,7 @@
 #include <utility>
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/mutex.h>
-#include <QtCore>
+#include <boost/filesystem.hpp>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -56,7 +56,7 @@ class nbt {
   int32_t xPos_max_;
   int32_t zPos_max_;
 
-  QDir dir_;
+  boost::filesystem::path dir_;
   Settings set_;
 
   mutable tbb::mutex cache_mutex_;

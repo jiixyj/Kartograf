@@ -4,6 +4,7 @@
 #include <zlib.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <list>
 #include <map>
@@ -15,12 +16,26 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 
+namespace bf = boost::filesystem;
+
+std::string itoa(int value, int base) {
+  if (value == 0) return "0";
+  std::string chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+  std::string ret;
+  do {
+    ret.push_back(chars[static_cast<size_t>(value % base)]);
+    value /= base;
+  } while (value != 0);
+  std::reverse(ret.begin(), ret.end());
+  return ret;
+}
+
 nbt::nbt() : tag_(),
              xPos_min_(std::numeric_limits<int32_t>::max()),
              zPos_min_(std::numeric_limits<int32_t>::max()),
              xPos_max_(std::numeric_limits<int32_t>::min()),
              zPos_max_(std::numeric_limits<int32_t>::min()),
-             dir_(QDir::home()),
+             dir_(getenv("HOME")),
              set_(),
              cache_mutex_(),
              blockcache_() {
@@ -31,15 +46,17 @@ nbt::nbt(int world) : tag_(),
                       zPos_min_(std::numeric_limits<int32_t>::max()),
                       xPos_max_(std::numeric_limits<int32_t>::min()),
                       zPos_max_(std::numeric_limits<int32_t>::min()),
-                      dir_(QDir::home()),
+                      dir_(getenv("HOME")),
                       set_(),
                       cache_mutex_(),
                       blockcache_() {
-  if (!dir_.cd(QString(".minecraft/saves/World") + QString::number(world))) {
-    qFatal("Minecraft is not installed!");
+  std::stringstream ss;
+  ss << "World" << world;
+  if (!bf::exists(dir_ / ".minecraft/saves/" / ss.str())) {
+    fprintf(stderr, "Minecraft is not installed!\n");
+    exit(1);
   }
-  QString name = "map" + QString::number(world);
-  dir_.setFilter(QDir::Files);
+  dir_ = dir_ / ".minecraft/saves/" / ss.str();
   construct_world();
 }
 
@@ -53,7 +70,7 @@ nbt::nbt(const std::string& filename)
             set_(),
             cache_mutex_(),
             blockcache_() {
-  if ((dir_ = QDir(QString::fromStdString(filename))).exists()) {
+  if (bf::is_directory(bf::status(dir_ = filename))) {
     construct_world();
     return;
   }
@@ -82,10 +99,9 @@ nbt::nbt(const std::string& filename)
 }
 
 void nbt::construct_world() {
-  QDirIterator it(dir_, QDirIterator::Subdirectories);
-  while (it.hasNext()) {
-    it.next();
-    std::string fn = it.fileName().toAscii().data();
+  bf::recursive_directory_iterator end_itr;
+  for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
+    std::string fn = itr->path().filename();
     size_t first = fn.find(".");
     size_t second = fn.find(".", first + 1);
     if (second != std::string::npos) {
@@ -101,30 +117,25 @@ void nbt::construct_world() {
   std::cout << "z: " << zPos_min_ << " " << zPos_max_ << std::endl;
 }
 
-
 const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
-  QDir tmp = dir_;
-  int32_t x_tmp = x;
-  int32_t z_tmp = z;
+  int32_t x_tmp = x, z_tmp = z;
   while (x_tmp < 0) x_tmp += 64;
   while (z_tmp < 0) z_tmp += 64;
-  QString dirname(QString::number(x_tmp % 64, 36) + "/"
-                + QString::number(z_tmp % 64, 36));
-  if (!tmp.cd(dirname)) {
+  bf::path tmp;
+  if (!bf::exists((tmp = dir_ / itoa(x_tmp, 36) / itoa(z_tmp, 36)))) {
     return tag_ptr();
   }
-  QString filename(QString("c.")
-                 + ((x < 0) ? "-" : "") + QString::number(abs(x), 36) + "."
-                 + ((z < 0) ? "-" : "") + QString::number(abs(z), 36) + ".dat");
-  if (!tmp.exists(filename)) {
+  std::stringstream ss;
+  ss << "c." << ((x < 0) ? "-" : "") << itoa(abs(x), 36) << "."
+             << ((z < 0) ? "-" : "") << itoa(abs(z), 36) << ".dat";
+  if (!bf::exists(tmp /= ss.str())) {
     return tag_ptr();
   }
-  QString dirstring = tmp.filePath(filename);
 
-  gzFile filein = gzopen(dirstring.toAscii().data(), "rb");
+  gzFile filein = gzopen(tmp.string().c_str(), "rb");
   if (!filein) {
     std::cerr << "file could not be opened! "
-              << dirstring.toAscii().data() << " "
+              << tmp.string().c_str() << " "
               << errno << std::endl;
     exit(1);
   }
@@ -146,7 +157,7 @@ const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   }
   if (gzclose(filein) != Z_OK) {
     std::cerr << "could not close file! "
-              << dirstring.toAscii().data() << std::endl;
+              << tmp.string().c_str() << std::endl;
   }
   exit(1);
 }
@@ -412,7 +423,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
   if (set_.topview) {
     if (set_.heightmap) {
       if (set_.color) {
-        color = Color(atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5,
+        color = Color(std::atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5,
                       1.0, 1.0, 1.0);
       } else {
         color = Color(y, y, y, 255);
@@ -570,7 +581,7 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
 }
 
 bool colors_changed = false;
-QMutex colors_changed_mutex;
+tbb::mutex colors_changed_mutex;
 
 int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
                                 int32_t& x, int32_t& y, int32_t& z,
