@@ -211,10 +211,10 @@ bool nbt::allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const {
   return true;
 }
 
-QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input,
+Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
                                 int x, int y, int z, int j, int i) const {
   int xd = 0, zd = 0;
-  QColor color = input;
+  Color color = input;
   if (set_.sun_direction == 7 || set_.sun_direction == 1) {
     ++xd;
   } else if (set_.sun_direction == 3 || set_.sun_direction == 5) {
@@ -245,9 +245,9 @@ QColor nbt::checkReliefDiagonal(const nbt::map& cache, QColor input,
   return color;
 }
 
-QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input,
+Color nbt::checkReliefNormal(const nbt::map& cache, Color input,
                               int x, int y, int z, int j, int i) const {
-  QColor color = input;
+  Color color = input;
   int lighter_amount = 0;
   if (set_.sun_direction % 4 == 2) {
     if ((colors[getValue(cache, x + 1, y, z - 1, j, i)].alpha() == 0
@@ -293,10 +293,10 @@ QColor nbt::checkReliefNormal(const nbt::map& cache, QColor input,
   return color;
 }
 
-QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
+Color nbt::calculateShadow(const nbt::map& cache, Color input,
                             int x, int y, int z, int j, int i,
                             bool zigzag) const {
-  QColor color = input;
+  Color color = input;
   if (set_.shadow) {
     int blockid = getValue(cache, x, y, z, j, i);
     if (!set_.topview) {
@@ -348,7 +348,7 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
     }
     zigzag = true;
     for (int iii = 0; iii < set_.shadow_quality + 1; ++iii) {
-      QColor light(0, 0, 0, 0);
+      Color light(0, 0, 0, 0);
       while (y < 127) {
         if (!zigzag) {
           ++y;
@@ -394,9 +394,9 @@ QColor nbt::calculateShadow(const nbt::map& cache, QColor input,
   return color;
 }
 
-QColor nbt::calculateRelief(const nbt::map& cache, QColor input,
+Color nbt::calculateRelief(const nbt::map& cache, Color input,
                             int x, int y, int z, int j, int i) const {
-  QColor color = input;
+  Color color = input;
   //++y;
   if (set_.relief) {
     if (set_.sun_direction % 2 == 1) {
@@ -408,16 +408,16 @@ QColor nbt::calculateRelief(const nbt::map& cache, QColor input,
   return color;
 }
 
-QColor nbt::calculateMap(const nbt::map& cache, QColor input,
+Color nbt::calculateMap(const nbt::map& cache, Color input,
                          int x, int y, int z, int j, int i, bool zigzag) const {
-  QColor color = input;
+  Color color = input;
   if (set_.topview) {
     if (set_.heightmap) {
       if (set_.color) {
-        color.setHsvF(atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5,
+        color = Color(atan(((1.0 - y / 127.0) - 0.5) * 10) / M_PI + 0.5,
                       1.0, 1.0, 1.0);
       } else {
-        color.setRgba(QColor(y, y, y, 255).rgba());
+        color = Color(y, y, y, 255);
       }
     } else {
       int height_low_bound = y;
@@ -441,14 +441,14 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
     }
   } else if (set_.oblique) {
     static bool converted_colors = false;
-    static std::map<int, QColor> colors_oblique;
+    static std::map<int, Color> colors_oblique;
     static tbb::mutex colors_oblique_mutex;
     if (!converted_colors) {
       colors_oblique_mutex.lock();
       if (!converted_colors) {
-        std::map<int, QColor>::const_iterator it;
+        std::map<int, Color>::const_iterator it;
         for (it = colors.begin(); it != colors.end(); ++it) {
-          QColor col = it->second;
+          Color col = it->second;
           if (col.alpha() != 0) {
             double old_alpha = col.alphaF();
             double new_alpha;
@@ -458,13 +458,13 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
             col.setBlueF(col.blueF() / old_alpha * new_alpha);
             col.setAlphaF(new_alpha);
           }
-          colors_oblique.insert(std::map<int, QColor>::value_type(it->first, col));
+          colors_oblique.insert(std::map<int, Color>::value_type(it->first, col));
         }
         converted_colors = true;
       }
       colors_oblique_mutex.unlock();
     }
-    std::stack<QColor> colorstack;
+    std::stack<Color> colorstack;
     int& dec = (set_.rotate % 2 == 0) ? z : x;
     bool first_block_hit = false;
     do {
@@ -497,18 +497,18 @@ QColor nbt::calculateMap(const nbt::map& cache, QColor input,
       }
       if (!colorstack.empty() && colorstack.top().alpha() == 255) break;
       if (dec == -1 || dec == 16) {
-        std::stack<QColor> colorstack_inner = colorstack;
+        std::stack<Color> colorstack_inner = colorstack;
         bool clear = true;
         while (!colorstack.empty()) {
           if (colorstack.top().alpha() != 0) clear = false;
           colorstack.pop();
         }
-        if (clear) return QColor(Qt::transparent);
+        if (clear) return Color(0, 0, 0, 0);
         colorstack = colorstack_inner;
         if (allEmptyBehind(cache, j, i)) break;
       }
     } while (y >= 0);
-    QColor tmp(Qt::transparent);
+    Color tmp(0, 0, 0, 0);
     while (!colorstack.empty()) {
       tmp = blend(colorstack.top(), tmp);
       colorstack.pop();
@@ -684,16 +684,17 @@ QImage nbt::getImage(int32_t j, int32_t i, bool* result) const {
           }
         }
         {
-          QColor color(Qt::transparent);
+          Color color(0, 0, 0, 0);
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
           color = color.lighter((y - 64) / 2 + 96);
           if (set_.dither) {
-            int random1 = dither();
-            int random2 = dither();
-            color.setRed(clamp(color.red() + random1 + random2));
-            color.setGreen(clamp(color.green() + random1 + random2));
-            color.setBlue(clamp(color.blue() + random1 + random2));
+            // TODO: rewrite dithering
+            // int random1 = dither();
+            // int random2 = dither();
+            // color.setRed(clamp(color.red() + random1 + random2));
+            // color.setGreen(clamp(color.green() + random1 + random2));
+            // color.setBlue(clamp(color.blue() + random1 + random2));
           }
           img.setPixel(xx, zz, color.rgba());
         }

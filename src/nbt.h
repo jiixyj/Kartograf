@@ -12,6 +12,7 @@
 
 #include "./tag.h"
 #include "./settings.h"
+#include "./colors.h"
 
 class nbt {
  public:
@@ -39,15 +40,15 @@ class nbt {
 
   tag_ptr tag_;
  private:
-  QColor checkReliefDiagonal(const nbt::map& cache, QColor input, int x, int y, int z,
+  Color checkReliefDiagonal(const nbt::map& cache, Color input, int x, int y, int z,
                                            int j, int i) const;
-  QColor checkReliefNormal(const nbt::map& cache, QColor input, int x, int y, int z,
+  Color checkReliefNormal(const nbt::map& cache, Color input, int x, int y, int z,
                                          int j, int i) const;
-  QColor calculateMap(const nbt::map& cache, QColor input, int x, int y, int z,
+  Color calculateMap(const nbt::map& cache, Color input, int x, int y, int z,
                                     int j, int i, bool zigzag = false) const;
-  QColor calculateShadow(const nbt::map& cache, QColor input, int x, int y, int z,
+  Color calculateShadow(const nbt::map& cache, Color input, int x, int y, int z,
                                        int j, int i, bool zigzag = false) const;
-  QColor calculateRelief(const nbt::map& cache, QColor input, int x, int y, int z,
+  Color calculateRelief(const nbt::map& cache, Color input, int x, int y, int z,
                                        int j, int i) const;
   int32_t xPos_min_;
   int32_t zPos_min_;
