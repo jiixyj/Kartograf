@@ -57,7 +57,7 @@ inline Image<uint8_t> Image<Color>::floyd_steinberg_zigzag() const {
   for (size_t i = 0; i < rows; ++i) {
     size_t j = 0;
     bool one = false;
-    if (i % 2) j = cols - 1;
+    if (i % 2) j = cols - 1u;
     for (;;) {
       Color oldpixel = orig.at(i, j, 0);
       for (size_t c = 0; c < 4; ++c) {
@@ -73,7 +73,7 @@ inline Image<uint8_t> Image<Color>::floyd_steinberg_zigzag() const {
         if (j + 1 != cols && i + 1 != rows)
           orig.at(i + 1, j + 1, 0).c[c] += 1.0 / 16.0 * quant_error;
       }
-      if ((j == 0 || j == cols - 1) && one) break;
+      if ((j == 0 || j + 1 == cols) && one) break;
       if (i % 2) --j; else ++j;
       one = true;
     }

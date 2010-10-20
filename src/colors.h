@@ -31,13 +31,10 @@ class Color {
   void setBlueF(double _blue) { c[0] = _blue; }
   void setAlphaF(double _alpha) { c[3] = _alpha; }
 
-  static inline void double_clamp(double& val, std::string debug = "") {
-    if (val < 0.0) val = 0.0;
-    else if (val > 1.0) val = 1.0;
-    else return;
-    if (debug.size() != 0) {
-      fprintf(stderr, "double_clamp from %s\n", debug.c_str());
-    }
+  static inline double double_clamp(double val) {
+    if (val < 0.0) return 0.0;
+    else if (val > 1.0) return 1.0;
+    else return val;
   }
   void toHSV() {
     double max = *std::max_element(&(c[0]), &(c[0]) + 3);
@@ -113,7 +110,7 @@ class Color {
     Color ret = *this;
     ret.toHSV();
     ret.c[0] /= amount / 100.0;
-    double_clamp(ret.c[0], "darker");
+    ret.c[0] = double_clamp(ret.c[0]);
     ret.toRGB();
     return ret;
   }
@@ -121,7 +118,7 @@ class Color {
     Color ret = *this;
     ret.toHSV();
     ret.c[0] *= amount / 100.0;
-    double_clamp(ret.c[0], "lighter");
+    ret.c[0] = double_clamp(ret.c[0]);
     ret.toRGB();
     return ret;
   }
