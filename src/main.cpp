@@ -30,7 +30,6 @@ int main(int ac, char* av[]) {
   set.relief_strength = 10;
   set.sun_direction = 1;
   set.rotate = 1;
-  set.dither = true;
   set.sun_direction = (set.sun_direction + ((set.rotate + 3) % 4) * 2) % 8;
   if (set.shadow_strength != 0) {
     set.shadow = true;
