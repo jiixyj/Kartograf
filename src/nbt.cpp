@@ -12,9 +12,6 @@
 #include <stack>
 #include <string>
 #include <utility>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
 
 namespace bf = boost::filesystem;
 
@@ -613,15 +610,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   }
   const nbt::tag_ptr tag = tag_at(j, i);
   if (tag) {
-    int16_t minval = std::numeric_limits<int16_t>::min();
-    uint32_t a = static_cast<uint32_t>(j - minval) << 16;
-    uint32_t b = static_cast<uint32_t>(i - minval);
-    uint32_t h_mask = 0xFFFF0000;
-    uint32_t l_mask = 0x0000FFFF;
-    boost::mt19937 gen((a & h_mask) | (b & l_mask));
-    boost::uniform_int<> dist(-1, 1);
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
-                                                              dither(gen, dist);
     nbt::tag_ptr comp(tag->sub("Level"));
     int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
     int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
