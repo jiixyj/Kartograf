@@ -33,10 +33,12 @@ class MainForm : public QGraphicsView {
 
   QGraphicsScene* scene_;
   nbt* bf_;
-
   int16_t scale_;
-  typedef QPair<Image<uint8_t>, QPair<int, int> > image_coords;
+  typedef QPair<Image<uint8_t>, QPoint> image_coords;
   tbb::strict_ppl::concurrent_queue<image_coords> images;
+
+  QPoint projectCoords(QPoint p, int phi);
+  QPoint projectCoords(int x, int y, int phi);
 
   MainForm(const MainForm&);
   MainForm& operator=(const MainForm&);
