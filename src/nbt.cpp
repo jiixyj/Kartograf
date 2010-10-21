@@ -595,6 +595,22 @@ int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
   return getValue(cache, x, y, z, j, i);
 }
 
+void de_premultiply(Image<Color>& img) {
+  for (size_t i = 0; i < img.rows; ++i) {
+    for (size_t j = 0; j < img.cols; ++j) {
+      Color& pixel = img.at(i, j, 0);
+      if (pixel.alphaF() <= 0.0) {
+        continue;
+      }
+      if (pixel.alphaF() < 1.0) {
+        for (int c = 0; c < 3; ++c) {
+          pixel.c[c] /= pixel.alphaF();
+        }
+      }
+    }
+  }
+}
+
 Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   Image<Color> myimg;
   if (set_.topview) {
@@ -681,6 +697,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else {
     *result = false;
   }
+  de_premultiply(myimg);
   Image<uint8_t> dithered = myimg.floyd_steinberg();
   return dithered;
 }
