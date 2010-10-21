@@ -681,7 +681,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else {
     *result = false;
   }
-  Image<uint8_t> dithered = myimg.floyd_steinberg_zigzag();
+  Image<uint8_t> dithered = myimg.floyd_steinberg();
   return dithered;
 }
 

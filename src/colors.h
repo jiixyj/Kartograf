@@ -26,10 +26,10 @@ class Color {
   double greenF() const { return c[1]; }
   double blueF() const { return c[0]; }
   double alphaF() const { return c[3]; }
-  void setRedF(double _red) { c[2] = _red; }
-  void setGreenF(double _green) { c[1] = _green; }
-  void setBlueF(double _blue) { c[0] = _blue; }
-  void setAlphaF(double _alpha) { c[3] = _alpha; }
+  void setRedF(double _red) { c[2] = double_clamp(_red); }
+  void setGreenF(double _green) { c[1] = double_clamp(_green); }
+  void setBlueF(double _blue) { c[0] = double_clamp(_blue); }
+  void setAlphaF(double _alpha) { c[3] = double_clamp(_alpha); }
 
   static inline double double_clamp(double val) {
     if (val < 0.0) return 0.0;
