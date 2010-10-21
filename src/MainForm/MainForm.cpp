@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <tbb/tbb.h>
+#include <png.h>
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
                  : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1),
@@ -94,6 +95,33 @@ void MainForm::populateScene() {
   // rotate(270.0f);
   // 187 52
   // setTransform(QTransform().scale(1, 1));
+
+  size_t nr_pixels = width * height;
+  pam = fopen("test.ppm", "r");
+  FILE* out = fopen("test.png", "w");
+  fseek(pam, header_size, SEEK_CUR);
+  png_struct* pngP;
+  png_info* infoP;
+  pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  infoP = png_create_info_struct(pngP);
+  infoP->width      = width;
+  infoP->height     = height;
+  infoP->bit_depth  = 8;
+  infoP->color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+  png_init_io(pngP, out);
+  png_write_info(pngP, infoP);
+
+  png_byte* pngRow = reinterpret_cast<png_byte*>(malloc(width * 4));
+  for (int i = 0; i < height; ++i) {
+    fread(pngRow, 4, width, pam);
+    png_write_row(pngP, pngRow);
+  }
+  free(pngRow);
+
+  png_write_end(pngP, infoP);
+  png_destroy_write_struct(&pngP, &infoP);
+  fclose(pam);
+  fclose(out);
 }
 
 void MainForm::renderNewImageEmitter() {
