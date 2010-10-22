@@ -69,9 +69,6 @@ class nbt {
                                   int32_t& x, int32_t& y, int32_t& z,
                                   int32_t j, int32_t i,
                                   int32_t& state) const;
-
-  nbt(const nbt&);
-  nbt& operator=(const nbt&);
 };
 
 #endif  // SRC_NBT_NBT_H_
