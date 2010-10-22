@@ -21,6 +21,8 @@ std::pair<int, int> projectCoords(std::pair<int, int> p, int phi) {
 
 typedef std::pair<Image<uint8_t>, std::pair<int, int> > image_coords;
 
+uint8_t* global_image;
+
 int startRendering(std::string filename,
                    tbb::concurrent_bounded_queue<image_coords>& images,
                    nbt& bf,
@@ -28,6 +30,12 @@ int startRendering(std::string filename,
                    std::pair<int, int> max_norm,
                    uint16_t header_size) {
   image_coords img_coor;
+  int g_width = (max_norm.first - min_norm.first + 1) * 16;
+  int g_height = (max_norm.second - min_norm.second + 1) * 16;
+  if (!filename.size()) {
+    global_image = reinterpret_cast<uint8_t*>
+                   (malloc(static_cast<size_t>(g_width * g_height * 4)));
+  }
   for (;;) {
     images.pop(img_coor);
     if (img_coor.first.channels == 0) {
@@ -41,26 +49,40 @@ int startRendering(std::string filename,
     uint16_t height = img_coor.first.rows;
     int offset_x = projected.first - min_norm.first * 16;
     int offset_y = projected.second - min_norm.second * 16;
-    int g_width = (max_norm.first - min_norm.first + 1) * 16;
 
-    FILE* pam = fopen(filename.c_str(), "r+b");
-    fseek(pam, header_size, SEEK_CUR);
     for (size_t i = 0; i < 1u * width * height; ++i) {
       size_t index = i * 4;
       std::swap(img_coor.first.data[index], img_coor.first.data[index + 2]);
     }
-    fseek(pam, (offset_y * g_width + offset_x) * 4, SEEK_CUR);
-    for (size_t i = 0; i < height; ++i) {
-      for (size_t j = 0; j < width; ++j) {
-        if (img_coor.first.data[i * width * 4 + j * 4 + 3] != 0) {
-          fwrite(&(img_coor.first.data[i * width * 4 + j * 4]), 4, 1, pam);
-        } else {
-          fseek(pam, 4, SEEK_CUR);
+    if (filename.size()) {
+      FILE* pam = fopen(filename.c_str(), "r+b");
+      fseek(pam, header_size, SEEK_CUR);
+      fseek(pam, (offset_y * g_width + offset_x) * 4, SEEK_CUR);
+      for (size_t i = 0; i < height; ++i) {
+        for (size_t j = 0; j < width; ++j) {
+          if (img_coor.first.data[i * width * 4 + j * 4 + 3] != 0) {
+            fwrite(&(img_coor.first.data[i * width * 4 + j * 4]), 4, 1, pam);
+          } else {
+            fseek(pam, 4, SEEK_CUR);
+          }
         }
+        fseek(pam, (g_width - width) * 4, SEEK_CUR);
       }
-      fseek(pam, (g_width - width) * 4, SEEK_CUR);
+      fclose(pam);
+    } else {
+      long pos = (offset_y * g_width + offset_x) * 4;
+      for (size_t i = 0; i < height; ++i) {
+        for (size_t j = 0; j < width; ++j) {
+          if (img_coor.first.data[i * width * 4 + j * 4 + 3] != 0) {
+            memcpy(global_image + pos,
+                   &img_coor.first.data[i * width * 4 + j * 4],
+                   4);
+          }
+          pos += 4;
+        }
+        pos += (g_width - width) * 4;
+      }
     }
-    fclose(pam);
   }
   return 0;
 }
@@ -70,23 +92,26 @@ uint16_t writeHeader(std::string filename,
                    std::pair<int, int> max_norm,
                    uint32_t& width, uint32_t& height,
                    const nbt& bf) {
-  std::stringstream ss;
   width =  static_cast<uint32_t>(max_norm.first - min_norm.first + 1) * 16;
   height = static_cast<uint32_t>(max_norm.second - min_norm.second + 1) * 16;
   if (bf.set().oblique) height += 128;
-  ss << "P7\n"
-     << "WIDTH "     << width << "\n"
-     << "HEIGHT "    << height << "\n"
-     << "DEPTH "     << 4 << "\n"
-     << "MAXVAL "    << 255 << "\n"
-     << "TUPLTYPE "  << "RGB_ALPHA" << "\n"
-     << "ENDHDR"     << "\n";
-  uint16_t header_size = static_cast<uint16_t>(ss.str().size());
-  FILE* pam = fopen(filename.c_str(), "wb");
-  fwrite(ss.str().c_str(), 1, header_size, pam);
-  fseek(pam, static_cast<long>(width * height * 4 - 1), SEEK_CUR);
-  fwrite("", 1, 1, pam);
-  fclose(pam);
+  uint16_t header_size = 0;
+  if (filename.size()) {
+    std::stringstream ss;
+    ss << "P7\n"
+       << "WIDTH "     << width << "\n"
+       << "HEIGHT "    << height << "\n"
+       << "DEPTH "     << 4 << "\n"
+       << "MAXVAL "    << 255 << "\n"
+       << "TUPLTYPE "  << "RGB_ALPHA" << "\n"
+       << "ENDHDR"     << "\n";
+    header_size = static_cast<uint16_t>(ss.str().size());
+    FILE* pam = fopen(filename.c_str(), "wb");
+    fwrite(ss.str().c_str(), 1, header_size, pam);
+    fseek(pam, static_cast<long>(width * height * 4 - 1), SEEK_CUR);
+    fwrite("", 1, 1, pam);
+    fclose(pam);
+  }
   return header_size;
 }
 
@@ -149,9 +174,12 @@ void calculateMinMaxPoint(std::pair<int, int>& min_norm,
 
 void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
               uint32_t width, uint32_t height) {
-  FILE* pam = fopen(pam_name.c_str(), "rb");
+  FILE* pam = NULL;
+  if (pam_name.size()) {
+    pam = fopen(pam_name.c_str(), "rb");
+    fseek(pam, header_size, SEEK_CUR);
+  }
   FILE* out = fopen(png_name.c_str(), "wb");
-  fseek(pam, header_size, SEEK_CUR);
   png_struct* pngP;
   png_info* infoP;
   pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -166,15 +194,23 @@ void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
 
   png_byte* pngRow = reinterpret_cast<png_byte*>(malloc(width * 4));
   for (size_t i = 0; i < height; ++i) {
-    fread(pngRow, 4, width, pam);
+    if (pam) {
+      fread(pngRow, 4, width, pam);
+    } else {
+      memcpy(pngRow, global_image + i * width * 4, width * 4);
+    }
     png_write_row(pngP, pngRow);
   }
   free(pngRow);
 
   png_write_end(pngP, infoP);
   png_destroy_write_struct(&pngP, &infoP);
-  fclose(pam);
   fclose(out);
+  if (pam) {
+    fclose(pam);
+  } else {
+    free(global_image);
+  }
 }
 
 int main(int ac, char* av[]) {
@@ -190,10 +226,10 @@ int main(int ac, char* av[]) {
   std::pair<int, int> min_norm, max_norm;
   calculateMinMaxPoint(min_norm, max_norm, bf);
   uint32_t width, height;
-  uint16_t header_size = writeHeader("test.pam", min_norm, max_norm,
+  uint16_t header_size = writeHeader("", min_norm, max_norm,
                                      width, height, bf);
   boost::thread render_thread(boost::bind(&startRendering,
-                                          "test.pam",
+                                          "",
                                           boost::ref(images),
                                           boost::ref(bf),
                                           boost::ref(min_norm),
@@ -201,13 +237,13 @@ int main(int ac, char* av[]) {
                                           header_size));
   tbb::atomic<int> index;
   index = 0;
-  boost::progress_display show_progress(max_norm.second - min_norm.second + 1);
+  boost::progress_display show_progress(
+                    static_cast<size_t>(max_norm.second - min_norm.second + 1));
   for (int i = min_norm.second; i <= max_norm.second; ++i) {
     tbb::parallel_for(tbb::blocked_range<int32_t>
                                            (min_norm.first, max_norm.first + 1),
                                            ApplyFoo(&bf, &images, i, &index));
     if (index > 10000) {
-      std::cerr << "cache cleared!" << std::endl;
       index = 0;
       bf.clearCache();
     }
@@ -215,8 +251,8 @@ int main(int ac, char* av[]) {
   }
   bf.clearCache();
   images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
-
-  pamToPng("test.pam", "test.png", header_size, width, height);
   render_thread.join();
+
+  pamToPng("", "test.png", header_size, width, height);
   return 0;
 }
