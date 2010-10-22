@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <boost/thread/thread.hpp>
+#include <boost/progress.hpp>
 #include <tbb/concurrent_queue.h>
 #include <tbb/parallel_for.h>
 
@@ -200,6 +201,7 @@ int main(int ac, char* av[]) {
                                           header_size));
   tbb::atomic<int> index;
   index = 0;
+  boost::progress_display show_progress(max_norm.second - min_norm.second + 1);
   for (int i = min_norm.second; i <= max_norm.second; ++i) {
     tbb::parallel_for(tbb::blocked_range<int32_t>
                                            (min_norm.first, max_norm.first + 1),
@@ -209,6 +211,7 @@ int main(int ac, char* av[]) {
       index = 0;
       bf.clearCache();
     }
+    ++show_progress;
   }
   bf.clearCache();
   images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
