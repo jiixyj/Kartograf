@@ -69,10 +69,11 @@ int startRendering(std::string filename,
 size_t writeHeader(std::string filename,
                    std::pair<int, int> min_norm,
                    std::pair<int, int> max_norm,
+                   int& width, int& height,
                    const nbt& bf) {
   std::stringstream ss;
-  int width = (max_norm.first - min_norm.first + 1) * 16;
-  int height = (max_norm.second - min_norm.second + 1) * 16;
+  width = (max_norm.first - min_norm.first + 1) * 16;
+  height = (max_norm.second - min_norm.second + 1) * 16;
   if (bf.set().oblique) height += 128;
   ss << "P7\n"
      << "WIDTH "     << width << "\n"
@@ -116,19 +117,7 @@ class ApplyFoo {
   ApplyFoo& operator=(const ApplyFoo&);
 };
 
-int main(int ac, char* av[]) {
-  if (ac != 2) {
-    std::cerr << "Usage: ./nbtparse [filename | world number]" << std::endl;
-    return 1;
-  }
-  int world = atoi(av[1]);
-  nbt bf;
-  if (world == 0) {
-    bf = nbt(av[1]);
-  } else {
-    bf = nbt(world);
-  }
-  std::cout << bf.string();
+Settings getSettings() {
   Settings set;
   set.topview = true;
   set.oblique = false;
@@ -141,66 +130,28 @@ int main(int ac, char* av[]) {
   set.sun_direction = 1;
   set.rotate = 1;
   set.sun_direction = (set.sun_direction + ((set.rotate + 3) % 4) * 2) % 8;
-  if (set.shadow_strength != 0) {
-    set.shadow = true;
-  } else {
-    set.shadow = false;
-  }
-  if (set.relief_strength != 0) {
-    set.relief = true;
-  } else {
-    set.relief = false;
-  }
-  bf.setSettings(set);
-  tbb::concurrent_bounded_queue<image_coords> images;
-  std::pair<int, int> min_norm, max_norm;
-  {
-    std::pair<int, int> min(bf.xPos_min(), bf.zPos_min());
-    std::pair<int, int> max(bf.xPos_max(), bf.zPos_max());
-    min = projectCoords(min, bf.set().rotate);
-    max = projectCoords(max, bf.set().rotate);
-    min_norm = std::make_pair(std::min(min.first, max.first),
-                              std::min(min.second, max.second));
-    max_norm = std::make_pair(std::max(min.first, max.first),
-                              std::max(min.second, max.second));
-  }
-  size_t header_size = writeHeader("test.pam", min_norm, max_norm, bf);
-  boost::thread render_thread(boost::bind(&startRendering,
-                                          "test.pam",
-                                          boost::ref(images),
-                                          boost::ref(bf),
-                                          boost::ref(min_norm),
-                                          boost::ref(max_norm),
-                                          header_size));
-  tbb::atomic<int> index;
-  index = 0;
-  for (int i = min_norm.second; i <= max_norm.second; ++i) {
-    tbb::parallel_for(tbb::blocked_range<int32_t>(min_norm.first,
-                                                  max_norm.first + 1),
-                                                  ApplyFoo(&bf, &images,
-                                                           i, &index));
-    if (index > 10000) {
-      std::cerr << "cache cleared!" << std::endl;
-      index = 0;
-      bf.clearCache();
-    }
-  }
-  bf.clearCache();
-  images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
+  set.shadow = set.shadow_strength;
+  set.relief = set.relief_strength;
+  return set;
+}
 
-  // QPen pen;
-  // pen.setColor(QColor(255, 0, 0, 255));
-  // scene()->addEllipse(185, 50, 5, 5, pen);
-  // rotate(270.0f);
-  // 187 52
-  // setTransform(QTransform().scale(1, 1));
+void calculateMinMaxPoint(std::pair<int, int>& min_norm,
+                          std::pair<int, int>& max_norm,
+                          const nbt& bf) {
+  std::pair<int, int> min(bf.xPos_min(), bf.zPos_min());
+  std::pair<int, int> max(bf.xPos_max(), bf.zPos_max());
+  min = projectCoords(min, bf.set().rotate);
+  max = projectCoords(max, bf.set().rotate);
+  min_norm = std::make_pair(std::min(min.first, max.first),
+                            std::min(min.second, max.second));
+  max_norm = std::make_pair(std::max(min.first, max.first),
+                            std::max(min.second, max.second));
+}
 
-  int width = (max_norm.first - min_norm.first + 1) * 16;
-  int height = (max_norm.second - min_norm.second + 1) * 16;
-  if (bf.set().oblique) height += 128;
-  size_t nr_pixels = width * height;
-  FILE* pam = fopen("test.pam", "rb");
-  FILE* out = fopen("test.png", "wb");
+void pamToPng(std::string pam_name, std::string png_name, size_t header_size,
+              size_t width, size_t height) {
+  FILE* pam = fopen(pam_name.c_str(), "rb");
+  FILE* out = fopen(png_name.c_str(), "wb");
   fseek(pam, header_size, SEEK_CUR);
   png_struct* pngP;
   png_info* infoP;
@@ -225,8 +176,46 @@ int main(int ac, char* av[]) {
   png_destroy_write_struct(&pngP, &infoP);
   fclose(pam);
   fclose(out);
+}
 
+int main(int ac, char* av[]) {
+  if (ac != 2) {
+    std::cerr << "Usage: ./nbtparse [filename | world number]" << std::endl;
+    return 1;
+  }
+  int world = atoi(av[1]);
+  nbt bf = world ? nbt(world) : nbt(av[1]);
+  std::cout << bf.string();
+  bf.setSettings(getSettings());
+  tbb::concurrent_bounded_queue<image_coords> images;
+  std::pair<int, int> min_norm, max_norm;
+  calculateMinMaxPoint(min_norm, max_norm, bf);
+  int width, height;
+  size_t header_size = writeHeader("test.pam", min_norm, max_norm,
+                                   width, height, bf);
+  boost::thread render_thread(boost::bind(&startRendering,
+                                          "test.pam",
+                                          boost::ref(images),
+                                          boost::ref(bf),
+                                          boost::ref(min_norm),
+                                          boost::ref(max_norm),
+                                          header_size));
+  tbb::atomic<int> index;
+  index = 0;
+  for (int i = min_norm.second; i <= max_norm.second; ++i) {
+    tbb::parallel_for(tbb::blocked_range<int32_t>
+                                           (min_norm.first, max_norm.first + 1),
+                                           ApplyFoo(&bf, &images, i, &index));
+    if (index > 10000) {
+      std::cerr << "cache cleared!" << std::endl;
+      index = 0;
+      bf.clearCache();
+    }
+  }
+  bf.clearCache();
+  images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
 
+  pamToPng("test.pam", "test.png", header_size, width, height);
   render_thread.join();
   return 0;
 }
