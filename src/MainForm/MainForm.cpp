@@ -104,10 +104,11 @@ void MainForm::populateScene() {
   png_info* infoP;
   pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   infoP = png_create_info_struct(pngP);
-  infoP->width      = width;
-  infoP->height     = height;
-  infoP->bit_depth  = 8;
-  infoP->color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+  png_set_IHDR(pngP, infoP, width, height, 8,
+               PNG_COLOR_TYPE_RGB_ALPHA,
+               PNG_INTERLACE_NONE,
+               PNG_COMPRESSION_TYPE_DEFAULT,
+               PNG_FILTER_TYPE_DEFAULT);
   png_init_io(pngP, out);
   png_write_info(pngP, infoP);
 
