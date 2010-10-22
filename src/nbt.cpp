@@ -133,8 +133,8 @@ const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   int32_t x_tmp = x, z_tmp = z;
   while (x_tmp < 0) x_tmp += 64;
   while (z_tmp < 0) z_tmp += 64;
-  bf::path tmp;
-  if (!bf::exists((tmp = dir_ / itoa(x_tmp, 36) / itoa(z_tmp, 36)))) {
+  bf::path tmp = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36);
+  if (!bf::exists(tmp)) {
     return tag_ptr();
   }
   std::stringstream ss;
@@ -603,7 +603,7 @@ void de_premultiply(Image<Color>& img) {
         continue;
       }
       if (pixel.alphaF() < 1.0) {
-        for (int c = 0; c < 3; ++c) {
+        for (size_t c = 0; c < 3; ++c) {
           pixel.c[c] /= pixel.alphaF();
         }
       }
