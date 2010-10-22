@@ -225,11 +225,12 @@ int main(int ac, char* av[]) {
   tbb::concurrent_bounded_queue<image_coords> images;
   std::pair<int, int> min_norm, max_norm;
   calculateMinMaxPoint(min_norm, max_norm, bf);
+  std::string buffer_file = "";
   uint32_t width, height;
-  uint16_t header_size = writeHeader("", min_norm, max_norm,
+  uint16_t header_size = writeHeader(buffer_file, min_norm, max_norm,
                                      width, height, bf);
   boost::thread render_thread(boost::bind(&startRendering,
-                                          "",
+                                          buffer_file,
                                           boost::ref(images),
                                           boost::ref(bf),
                                           boost::ref(min_norm),
@@ -253,6 +254,6 @@ int main(int ac, char* av[]) {
   images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
   render_thread.join();
 
-  pamToPng("", "test.png", header_size, width, height);
+  pamToPng(buffer_file, "test.png", header_size, width, height);
   return 0;
 }
