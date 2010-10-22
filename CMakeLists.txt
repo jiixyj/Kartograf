@@ -35,8 +35,8 @@ include_directories(SYSTEM ${QT_INCLUDE_DIR})
 include_directories(SYSTEM ${QT_QTGUI_INCLUDE_DIR})
 include_directories(SYSTEM ${QT_QTCORE_INCLUDE_DIR})
 
-##### ZLIB
-find_package(ZLIB REQUIRED)
+##### PNG
+find_package(PNG REQUIRED)
 
 
 ######################################

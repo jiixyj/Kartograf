@@ -7,6 +7,6 @@ add_executable(cart main_console)
 
 target_link_libraries(nbt colors tag ${Boost_LIBRARIES} tbb)
 target_link_libraries(nbtparse nbt ${QT_LIBRARIES} MainForm)
-target_link_libraries(cart nbt ${ZLIB_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(cart nbt ${PNG_LIBRARIES} ${Boost_LIBRARIES})
 
 add_subdirectory(MainForm)
