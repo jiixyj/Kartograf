@@ -3,7 +3,6 @@
 
 #include <zlib.h>
 
-#include <boost/shared_ptr.hpp>
 #include <stdint.h>
 #include <cstdlib>
 #include <iostream>
@@ -25,20 +24,23 @@ struct tag {
   tag();
   tag(gzFile* file, bool named);
   virtual ~tag();
-  virtual int id() = 0;
-  virtual std::string str() = 0;
+  virtual int id() const = 0;
+  virtual std::string str() const = 0;
   template <class T> const T& pay_() const {
     const tag_<T>* payload = reinterpret_cast<const tag_<T>*>(this);
     return payload->p;
   }
-  const boost::shared_ptr<tag> sub(const std::string&) const;
-  const boost::shared_ptr<tag_<string> > name;
+  const tag* sub(const std::string&) const;
+  const tag_<string>* name;
+ private:
+  tag(const tag&);
+  tag& operator=(const tag&);
 };
 
 template <typename T>
 struct tag_ : public tag {
-  int id();
-  std::string str();
+  int id() const;
+  std::string str() const;
   tag_();
   tag_(gzFile*, bool named);
   T p;
@@ -61,16 +63,18 @@ struct string {
 
 struct list {
   explicit list(gzFile* file);
+  ~list();
   tag_<int8_t> tagid;
   tag_<uint32_t> length;
-  std::vector<boost::shared_ptr<tag> > tags;
+  std::vector<tag*> tags;
   friend std::ostream& operator <<(std::ostream& os, const list& obj);
 };
 
 struct compound {
   explicit compound(gzFile* file);
-  std::list<boost::shared_ptr<tag> > tags;
-  const boost::shared_ptr<tag> sub(const std::string& subname) const;
+  ~compound();
+  std::list<tag*> tags;
+  const tag* sub(const std::string& subname) const;
   friend std::ostream& operator <<(std::ostream& os, const compound& obj);
 };
 
@@ -79,9 +83,9 @@ std::ostream& operator <<(std::ostream& os, const string& obj);
 std::ostream& operator <<(std::ostream& os, const list& obj);
 std::ostream& operator <<(std::ostream& os, const compound& obj);
 
-void push_in_tags(std::vector<boost::shared_ptr<tag> >* tags, gzFile* file,
+void push_in_tags(std::vector<tag*>* tags, gzFile* file,
                   int switcher, bool with_string, size_t index);
-void push_in_tags(std::list<boost::shared_ptr<tag> >* tags, gzFile* file,
+void push_in_tags(std::list<tag*>* tags, gzFile* file,
                   int switcher, bool with_string);
 }
 

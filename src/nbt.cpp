@@ -146,7 +146,7 @@ bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
   return true;
 }
 
-const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
+nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   bf::path tmp;
   if(!exists(x, z, tmp)) {
     return tag_ptr();
@@ -629,7 +629,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else {
     exit(1);
   }
-  const nbt::tag_ptr tag = tag_at(j, i);
+  tag_ptr tag = tag_at(j, i);
   if (tag) {
     int16_t minval = std::numeric_limits<int16_t>::min();
     uint32_t a = static_cast<uint32_t>(j - minval) << 16;
@@ -640,7 +640,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
     boost::uniform_int<> dist(-1, 1);
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
                                                               dither(gen, dist);
-    nbt::tag_ptr comp(tag->sub("Level"));
+    const tag::tag* comp(tag->sub("Level"));
     int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
     int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
     if (zPos != i || xPos != j) {
@@ -652,7 +652,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       for (int ii = i + 7; ii >= i - 7; --ii) {
         nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
         if (it == blockcache_.end()) {
-          const nbt::tag_ptr newtag = tag_at(jj, ii);
+          tag_ptr newtag = tag_at(jj, ii);
           if (newtag) {
             const std::string& pl = newtag->sub("Level")->
                                        sub("Blocks")->pay_<tag::byte_array>().p;

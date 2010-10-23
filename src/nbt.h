@@ -27,9 +27,9 @@ class nbt {
   int32_t xPos_max() const { return xPos_max_; }
   int32_t zPos_max() const { return zPos_max_; }
 
+  typedef boost::shared_ptr<const tag::tag> tag_ptr;
   bool exists(int32_t x, int32_t z, boost::filesystem::path& path) const;
-  typedef boost::shared_ptr<tag::tag> tag_ptr;
-  const tag_ptr tag_at(int32_t x, int32_t z) const;
+  tag_ptr tag_at(int32_t x, int32_t z) const;
 
   void setSettings(Settings set);
   Settings set() const { return set_; }
@@ -40,7 +40,7 @@ class nbt {
   Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
   void clearCache() const;
 
-  tag_ptr tag_;
+  nbt::tag_ptr tag_;
  private:
   Color checkReliefDiagonal(const nbt::map& cache, Color input, int x, int y, int z,
                                            int j, int i) const;
