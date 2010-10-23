@@ -132,13 +132,13 @@ class ApplyFoo {
 
 Settings getSettings() {
   Settings set;
-  set.topview = true;
-  set.oblique = false;
+  set.topview = false;
+  set.oblique = true;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 0;
+  set.shadow_strength = 60;
   set.shadow_quality = true;
-  set.shadow_quality_ultra = false;
+  set.shadow_quality_ultra = true;
   set.relief_strength = 10;
   set.sun_direction = 1;
   set.rotate = 1;
