@@ -1,12 +1,14 @@
 add_library(nbt nbt)
 add_library(tag tag)
 add_library(colors colors)
+add_library(assemble assemble)
 
 add_executable(nbtparse main)
 add_executable(cart main_console)
 
 target_link_libraries(nbt colors tag ${Boost_LIBRARIES} tbb)
+target_link_libraries(assemble ${PNG_LIBRARIES} ${Boost_LIBRARIES} tbb)
 target_link_libraries(nbtparse nbt ${QT_LIBRARIES} MainForm)
-target_link_libraries(cart nbt ${PNG_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(cart nbt assemble)
 
 add_subdirectory(MainForm)

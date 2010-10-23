@@ -1,6 +1,11 @@
 #ifndef _IMAGE_H
 #define _IMAGE_H
 
+#include <vector>
+#include <cstdio>
+
+#include "./colors.h"
+
 template<typename T>
 class Image {
  public:
