@@ -119,12 +119,12 @@ class ApplyFoo {
   nbt* bf_;
   tbb::concurrent_bounded_queue<image_coords>* images_;
   int i_;
-  tbb::atomic<int>* index_;
+  tbb::atomic<size_t>* index_;
  public:
-  void operator()( const tbb::blocked_range<int32_t>& r ) const {
-    for(int32_t j=r.begin(); j!=r.end(); ++j) {
+  void operator()( const tbb::blocked_range<std::vector<int>::iterator>& r ) const {
+    for(std::vector<int>::iterator j=r.begin(); j!=r.end(); ++j) {
       bool result = false;
-      std::pair<int, int> bp = projectCoords(std::make_pair(j, i_),
+      std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                         (4 - bf_->set().rotate) % 4);
       const Image<uint8_t>& image = bf_->getImage(bp.first, bp.second, &result);
       if (!result) {
@@ -135,7 +135,7 @@ class ApplyFoo {
     }
   }
   ApplyFoo(nbt* bf, tbb::concurrent_bounded_queue<image_coords>* images, int i,
-           tbb::atomic<int>* index)
+           tbb::atomic<size_t>* index)
           : bf_(bf), images_(images), i_(i), index_(index) {}
  private:
   ApplyFoo& operator=(const ApplyFoo&);
@@ -213,6 +213,29 @@ void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
   }
 }
 
+size_t fillTiles(std::list<std::vector<int> >& tiles, const nbt& bf,
+                 const std::pair<int, int>& min_norm,
+                 const std::pair<int, int>& max_norm,
+                 boost::progress_display& show_progress) {
+  size_t tiles_nr = 0;
+  std::list<std::vector<int> >::iterator it = tiles.begin();
+  for (int i = min_norm.second; i <= max_norm.second; ++i) {
+    for (int j = min_norm.first; j <= max_norm.first; ++j) {
+      std::pair<int, int> p = projectCoords(std::make_pair(j, i),
+                                            (4 - bf.set().rotate) % 4);
+      boost::filesystem::path path;
+      if (bf.exists(p.first, p.second, path)) {
+        p = projectCoords(p, bf.set().rotate);
+        it->push_back(p.first);
+      }
+    }
+    tiles_nr += it->size();
+    ++it;
+    ++show_progress;
+  }
+  return tiles_nr;
+}
+
 int main(int ac, char* av[]) {
   if (ac != 2) {
     std::cerr << "Usage: ./nbtparse [filename | world number]" << std::endl;
@@ -229,26 +252,32 @@ int main(int ac, char* av[]) {
   uint32_t width, height;
   uint16_t header_size = writeHeader(buffer_file, min_norm, max_norm,
                                      width, height, bf);
-  boost::thread render_thread(boost::bind(&startRendering,
-                                          buffer_file,
-                                          boost::ref(images),
-                                          boost::ref(bf),
+
+  size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
+  boost::progress_display show_progress(range);
+  std::list<std::vector<int> > tiles(range);
+  size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);
+  boost::thread render_thread(boost::bind(&startRendering, buffer_file,
+                                          boost::ref(images), boost::ref(bf),
                                           boost::ref(min_norm),
-                                          boost::ref(max_norm),
-                                          header_size));
-  tbb::atomic<int> index;
-  index = 0;
-  boost::progress_display show_progress(
-                    static_cast<size_t>(max_norm.second - min_norm.second + 1));
+                                          boost::ref(max_norm), header_size));
+  tbb::atomic<size_t> progress_index, mem_index;
+  progress_index = 0;
+  mem_index = 0;
+  show_progress.restart(tiles_nr);
+  std::list<std::vector<int> >::iterator it = tiles.begin();
   for (int i = min_norm.second; i <= max_norm.second; ++i) {
-    tbb::parallel_for(tbb::blocked_range<int32_t>
-                                           (min_norm.first, max_norm.first + 1),
-                                           ApplyFoo(&bf, &images, i, &index));
-    if (index > 10000) {
-      index = 0;
+    tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
+                                                       (it->begin(), it->end()),
+                      ApplyFoo(&bf, &images, i, &progress_index));
+    mem_index += progress_index;
+    if (mem_index > 10000) {
+      mem_index = 0;
       bf.clearCache();
     }
-    ++show_progress;
+    ++it;
+    show_progress += progress_index;
+    progress_index = 0;
   }
   bf.clearCache();
   images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
