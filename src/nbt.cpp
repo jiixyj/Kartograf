@@ -129,21 +129,28 @@ void nbt::construct_world() {
   std::cout << "z: " << zPos_min_ << " " << zPos_max_ << std::endl;
 }
 
-const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
+bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
   int32_t x_tmp = x, z_tmp = z;
   while (x_tmp < 0) x_tmp += 64;
   while (z_tmp < 0) z_tmp += 64;
-  bf::path tmp = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36);
-  if (!bf::exists(tmp)) {
-    return tag_ptr();
+  path = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36);
+  if (!bf::exists(path)) {
+    return false;
   }
   std::stringstream ss;
   ss << "c." << ((x < 0) ? "-" : "") << itoa(abs(x), 36) << "."
              << ((z < 0) ? "-" : "") << itoa(abs(z), 36) << ".dat";
-  if (!bf::exists(tmp /= ss.str())) {
+  if (!bf::exists(path /= ss.str())) {
+    return false;
+  }
+  return true;
+}
+
+const nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
+  bf::path tmp;
+  if(!exists(x, z, tmp)) {
     return tag_ptr();
   }
-
   gzFile filein = gzopen(tmp.string().c_str(), "rb");
   if (!filein) {
     std::cerr << "file could not be opened! "
