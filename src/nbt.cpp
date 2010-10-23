@@ -4,6 +4,7 @@
 #include <zlib.h>
 
 #include <algorithm>
+#include <bitset>
 #include <cmath>
 #include <limits>
 #include <list>
@@ -643,6 +644,8 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
     const tag::tag* comp(tag->sub("Level"));
     int32_t xPos = comp->sub("xPos")->pay_<int32_t>();
     int32_t zPos = comp->sub("zPos")->pay_<int32_t>();
+    std::string block_light = comp->sub("BlockLight")->pay_<tag::byte_array>().p;
+    std::string sky_light = comp->sub("SkyLight")->pay_<tag::byte_array>().p;
     if (zPos != i || xPos != j) {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
@@ -691,11 +694,18 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
           color = color.lighter((y - 64) / 2 + 96);
+          size_t light_index_tmp = (y + 1 + z * 128 + x * 128 * 16);
+          if (y != 127) ++light_index_tmp;
+          size_t light_index = light_index_tmp / 2;
+          int light_remainder = light_index_tmp % 2;
+          char light = block_light[light_index];
+          light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
+          color = color.darker(50 + (15-light) * 100);
           int random1 = dither();
           int random2 = dither();
-          color.setRedF(color.redF() + (random1 + random2) / 510.0);
-          color.setGreenF(color.greenF() + (random1 + random2) / 510.0);
-          color.setBlueF(color.blueF() + (random1 + random2) / 510.0);
+          color.setRedF(color.redF() * (1 + (random1 + random2) / 510.0));
+          color.setGreenF(color.greenF() * (1 + (random1 + random2) / 510.0));
+          color.setBlueF(color.blueF() * (1 + (random1 + random2) / 510.0));
         }
         endloop1:;
       }
