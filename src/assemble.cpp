@@ -37,7 +37,7 @@ int render_tile(std::string filename,
           fseek(pam, 4, SEEK_CUR);
         }
       }
-      fseek(pam, (g_width - width) * 4, SEEK_CUR);
+      fseek(pam, static_cast<long>((g_width - width) * 4), SEEK_CUR);
     }
     fclose(pam);
   } else {
@@ -52,7 +52,7 @@ int render_tile(std::string filename,
         }
         pos += 4;
       }
-      pos += (g_width - width) * 4;
+      pos += static_cast<long>((g_width - width) * 4);
     }
   }
   return 0;

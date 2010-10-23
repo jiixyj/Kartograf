@@ -14,7 +14,7 @@ if(WIN32)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${STDCPP} ${${PROJECT_NAME}_BINARY_DIR}/src/${STDCPPNAME})
   unset(STDCPP CACHE)
   # copy all needed dlls into executable directory
-  list(APPEND LIBRARY_NAMES ${QT_LIBRARIES} qt-bin/libgcc_s_dw2-1.dll ${OpenCV_LIBS} gcc_s_sjlj-1 stdc++-6 mingwm10 tbb)
+  list(APPEND LIBRARY_NAMES ${QT_LIBRARIES} qt-bin/libgcc_s_dw2-1.dll ${OpenCV_LIBS} gcc_s_sjlj-1 stdc++-6 mingwm10 tbb png14 zlib1)
   foreach(__LIB ${LIBRARY_NAMES})
     if("${__LIB}" MATCHES "^/.*")
       set(__LIBNAME ${__LIB})
