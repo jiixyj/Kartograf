@@ -22,46 +22,28 @@ std::pair<int, int> projectCoords(std::pair<int, int> p, int phi) {
 typedef std::pair<Image<uint8_t>, std::pair<int, int> > image_coords;
 
 uint8_t* global_image;
+uint32_t g_width;
+uint32_t g_height;
 
 int startRendering(std::string filename,
-                   tbb::concurrent_bounded_queue<image_coords>& images,
-                   nbt& bf,
-                   std::pair<int, int> min_norm,
-                   std::pair<int, int> max_norm,
+                   Image<uint8_t>& image,
+                   std::pair<int, int> projected,
                    uint16_t header_size) {
-  image_coords img_coor;
-  int g_width = (max_norm.first - min_norm.first + 1) * 16;
-  int g_height = (max_norm.second - min_norm.second + 1) * 16;
-  if (!filename.size()) {
-    global_image = reinterpret_cast<uint8_t*>
-                   (malloc(static_cast<size_t>(g_width * g_height * 4)));
-  }
-  for (;;) {
-    images.pop(img_coor);
-    if (img_coor.first.channels == 0) {
-      break;
-    }
-    std::pair<int, int> projected = projectCoords(
-                                    std::make_pair(16 * img_coor.second.first,
-                                                   16 * img_coor.second.second),
-                                    bf.set().rotate);
-    uint16_t width = img_coor.first.cols;
-    uint16_t height = img_coor.first.rows;
-    int offset_x = projected.first - min_norm.first * 16;
-    int offset_y = projected.second - min_norm.second * 16;
+    uint16_t width = image.cols;
+    uint16_t height = image.rows;
 
     for (size_t i = 0; i < 1u * width * height; ++i) {
       size_t index = i * 4;
-      std::swap(img_coor.first.data[index], img_coor.first.data[index + 2]);
+      std::swap(image.data[index], image.data[index + 2]);
     }
     if (filename.size()) {
       FILE* pam = fopen(filename.c_str(), "r+b");
       fseek(pam, header_size, SEEK_CUR);
-      fseek(pam, (offset_y * g_width + offset_x) * 4, SEEK_CUR);
+      fseek(pam, (projected.second * static_cast<int>(g_width) + projected.first) * 4, SEEK_CUR);
       for (size_t i = 0; i < height; ++i) {
         for (size_t j = 0; j < width; ++j) {
-          if (img_coor.first.data[i * width * 4 + j * 4 + 3] != 0) {
-            fwrite(&(img_coor.first.data[i * width * 4 + j * 4]), 4, 1, pam);
+          if (image.data[i * width * 4 + j * 4 + 3] != 0) {
+            fwrite(&(image.data[i * width * 4 + j * 4]), 4, 1, pam);
           } else {
             fseek(pam, 4, SEEK_CUR);
           }
@@ -70,12 +52,12 @@ int startRendering(std::string filename,
       }
       fclose(pam);
     } else {
-      long pos = (offset_y * g_width + offset_x) * 4;
+      long pos = (projected.second * static_cast<int>(g_width) + projected.first) * 4;
       for (size_t i = 0; i < height; ++i) {
         for (size_t j = 0; j < width; ++j) {
-          if (img_coor.first.data[i * width * 4 + j * 4 + 3] != 0) {
+          if (image.data[i * width * 4 + j * 4 + 3] != 0) {
             memcpy(global_image + pos,
-                   &img_coor.first.data[i * width * 4 + j * 4],
+                   &image.data[i * width * 4 + j * 4],
                    4);
           }
           pos += 4;
@@ -83,7 +65,6 @@ int startRendering(std::string filename,
         pos += (g_width - width) * 4;
       }
     }
-  }
   return 0;
 }
 
@@ -111,32 +92,40 @@ uint16_t writeHeader(std::string filename,
     fseek(pam, static_cast<long>(width * height * 4 - 1), SEEK_CUR);
     fwrite("", 1, 1, pam);
     fclose(pam);
+  } else {
+    global_image = reinterpret_cast<uint8_t*>
+                   (malloc(static_cast<size_t>(width * height * 4)));
+    g_width = width;
+    g_height = height;
   }
   return header_size;
 }
 
 class ApplyFoo {
   nbt* bf_;
-  tbb::concurrent_bounded_queue<image_coords>* images_;
   int i_;
   tbb::atomic<size_t>* index_;
+  std::pair<int, int> min_norm_;
  public:
   void operator()( const tbb::blocked_range<std::vector<int>::iterator>& r ) const {
     for(std::vector<int>::iterator j=r.begin(); j!=r.end(); ++j) {
       bool result = false;
       std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                         (4 - bf_->set().rotate) % 4);
-      const Image<uint8_t>& image = bf_->getImage(bp.first, bp.second, &result);
+      Image<uint8_t> image = bf_->getImage(bp.first, bp.second, &result);
       if (!result) {
         continue;
       }
       *index_ += 1;
-      images_->push(image_coords(image, std::make_pair(bp.first, bp.second)));
+      bp = projectCoords(bp, bf_->set().rotate);
+      int offset_x = (bp.first - min_norm_.first) * 16;
+      int offset_y = (bp.second - min_norm_.second) * 16;
+      startRendering("", image, std::make_pair(offset_x, offset_y), 0);
     }
   }
-  ApplyFoo(nbt* bf, tbb::concurrent_bounded_queue<image_coords>* images, int i,
-           tbb::atomic<size_t>* index)
-          : bf_(bf), images_(images), i_(i), index_(index) {}
+  ApplyFoo(nbt* bf, int i,
+           tbb::atomic<size_t>* index, std::pair<int, int> min_norm)
+          : bf_(bf), i_(i), index_(index), min_norm_(min_norm) {}
  private:
   ApplyFoo& operator=(const ApplyFoo&);
 };
@@ -245,7 +234,6 @@ int main(int ac, char* av[]) {
   nbt bf = world ? nbt(world) : nbt(av[1]);
   std::cout << bf.string();
   bf.setSettings(getSettings());
-  tbb::concurrent_bounded_queue<image_coords> images;
   std::pair<int, int> min_norm, max_norm;
   calculateMinMaxPoint(min_norm, max_norm, bf);
   std::string buffer_file = "";
@@ -257,10 +245,6 @@ int main(int ac, char* av[]) {
   boost::progress_display show_progress(range);
   std::list<std::vector<int> > tiles(range);
   size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);
-  boost::thread render_thread(boost::bind(&startRendering, buffer_file,
-                                          boost::ref(images), boost::ref(bf),
-                                          boost::ref(min_norm),
-                                          boost::ref(max_norm), header_size));
   tbb::atomic<size_t> progress_index, mem_index;
   progress_index = 0;
   mem_index = 0;
@@ -269,7 +253,7 @@ int main(int ac, char* av[]) {
   for (int i = min_norm.second; i <= max_norm.second; ++i) {
     tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
                                                        (it->begin(), it->end()),
-                      ApplyFoo(&bf, &images, i, &progress_index));
+                      ApplyFoo(&bf, i, &progress_index, min_norm));
     mem_index += progress_index;
     if (mem_index > 10000) {
       mem_index = 0;
@@ -280,8 +264,6 @@ int main(int ac, char* av[]) {
     progress_index = 0;
   }
   bf.clearCache();
-  images.push(image_coords(Image<uint8_t>(0, 0, 0), std::make_pair(0, 0)));
-  render_thread.join();
 
   pamToPng(buffer_file, "test.png", header_size, width, height);
   return 0;
