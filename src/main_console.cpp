@@ -22,7 +22,7 @@ int main(int ac, char* av[]) {
   std::string buffer_file = "";
   uint32_t width, height;
   uint16_t header_size = writeHeader(buffer_file, min_norm, max_norm,
-                                     width, height, bf);
+                                     boost::ref(width), boost::ref(height), bf);
 
   size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
   boost::progress_display show_progress(range);

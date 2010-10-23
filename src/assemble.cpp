@@ -17,42 +17,44 @@ int render_tile(std::string filename,
                 Image<uint8_t>& image,
                 std::pair<int, int> projected,
                 uint16_t header_size) {
-    uint16_t width = image.cols;
-    uint16_t height = image.rows;
+  uint16_t width = image.cols;
+  uint16_t height = image.rows;
 
-    for (size_t i = 0; i < 1u * width * height; ++i) {
-      size_t index = i * 4;
-      std::swap(image.data[index], image.data[index + 2]);
-    }
-    if (filename.size()) {
-      FILE* pam = fopen(filename.c_str(), "r+b");
-      fseek(pam, header_size, SEEK_CUR);
-      fseek(pam, (projected.second * static_cast<int>(g_width) + projected.first) * 4, SEEK_CUR);
-      for (size_t i = 0; i < height; ++i) {
-        for (size_t j = 0; j < width; ++j) {
-          if (image.data[i * width * 4 + j * 4 + 3] != 0) {
-            fwrite(&(image.data[i * width * 4 + j * 4]), 4, 1, pam);
-          } else {
-            fseek(pam, 4, SEEK_CUR);
-          }
+  for (size_t i = 0; i < 1u * width * height; ++i) {
+    size_t index = i * 4;
+    std::swap(image.data[index], image.data[index + 2]);
+  }
+  if (filename.size()) {
+    FILE* pam = fopen(filename.c_str(), "r+b");
+    fseek(pam, header_size, SEEK_CUR);
+    fseek(pam, (projected.second * static_cast<int>(g_width)
+              + projected.first) * 4, SEEK_CUR);
+    for (size_t i = 0; i < height; ++i) {
+      for (size_t j = 0; j < width; ++j) {
+        if (image.data[i * width * 4 + j * 4 + 3] != 0) {
+          fwrite(&(image.data[i * width * 4 + j * 4]), 4, 1, pam);
+        } else {
+          fseek(pam, 4, SEEK_CUR);
         }
-        fseek(pam, (g_width - width) * 4, SEEK_CUR);
       }
-      fclose(pam);
-    } else {
-      long pos = (projected.second * static_cast<int>(g_width) + projected.first) * 4;
-      for (size_t i = 0; i < height; ++i) {
-        for (size_t j = 0; j < width; ++j) {
-          if (image.data[i * width * 4 + j * 4 + 3] != 0) {
-            memcpy(global_image + pos,
-                   &image.data[i * width * 4 + j * 4],
-                   4);
-          }
-          pos += 4;
-        }
-        pos += (g_width - width) * 4;
-      }
+      fseek(pam, (g_width - width) * 4, SEEK_CUR);
     }
+    fclose(pam);
+  } else {
+    long pos = (projected.second * static_cast<int>(g_width)
+              + projected.first) * 4;
+    for (size_t i = 0; i < height; ++i) {
+      for (size_t j = 0; j < width; ++j) {
+        if (image.data[i * width * 4 + j * 4 + 3] != 0) {
+          memcpy(global_image + pos,
+                 &image.data[i * width * 4 + j * 4],
+                 4);
+        }
+        pos += 4;
+      }
+      pos += (g_width - width) * 4;
+    }
+  }
   return 0;
 }
 
@@ -89,7 +91,8 @@ uint16_t writeHeader(std::string filename,
   return header_size;
 }
 
-void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>::iterator>& r) const {
+void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
+                                                         ::iterator>& r) const {
   for(std::vector<int>::iterator j=r.begin(); j!=r.end(); ++j) {
     bool result = false;
     std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
@@ -111,13 +114,13 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
 
 Settings getSettings() {
   Settings set;
-  set.topview = false;
-  set.oblique = true;
+  set.topview = true;
+  set.oblique = false;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 60;
+  set.shadow_strength = 0;
   set.shadow_quality = true;
-  set.shadow_quality_ultra = true;
+  set.shadow_quality_ultra = false;
   set.relief_strength = 10;
   set.sun_direction = 1;
   set.rotate = 1;
