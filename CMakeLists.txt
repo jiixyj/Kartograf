@@ -24,12 +24,7 @@ include_directories(SYSTEM ${${PROJECT_NAME}_SOURCE_DIR}/include)
 
 ##### Boost
 set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-if(WIN32)
-  find_package(Boost COMPONENTS thread_win32 filesystem system REQUIRED)
-else()
-  find_package(Boost COMPONENTS thread filesystem system REQUIRED)
-endif()
+find_package(Boost COMPONENTS filesystem system REQUIRED)
 
 ##### Qt
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -41,6 +36,18 @@ include_directories(SYSTEM ${QT_QTCORE_INCLUDE_DIR})
 
 ##### PNG
 find_package(PNG REQUIRED)
+
+##### Intel Threading Building Blocks
+find_path(TBB_INCLUDE_DIR "tbb/parallel_for.h")
+find_library(TBB_LIBRARY tbb)
+if(TBB_INCLUDE_DIR AND TBB_LIBRARY)
+  set(TBB_FOUND TRUE)
+  add_definitions(-DTBB_FOUND)
+  include_directories(${TBB_INCLUDE_DIR})
+else()
+  message(STATUS "Intel TBB library not found!")
+endif()
+mark_as_advanced(TBB_INCLUDE_DIR TBB_LIBRARY)
 
 
 ######################################
