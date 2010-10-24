@@ -700,7 +700,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
                             static_cast<size_t>(y + 1 + z * 128 + x * 128 * 16);
           if (y != 127) ++light_index_tmp;
           size_t light_index = light_index_tmp / 2;
-          int light_remainder = light_index_tmp % 2;
+          bool light_remainder = light_index_tmp % 2;
           int light = block_light[light_index];
           light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
           color = color.darker(50 + (15-light) * 100);
