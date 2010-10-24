@@ -18,10 +18,15 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 
+#include "./macro.h"
+
 namespace bf = boost::filesystem;
 
 std::string itoa(int value, int base) {
-  if (value == 0) return "0";
+  if (value < 0) {
+    fprintf(stderr, "This itoa only supports positive integers!");
+    exit(1);
+  } else if (value == 0) return "0";
   std::string chars = "0123456789abcdefghijklmnopqrstuvwxyz";
   std::string ret;
   do {
@@ -118,12 +123,20 @@ void nbt::construct_world() {
     size_t first = fn.find(".");
     size_t second = fn.find(".", first + 1);
     if (second != std::string::npos) {
-      int64_t x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
-      int64_t z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
-      xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
-      xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
-      zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
-      zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
+      long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
+      if (errno == ERANGE) {
+        fprintf(stderr, "World is too big!");
+        exit(1);
+      }
+      long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
+      if (errno == ERANGE) {
+        fprintf(stderr, "World is too big!");
+        exit(1);
+      }
+      xPos_min_ = std::min(safe_cast_uu<int32_t, long>(x), xPos_min_);
+      xPos_max_ = std::max(safe_cast_uu<int32_t, long>(x), xPos_max_);
+      zPos_min_ = std::min(safe_cast_uu<int32_t, long>(z), zPos_min_);
+      zPos_max_ = std::max(safe_cast_uu<int32_t, long>(z), zPos_max_);
     }
   }
   std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;
@@ -666,14 +679,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       }
     }
     cache_mutex_.unlock();
-    uint64_t xtmp = static_cast<unsigned>(xPos - xPos_min()) * 16;
-    uint64_t ztmp = static_cast<unsigned>(zPos - zPos_min()) * 16;
-    int32_t max_int = std::numeric_limits<int32_t>::max();
-    if (xtmp + 15 > static_cast<uint64_t>(max_int)
-     || ztmp + 15 > static_cast<uint64_t>(max_int)) {
-      std::cerr << "Map is too large for an image!" << std::endl;
-      exit(1);
-    }
     for (uint16_t zz = 0; zz < myimg.rows; ++zz) {
       for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;

@@ -7,6 +7,7 @@ uint32_t g_height;
 
 #include "./nbt.h"
 #include "./assemble.h"
+#include "./macro.h"
 
 int main(int ac, char* av[]) {
   if (ac != 2) {
@@ -24,7 +25,7 @@ int main(int ac, char* av[]) {
   uint16_t header_size = writeHeader(buffer_file, min_norm, max_norm,
                                      boost::ref(width), boost::ref(height), bf);
 
-  size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
+  size_t range = safe_cast_us<size_t, long>(max_norm.second - min_norm.second + 1);
   boost::progress_display show_progress(range);
   std::list<std::vector<int> > tiles(range);
   size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);

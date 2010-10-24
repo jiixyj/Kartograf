@@ -27,7 +27,7 @@ int render_tile(std::string filename,
   if (filename.size()) {
     FILE* pam = fopen(filename.c_str(), "r+b");
     fseek(pam, header_size, SEEK_CUR);
-    fseek(pam, (projected.second * static_cast<int>(g_width)
+    fseek(pam, (projected.second * static_cast<long>(g_width)
               + projected.first) * 4, SEEK_CUR);
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
@@ -41,7 +41,7 @@ int render_tile(std::string filename,
     }
     fclose(pam);
   } else {
-    long pos = (projected.second * static_cast<int>(g_width)
+    long pos = (projected.second * static_cast<long>(g_width)
               + projected.first) * 4;
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
