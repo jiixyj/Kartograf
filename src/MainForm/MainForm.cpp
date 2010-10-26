@@ -6,6 +6,8 @@
 #include <tbb/tbb.h>
 #include <png.h>
 
+#include "../assemble.h"
+
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
                  : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1),
                    images() {
@@ -15,58 +17,60 @@ MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
   setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
-class ApplyFoo {
-  MainForm* mainform_;
+class ApplyFooQT {
+  mutable MainForm* mainform_;
   int i_;
-  tbb::atomic<int>* index_;
+  mutable tbb::atomic<size_t>* index_;
  public:
-  void operator()( const tbb::blocked_range<int32_t>& r ) const {
-    for(int32_t j=r.begin(); j!=r.end(); ++j) {
+  void operator()( const tbb::blocked_range<std::vector<int>::iterator>& r ) const {
+    for(std::vector<int>::iterator j=r.begin(); j!=r.end(); ++j) {
       bool result = false;
-      QPoint bp = mainform_->projectCoords(QPoint(j, i_),
+      std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                         (4 - mainform_->bf_->set().rotate) % 4);
-      const Image<uint8_t>& image = mainform_->bf_-> getImage(bp.x(),
-                                                              bp.y(), &result);
+      Image<uint8_t> image = mainform_->bf_->getImage(bp.first, bp.second, &result);
       if (!result) {
         continue;
       }
       *index_ += 1;
-      mainform_->images.push(MainForm::image_coords(image, QPoint(bp.x(),
-                                                                  bp.y())));
+      mainform_->images.push(MainForm::image_coords(image, QPoint(bp.first,
+                                                                  bp.second)));
       mainform_->renderNewImageEmitter();
     }
   }
-  ApplyFoo(MainForm* mainform, int i, tbb::atomic<int>* index)
+  ApplyFooQT(MainForm* mainform, int i, tbb::atomic<size_t>* index)
           : mainform_(mainform), i_(i), index_(index) {}
   /* just for the compiler */
-  ApplyFoo(const ApplyFoo& rhs)
+  ApplyFooQT(const ApplyFooQT& rhs)
           : mainform_(rhs.mainform_), i_(rhs.i_), index_(rhs.index_) {}
  private:
-  ApplyFoo& operator=(const ApplyFoo&);
+  ApplyFooQT& operator=(const ApplyFoo&);
 };
 
 
 void MainForm::populateScene() {
-  tbb::atomic<int> index;
-  index = 0;
-  QPoint min(bf_->xPos_min(), bf_->zPos_min());
-  min = projectCoords(min, bf_->set().rotate);
-  QPoint max(bf_->xPos_max(), bf_->zPos_max());
-  max = projectCoords(max, bf_->set().rotate);
-  min_norm = QPoint(std::min(min.x(), max.x()),
-                    std::min(min.y(), max.y()));
-  max_norm = QPoint(std::max(min.x(), max.x()),
-                    std::max(min.y(), max.y()));
-
-  for (int i = min_norm.y(); i <= max_norm.y(); ++i) {
-    tbb::parallel_for(tbb::blocked_range<int32_t>(min_norm.x(),
-                                                  max_norm.x() + 1),
-                                                  ApplyFoo(this, i, &index));
-    if (index > 10000) {
-      std::cerr << "cache cleared!" << std::endl;
-      index = 0;
+  std::pair<int, int> min_norm, max_norm;
+  calculateMinMaxPoint(min_norm, max_norm, *bf_);
+  size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
+  boost::progress_display show_progress(range);
+  std::list<std::vector<int> > tiles(range);
+  size_t tiles_nr = fillTiles(tiles, *bf_, min_norm, max_norm, show_progress);
+  tbb::atomic<size_t> progress_index, mem_index;
+  progress_index = 0;
+  mem_index = 0;
+  show_progress.restart(tiles_nr);
+  std::list<std::vector<int> >::iterator it = tiles.begin();
+  for (int i = min_norm.second; i <= max_norm.second; ++i) {
+    tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
+                                                       (it->begin(), it->end()),
+                      ApplyFooQT(this, i, &progress_index));
+    mem_index += progress_index;
+    if (mem_index > 10000) {
+      mem_index = 0;
       bf_->clearCache();
     }
+    ++it;
+    show_progress += progress_index;
+    progress_index = 0;
   }
   bf_->clearCache();
   emit saveToFileSignal();
@@ -86,22 +90,6 @@ void MainForm::saveToFile() {
   // exit(1);
 }
 
-QPoint MainForm::projectCoords(QPoint p, int phi) {
-  return projectCoords(p.x(), p.y(), phi);
-}
-
-QPoint MainForm::projectCoords(int _x, int _y, int phi) {
-  if (phi == 0) return QPoint(_x, _y);
-  int cos_phi = phi % 2 - 1;
-  if (!phi) cos_phi = 1;
-  int sin_phi = phi % 2;
-  if (phi == 3) sin_phi = -1;
-  QPoint ret;
-  ret.setX(_x * cos_phi - _y * sin_phi);
-  ret.setY(_x * sin_phi + _y * cos_phi);
-  return ret;
-}
-
 void MainForm::populateSceneItem() {
   MainForm::image_coords img_coor;
   if (images.try_pop(img_coor)) {
@@ -112,10 +100,11 @@ void MainForm::populateSceneItem() {
     QGraphicsPixmapItem* pi = scene()->addPixmap(QPixmap::fromImage(img));
     pi->setFlag(QGraphicsItem::ItemIsMovable, false);
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
-    QPoint projected = projectCoords(16 * img_coor.second.x(),
-                                     16 * img_coor.second.y(),
-                                     bf_->set().rotate);
-    pi->setPos(projected);
+    std::pair<int, int> projected = projectCoords(
+                                       std::make_pair(16 * img_coor.second.x(),
+                                                      16 * img_coor.second.y()),
+                                       bf_->set().rotate);
+    pi->setPos(projected.first, projected.second);
     if (bf_->set().rotate == 0) {
       pi->setZValue(img_coor.second.y());
     } else if (bf_->set().rotate == 1) {

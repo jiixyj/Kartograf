@@ -7,10 +7,6 @@
 #include "./image.h"
 #include "./nbt.h"
 
-extern uint8_t* global_image;
-extern uint32_t g_width;
-extern uint32_t g_height;
-
 std::pair<int, int> projectCoords(std::pair<int, int> p, int phi);
 int render_tile(std::string filename,
                 Image<uint8_t>& image,

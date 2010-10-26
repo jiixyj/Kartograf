@@ -1,10 +1,6 @@
 #include <iostream>
 #include <tbb/parallel_for.h>
 
-uint8_t* global_image;
-uint32_t g_width;
-uint32_t g_height;
-
 #include "./nbt.h"
 #include "./assemble.h"
 #include "./macro.h"

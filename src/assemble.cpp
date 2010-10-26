@@ -3,6 +3,10 @@
 #include <png.h>
 #include <sstream>
 
+uint8_t* global_image;
+uint32_t g_width;
+uint32_t g_height;
+
 std::pair<int, int> projectCoords(std::pair<int, int> p, int phi) {
   if (phi == 0) return p;
   int cos_phi = phi % 2 - 1;

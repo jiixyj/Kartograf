@@ -29,18 +29,13 @@ class MainForm : public QGraphicsView {
   void mouseDoubleClickEvent(QMouseEvent* event);
 
  private:
-  friend class ApplyFoo;
+  friend class ApplyFooQT;
 
   QGraphicsScene* scene_;
   nbt* bf_;
   int16_t scale_;
   typedef QPair<Image<uint8_t>, QPoint> image_coords;
   tbb::strict_ppl::concurrent_queue<image_coords> images;
-  size_t header_size;
-  QPoint min_norm, max_norm;
-
-  QPoint projectCoords(QPoint p, int phi);
-  QPoint projectCoords(int x, int y, int phi);
 
   MainForm(const MainForm&);
   MainForm& operator=(const MainForm&);
