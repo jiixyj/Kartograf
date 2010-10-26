@@ -44,9 +44,8 @@ nbt::nbt(): tag_(),
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(getenv("HOME")),
             set_(),
-            cache_mutex_(),
-            blockcache_() {
-            }
+            cache_mutex_(new boost::mutex()),
+            blockcache_() {}
 
 nbt::nbt(int world)
           : tag_(),
@@ -660,7 +659,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
     nbt::map cache;
-    cache_mutex_.lock();
+    cache_mutex_->lock();
     for (int jj = j + 7; jj >= j - 7; --jj) {
       for (int ii = i + 7; ii >= i - 7; --ii) {
         nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
@@ -678,7 +677,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
         }
       }
     }
-    cache_mutex_.unlock();
+    cache_mutex_->unlock();
     for (uint16_t zz = 0; zz < myimg.rows; ++zz) {
       for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;
@@ -723,9 +722,9 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
 }
 
 void nbt::clearCache() const {
-  cache_mutex_.lock();
+  cache_mutex_->lock();
   blockcache_.clear();
-  cache_mutex_.unlock();
+  cache_mutex_->unlock();
 }
 
 std::string nbt::string() const {

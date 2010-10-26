@@ -6,9 +6,8 @@
 #include <map>
 #include <string>
 #include <utility>
-#include <tbb/concurrent_hash_map.h>
-#include <tbb/mutex.h>
 #include <boost/filesystem.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -60,7 +59,7 @@ class nbt {
   boost::filesystem::path dir_;
   Settings set_;
 
-  mutable tbb::mutex cache_mutex_;
+  mutable boost::shared_ptr<boost::mutex> cache_mutex_;
   mutable map blockcache_;
 
   void construct_world();

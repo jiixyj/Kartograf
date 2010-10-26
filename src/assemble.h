@@ -2,6 +2,7 @@
 #define _ASSEMBLE_H
 
 #include <tbb/parallel_for.h>
+#include <tbb/atomic.h>
 #include <boost/progress.hpp>
 
 #include "./image.h"
