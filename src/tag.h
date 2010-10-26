@@ -2,12 +2,10 @@
 #define SRC_NBT_TAG_H_
 
 #include <zlib.h>
-
 #include <stdint.h>
-#include <cstdlib>
+
 #include <iostream>
 #include <list>
-#include <string>
 #include <stdexcept>
 #include <vector>
 

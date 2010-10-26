@@ -4,7 +4,9 @@
 #include <QtGui>
 #include <tbb/concurrent_queue.h>
 
-#include "../nbt.h"
+#include "../image.h"
+
+class nbt;
 
 class MainForm : public QGraphicsView {
   Q_OBJECT

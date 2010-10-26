@@ -1,24 +1,9 @@
 #include "./nbt.h"
 
-#include <errno.h>
-#include <zlib.h>
-
-#include <algorithm>
-#include <bitset>
-#include <cmath>
-#include <limits>
-#include <list>
-#include <map>
-#include <sstream>
-#include <stack>
-#include <string>
-#include <utility>
 #include <boost/math/constants/constants.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
-
-#include "./macro.h"
 
 namespace bf = boost::filesystem;
 
@@ -124,10 +109,10 @@ void nbt::construct_world() {
       if (errno == ERANGE) {
         throw std::runtime_error("World is too big!");
       }
-      xPos_min_ = std::min(safe_cast_uu<int32_t, long>(x), xPos_min_);
-      xPos_max_ = std::max(safe_cast_uu<int32_t, long>(x), xPos_max_);
-      zPos_min_ = std::min(safe_cast_uu<int32_t, long>(z), zPos_min_);
-      zPos_max_ = std::max(safe_cast_uu<int32_t, long>(z), zPos_max_);
+      xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
+      xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
+      zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
+      zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
     }
   }
   std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;

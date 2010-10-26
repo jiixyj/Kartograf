@@ -1,7 +1,6 @@
 #include "./assemble.h"
 
 #include <png.h>
-#include <sstream>
 
 uint8_t* global_image;
 uint32_t g_width;

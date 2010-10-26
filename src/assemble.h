@@ -1,11 +1,10 @@
 #ifndef _ASSEMBLE_H
 #define _ASSEMBLE_H
 
-#include <tbb/parallel_for.h>
-#include <tbb/atomic.h>
 #include <boost/progress.hpp>
+#include <tbb/atomic.h>
+#include <tbb/parallel_for.h>
 
-#include "./image.h"
 #include "./nbt.h"
 
 std::pair<int, int> projectCoords(std::pair<int, int> p, int phi);

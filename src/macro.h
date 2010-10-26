@@ -2,7 +2,6 @@
 #define _MACRO_H
 
 #include <limits>
-#include <cstdio>
 
 template<typename T, typename U>
 inline T safe_cast_uu(U argument) {

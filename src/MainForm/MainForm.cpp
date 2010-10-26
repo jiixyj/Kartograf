@@ -1,11 +1,5 @@
 #include "MainForm.moc"
 
-#include <QtGui>
-#include <iostream>
-#include <sstream>
-#include <tbb/tbb.h>
-#include <png.h>
-
 #include "../assemble.h"
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)

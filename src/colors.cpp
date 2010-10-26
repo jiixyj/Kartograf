@@ -1,5 +1,7 @@
 #include "./colors.h"
 
+#include <stdexcept>
+
 Color::Color() : c(4, 0.0) {}
 Color::Color(int _red, int _green, int _blue, int _alpha) : c(4) {
   c[0] = _blue / 255.0;
@@ -41,8 +43,7 @@ void Color::toHSV() {
   } else if (max <= c[0]) {
     h = (4.0 + (c[2] - c[1]) / (max - min)) / 6.0;
   } else {
-    fprintf(stderr, "Should not happen! toHSV");
-    h = 0.0;
+    throw std::runtime_error("Can't reach! toHSV");
   }
   if (h < 0.0) h += 1.0;
   if (max <= 0.0) {
@@ -94,7 +95,7 @@ void Color::toRGB() {
       c[0] = q;
       break;
     default:
-      fprintf(stderr, "should not happen!");
+      throw std::runtime_error("Can't reach! toRGB");
       break;
   }
 }

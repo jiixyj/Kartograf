@@ -1,5 +1,7 @@
 #include "./image.h"
 
+#include "./colors.h"
+
 template<>
 Image<uint8_t> Image<Color>::floyd_steinberg() const {
   Image<Color> orig = *this;

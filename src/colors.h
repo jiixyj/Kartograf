@@ -3,8 +3,6 @@
 
 #include <boost/assign.hpp>
 #include <map>
-#include <stdint.h>
-#include <cstdio>
 
 class Color {
  public:

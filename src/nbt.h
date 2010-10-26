@@ -1,11 +1,6 @@
 #ifndef SRC_NBT_NBT_H_
 #define SRC_NBT_NBT_H_
 
-#include <stdint.h>
-
-#include <map>
-#include <string>
-#include <utility>
 #include <boost/filesystem.hpp>
 #include <boost/thread/mutex.hpp>
 

@@ -1,9 +1,5 @@
-#include <QtGui>
-#include <iostream>
-#include <string>
-
-#include "./MainForm/MainForm.h"
 #include "./assemble.h"
+#include "./MainForm/MainForm.h"
 
 int main(int ac, char* av[]) {
   QApplication app(ac, av);
