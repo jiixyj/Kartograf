@@ -8,6 +8,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 namespace tag {
@@ -18,8 +19,6 @@ struct string;
 template <typename T>
 struct tag_;
 
-#define ERROREXIT std::cerr << "Wrong pay_<>() function called!" << std::endl; \
-                  exit(1);
 struct tag {
   tag();
   tag(gzFile* file, bool named);
@@ -29,8 +28,7 @@ struct tag {
   template <class T> const T& pay_() const {
     const tag_<T>* payload = dynamic_cast<const tag_<T>*>(this);
     if (!payload) {
-      std::cerr << "Wrong pay_<>() function called!" << std::endl; \
-      exit(1);
+      throw std::runtime_error("Wrong pay_<>() function called!");
     }
     return payload->p;
   }

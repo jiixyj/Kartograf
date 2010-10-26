@@ -97,8 +97,7 @@ template <typename T>
 tag_<T>::tag_(gzFile* file, bool named)
           : tag(file, named), p() {
   if (gzread(*file, reinterpret_cast<void*>(&p), sizeof(p)) == -1) {
-    std::cerr << "file read error! " << filename << std::endl;
-    exit(1);
+    throw std::runtime_error("file read error! " + filename);
   }
   if (id() != 0) {
     p = endian_swap<T>(p);
@@ -118,8 +117,7 @@ tag::tag(gzFile* file, bool named)
 string::string(gzFile* file) : length(file, false), p() {
   char* bufferstring = new char[length.p];
   if (gzread(*file, bufferstring, length.p) == -1) {
-    std::cerr << "file read error! " << filename << std::endl;
-    exit(1);
+    throw std::runtime_error("file read error! " + filename);
   }
   p = std::string(bufferstring, length.p);
   delete[] bufferstring;
@@ -131,8 +129,7 @@ std::ostream& operator <<(std::ostream& os, const string& obj) {
 byte_array::byte_array(gzFile* file) : length(file, false), p() {
   char* bufferstring = new char[length.p];
   if (gzread(*file, bufferstring, length.p) == -1) {
-    std::cerr << "file read error! " << filename << std::endl;
-    exit(1);
+    throw std::runtime_error("file read error! " + filename);
   }
   p = std::string(bufferstring, length.p);
   delete[] bufferstring;
@@ -208,8 +205,7 @@ void push_in_tags(std::vector<tag*>* tags, gzFile* file,
                   int switcher, bool with_string, size_t i) {
   switch (switcher) {
     case -1:
-      std::cerr << "file read error! " << filename << std::endl;
-      exit(1);
+      throw std::runtime_error("file read error! " + filename);
       break;
     case 1: (*tags)[i] = new tag_<int8_t>(file, with_string); break;
     case 2: (*tags)[i] = new tag_<int16_t>(file, with_string); break;
@@ -222,8 +218,7 @@ void push_in_tags(std::vector<tag*>* tags, gzFile* file,
     case 9: (*tags)[i] = new tag_<list>(file, with_string); break;
     case 10: (*tags)[i] = new tag_<compound>(file, with_string); break;
     default:
-      std::cerr << "wrong file format: " << switcher << filename << std::endl;
-      exit(1);
+      throw std::runtime_error("wrong file format: " + switcher + filename);
       break;
   }
 }
@@ -232,8 +227,7 @@ void push_in_tags(std::list<tag*>* tags, gzFile* file,
                   int switcher, bool with_string) {
   switch (switcher) {
     case -1:
-      std::cerr << "file read error! " << filename << std::endl;
-      exit(1);
+      throw std::runtime_error("file read error! " + filename);
       break;
     case 1: tags->push_back(new tag_<int8_t>(file, with_string)); break;
     case 2: tags->push_back(new tag_<int16_t>(file, with_string)); break;
@@ -246,9 +240,9 @@ void push_in_tags(std::list<tag*>* tags, gzFile* file,
     case 9: tags->push_back(new tag_<list>(file, with_string)); break;
     case 10: tags->push_back(new tag_<compound>(file, with_string)); break;
     default:
-      std::cerr << "wrong file format: " << switcher << filename << std::endl;
-      exit(1);
+      throw std::runtime_error("wrong file format: " + switcher + filename);
       break;
   }
 }
+
 }

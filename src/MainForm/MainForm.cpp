@@ -87,7 +87,7 @@ void MainForm::saveToFile() {
   scene()->render(&painter, painter.viewport(), scene()->sceneRect());
   image.save("image.png");
   fprintf(stderr, "image saved!\n");
-  // exit(1);
+  // throw std::runtime_error("image saved!");
 }
 
 void MainForm::populateSceneItem() {
@@ -115,8 +115,7 @@ void MainForm::populateSceneItem() {
       pi->setZValue(-img_coor.second.x());
     }
   } else {
-    std::cerr << "must not happen!" << std::endl;
-    exit(1);
+    throw std::runtime_error("must not happen in populateSceneItem()!");
   }
 }
 

@@ -24,8 +24,7 @@ namespace bf = boost::filesystem;
 
 std::string itoa(int value, int base) {
   if (value < 0) {
-    fprintf(stderr, "This itoa only supports positive integers!");
-    exit(1);
+    throw std::runtime_error("This itoa only supports positive integers!");
   } else if (value == 0) return "0";
   std::string chars = "0123456789abcdefghijklmnopqrstuvwxyz";
   std::string ret;
@@ -61,8 +60,7 @@ nbt::nbt(int world)
   if ((home_dir = getenv("HOME"))) {
   } else if ((home_dir = getenv("APPDATA"))) {
   } else {
-    fprintf(stderr, "Broken environent!");
-    exit(1);
+    throw std::runtime_error("Broken environent!");
   }
   std::stringstream ss;
   ss << "World" << world;
@@ -72,8 +70,7 @@ nbt::nbt(int world)
                           "Application Support/minecraft/saves/" / ss.str())) {
     construct_world();
   } else {
-    fprintf(stderr, "Minecraft is not installed!\n");
-    exit(1);
+    throw std::runtime_error("Minecraft is not installed!");
   }
 }
 
@@ -94,22 +91,19 @@ nbt::nbt(const std::string& filename)
   tag::filename = filename;
   gzFile filein = gzopen(filename.c_str(), "rb");
   if (!filein) {
-    std::cerr << "file could not be opened! " << filename << std::endl;
-    exit(1);
+    throw std::runtime_error("file could not be opened! " + filename);
   }
 
   int buffer = gzgetc(filein);
   switch (buffer) {
     case -1:
-      std::cerr << "file read error! " << filename << std::endl;
-      exit(1);
+      throw std::runtime_error("file read error! " + filename);
       break;
     case 10:
       tag_ = tag_ptr(new tag::tag_<tag::compound>(&filein, true));
       break;
     default:
-      std::cerr << "wrong file format! " << filename << std::endl;
-      exit(1);
+      throw std::runtime_error("wrong file format! " + filename);
       break;
   }
   gzclose(filein);
@@ -124,13 +118,11 @@ void nbt::construct_world() {
     if (second != std::string::npos) {
       long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
       if (errno == ERANGE) {
-        fprintf(stderr, "World is too big!");
-        exit(1);
+        throw std::runtime_error("World is too big!");
       }
       long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
       if (errno == ERANGE) {
-        fprintf(stderr, "World is too big!");
-        exit(1);
+        throw std::runtime_error("World is too big!");
       }
       xPos_min_ = std::min(safe_cast_uu<int32_t, long>(x), xPos_min_);
       xPos_max_ = std::max(safe_cast_uu<int32_t, long>(x), xPos_max_);
@@ -166,32 +158,27 @@ nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   }
   gzFile filein = gzopen(tmp.string().c_str(), "rb");
   if (!filein) {
-    std::cerr << "file could not be opened! "
-              << tmp.string().c_str() << " "
-              << errno << std::endl;
-    exit(1);
+    throw std::runtime_error("file could not be opened! " + tmp.string());
   }
   int buffer = gzgetc(filein);
   switch (buffer) {
     case -1:
-      std::cerr << "file read error! " << std::endl;
+      throw std::runtime_error("file read error!" + tmp.string());
       break;
     case 10:
       {
         tag_ptr ret(new tag::tag_<tag::compound>(&filein, true));
-        gzclose(filein);
+        if (gzclose(filein) != Z_OK) {
+          throw std::runtime_error("could not close file! " + tmp.string());
+        }
         return ret;
       }
       break;
     default:
-      std::cerr << "wrong file format! " << std::endl;
+      throw std::runtime_error("wrong file format!" + tmp.string());
       break;
   }
-  if (gzclose(filein) != Z_OK) {
-    std::cerr << "could not close file! "
-              << tmp.string().c_str() << std::endl;
-  }
-  exit(1);
+  throw std::runtime_error("can't reach");
 }
 
 void nbt::setSettings(Settings set__) {
@@ -637,7 +624,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else if (set_.isometric) {
     myimg = Image<Color>(32 + 256, 16, 1);
   } else {
-    exit(1);
+    throw std::runtime_error("at least one of topview, oblique or isometic must be chosen!");
   }
   tag_ptr tag = tag_at(j, i);
   if (tag) {
