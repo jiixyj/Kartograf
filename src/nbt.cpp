@@ -44,7 +44,7 @@ nbt::nbt(): tag_(),
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(getenv("HOME")),
             set_(),
-            cache_mutex_(new boost::mutex()),
+            cache_mutex_(new boost::mutex),
             blockcache_() {}
 
 nbt::nbt(int world)
@@ -55,7 +55,7 @@ nbt::nbt(int world)
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(),
             set_(),
-            cache_mutex_(),
+            cache_mutex_(new boost::mutex),
             blockcache_() {
   char* home_dir;
   if ((home_dir = getenv("HOME"))) {
@@ -85,7 +85,7 @@ nbt::nbt(const std::string& filename)
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(),
             set_(),
-            cache_mutex_(),
+            cache_mutex_(new boost::mutex),
             blockcache_() {
   if (bf::is_directory(bf::status(dir_ = filename))) {
     construct_world();

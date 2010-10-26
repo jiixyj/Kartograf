@@ -1,9 +1,11 @@
 add_library(nbt nbt)
 add_library(tag tag)
 add_library(colors colors)
+add_library(image image)
 add_library(assemble assemble)
-target_link_libraries(nbt colors tag ${Boost_LIBRARIES})
+target_link_libraries(nbt tag image ${Boost_LIBRARIES})
 target_link_libraries(tag ${ZLIB_LIBRARY})
+target_link_libraries(image colors)
 target_link_libraries(assemble nbt ${PNG_LIBRARY} ${TBB_LIBRARY})
 
 add_executable(nbtparse main)
