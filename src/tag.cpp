@@ -1,10 +1,7 @@
 #include "./tag.h"
 
-#include <list>
 #include <map>
 #include <sstream>
-#include <string>
-#include <vector>
 
 namespace tag {
 
@@ -188,7 +185,6 @@ std::ostream& operator <<(std::ostream& os, const compound& obj) {
   return os;
 }
 
-#include <iostream>
 const tag* compound::sub(const std::string& name) const {
   std::list<tag*>::const_iterator it = tags.begin();
   while (it != tags.end()) {
@@ -197,7 +193,6 @@ const tag* compound::sub(const std::string& name) const {
     }
     ++it;
   }
-  std::cerr << "BLUB" << std::endl;
   return NULL;
 }
 
