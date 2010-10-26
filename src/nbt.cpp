@@ -417,7 +417,7 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
         }
         char blknr = getValue(cache, x, y, z, j, i);
         if (noShadow.count(blknr) == 0) {
-          light = blend(colors[blknr], light);
+          light = Color::blend(colors[blknr], light);
           if (light.alphaF() >= 1) {
             break;
           }
@@ -470,16 +470,16 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       if (set_.shadow_quality_ultra) {
         for (int h = height_low_bound; h < y; ++h) {
           char blknr = getValue(cache, x, h, z, j, i);
-          color = blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
+          color = Color::blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
                                                                          color);
         }
       } else {
         for (int h = height_low_bound; h < y; ++h) {
           char blknr = getValue(cache, x, h, z, j, i);
-          color = blend(colors[blknr], color);
+          color = Color::blend(colors[blknr], color);
         }
       }
-      color = blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
+      color = Color::blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
     }
   } else if (set_.oblique) {
     std::stack<Color> colorstack;
@@ -528,10 +528,10 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     } while (y >= 0);
     Color tmp(0, 0, 0, 0);
     while (!colorstack.empty()) {
-      tmp = blend(colorstack.top(), tmp);
+      tmp = Color::blend(colorstack.top(), tmp);
       colorstack.pop();
     }
-    color = blend(color, tmp);
+    color = Color::blend(color, tmp);
   }
   return color;
 }

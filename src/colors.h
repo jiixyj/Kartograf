@@ -8,124 +8,28 @@
 
 class Color {
  public:
-  Color() : c(4, 0.0) {}
-  Color(int _red, int _green, int _blue, int _alpha = 255) : c(4) {
-    c[0] = _blue / 255.0;
-    c[1] = _green / 255.0;
-    c[2] = _red / 255.0;
-    c[3] = _alpha / 255.0;
-  }
-  Color(double _red, double _green, double _blue, double _alpha = 1.0)
-          : c(4) {
-    c[0] = _blue;
-    c[1] = _green;
-    c[2] = _red;
-    c[3] = _alpha;
-  }
-  double redF() const { return c[2]; }
-  double greenF() const { return c[1]; }
-  double blueF() const { return c[0]; }
-  double alphaF() const { return c[3]; }
-  void setRedF(double _red) { c[2] = double_clamp(_red); }
-  void setGreenF(double _green) { c[1] = double_clamp(_green); }
-  void setBlueF(double _blue) { c[0] = double_clamp(_blue); }
-  void setAlphaF(double _alpha) { c[3] = double_clamp(_alpha); }
+  Color();
+  Color(int _red, int _green, int _blue, int _alpha = 255);
+  Color(double _red, double _green, double _blue, double _alpha = 1.0);
+  double redF() const;
+  double greenF() const;
+  double blueF() const;
+  double alphaF() const;
+  void setRedF(double _red);
+  void setGreenF(double _green);
+  void setBlueF(double _blue);
+  void setAlphaF(double _alpha);
 
-  static inline double double_clamp(double val) {
-    if (val < 0.0) return 0.0;
-    else if (val > 1.0) return 1.0;
-    else return val;
-  }
-  void toHSV() {
-    double max = *std::max_element(&(c[0]), &(c[0]) + 3);
-    double min = *std::min_element(&(c[0]), &(c[0]) + 3);
-    double h, s, v;
-    if (max >= min && max <= min) {
-      h = 0.0;
-    } else if (max <= c[2]) {
-      h = (0.0 + (c[1] - c[0]) / (max - min)) / 6.0;
-    } else if (max <= c[1]) {
-      h = (2.0 + (c[0] - c[2]) / (max - min)) / 6.0;
-    } else if (max <= c[0]) {
-      h = (4.0 + (c[2] - c[1]) / (max - min)) / 6.0;
-    } else {
-      fprintf(stderr, "Should not happen! toHSV");
-      h = 0.0;
-    }
-    if (h < 0.0) h += 1.0;
-    if (max <= 0.0) {
-      s = 0.0;
-    } else {
-      s = (max - min) / max;
-    }
-    v = max;
-    c[2] = h;
-    c[1] = s;
-    c[0] = v;
-  }
-  void toRGB() {
-    int hi = static_cast<int>(c[2] * 6.0);
-    double f = c[2] * 6.0 - hi;
-    double p = c[0] * (1.0 - c[1]);
-    double q = c[0] * (1.0 - c[1] * f);
-    double t = c[0] * (1.0 - c[1] * (1.0 - f));
-    switch (hi) {
-      case 0:
-      case 6:
-        c[2] = c[0];
-        c[1] = t;
-        c[0] = p;
-        break;
-      case 1:
-        c[2] = q;
-        c[1] = c[0];
-        c[0] = p;
-        break;
-      case 2:
-        c[2] = p;
-        c[1] = c[0];
-        c[0] = t;
-        break;
-      case 3:
-        c[2] = p;
-        c[1] = q;
-        c[0] = c[0];
-        break;
-      case 4:
-        c[2] = t;
-        c[1] = p;
-        c[0] = c[0];
-        break;
-      case 5:
-        c[2] = c[0];
-        c[1] = p;
-        c[0] = q;
-        break;
-      default:
-        fprintf(stderr, "should not happen!");
-        break;
-    }
-  }
-  Color darker(int amount) const {
-    Color ret = *this;
-    ret.toHSV();
-    ret.c[0] /= amount / 100.0;
-    ret.c[0] = double_clamp(ret.c[0]);
-    ret.toRGB();
-    return ret;
-  }
-  Color lighter(int amount) const {
-    Color ret = *this;
-    ret.toHSV();
-    ret.c[0] *= amount / 100.0;
-    ret.c[0] = double_clamp(ret.c[0]);
-    ret.toRGB();
-    return ret;
-  }
+  static inline double double_clamp(double val);
+  void toHSV();
+  void toRGB();
+  Color darker(int amount) const;
+  Color lighter(int amount) const;
+
+  static Color blend(const Color& B, const Color& A);
+
   std::vector<double> c;
 };
-
-Color blend(const Color& B, const Color& A);
 
 typedef std::map<int, int>::const_iterator intmapit;
 
