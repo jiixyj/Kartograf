@@ -27,7 +27,11 @@ struct tag {
   virtual int id() const = 0;
   virtual std::string str() const = 0;
   template <class T> const T& pay_() const {
-    const tag_<T>* payload = reinterpret_cast<const tag_<T>*>(this);
+    const tag_<T>* payload = dynamic_cast<const tag_<T>*>(this);
+    if (!payload) {
+      std::cerr << "Wrong pay_<>() function called!" << std::endl; \
+      exit(1);
+    }
     return payload->p;
   }
   const tag* sub(const std::string&) const;
