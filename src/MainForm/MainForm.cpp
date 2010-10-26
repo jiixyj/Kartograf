@@ -58,24 +58,6 @@ void MainForm::populateScene() {
   max_norm = QPoint(std::max(min.x(), max.x()),
                     std::max(min.y(), max.y()));
 
-    std::stringstream ss;
-    int width = (max_norm.x() - min_norm.x() + 1) * 16;
-    int height = (max_norm.y() - min_norm.y() + 1) * 16;
-    if (bf_->set().oblique) height += 128;
-    ss << "P7\n"
-       << "WIDTH "     << width << "\n"
-       << "HEIGHT "    << height << "\n"
-       << "DEPTH "     << 4 << "\n"
-       << "MAXVAL "    << 255 << "\n"
-       << "TUPLTYPE "  << "RGB_ALPHA" << "\n"
-       << "ENDHDR"     << "\n";
-    header_size = ss.str().size();
-    FILE* pam = fopen("test.ppm", "w");
-    fwrite(ss.str().c_str(), 1, header_size, pam);
-    fseek(pam, width * height * 4 - 1, SEEK_CUR);
-    fwrite("", 1, 1, pam);
-    fclose(pam);
-
   for (int i = min_norm.y(); i <= max_norm.y(); ++i) {
     tbb::parallel_for(tbb::blocked_range<int32_t>(min_norm.x(),
                                                   max_norm.x() + 1),
@@ -88,41 +70,6 @@ void MainForm::populateScene() {
   }
   bf_->clearCache();
   emit saveToFileSignal();
-
-  // QPen pen;
-  // pen.setColor(QColor(255, 0, 0, 255));
-  // scene()->addEllipse(185, 50, 5, 5, pen);
-  // rotate(270.0f);
-  // 187 52
-  // setTransform(QTransform().scale(1, 1));
-
-  size_t nr_pixels = width * height;
-  pam = fopen("test.ppm", "r");
-  FILE* out = fopen("test.png", "w");
-  fseek(pam, header_size, SEEK_CUR);
-  png_struct* pngP;
-  png_info* infoP;
-  pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-  infoP = png_create_info_struct(pngP);
-  png_set_IHDR(pngP, infoP, width, height, 8,
-               PNG_COLOR_TYPE_RGB_ALPHA,
-               PNG_INTERLACE_NONE,
-               PNG_COMPRESSION_TYPE_DEFAULT,
-               PNG_FILTER_TYPE_DEFAULT);
-  png_init_io(pngP, out);
-  png_write_info(pngP, infoP);
-
-  png_byte* pngRow = reinterpret_cast<png_byte*>(malloc(width * 4));
-  for (int i = 0; i < height; ++i) {
-    fread(pngRow, 4, width, pam);
-    png_write_row(pngP, pngRow);
-  }
-  free(pngRow);
-
-  png_write_end(pngP, infoP);
-  png_destroy_write_struct(&pngP, &infoP);
-  fclose(pam);
-  fclose(out);
 }
 
 void MainForm::renderNewImageEmitter() {
@@ -130,13 +77,12 @@ void MainForm::renderNewImageEmitter() {
 }
 
 void MainForm::saveToFile() {
-  scale_ = 1;
-  scale();
-  QImage image(mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1).size(), QImage::Format_ARGB32);
+  QImage image(scene()->sceneRect().toRect().size(), QImage::Format_ARGB32);
   image.fill(0);
   QPainter painter(&image);
-  render(&painter, painter.viewport(), mapFromScene(scene()->sceneRect()).boundingRect().adjusted(0, 0, -1, -1));
-  // image.save("image.png");
+  scene()->render(&painter, painter.viewport(), scene()->sceneRect());
+  image.save("image.png");
+  fprintf(stderr, "image saved!\n");
   // exit(1);
 }
 
@@ -179,33 +125,6 @@ void MainForm::populateSceneItem() {
     } else if (bf_->set().rotate == 3) {
       pi->setZValue(-img_coor.second.x());
     }
-
-    size_t width = img_coor.first.cols;
-    size_t height = img_coor.first.rows;
-    size_t nr_pixels = width * height;
-    int offset_x = projected.x() - min_norm.x() * 16;
-    int offset_y = projected.y() - min_norm.y() * 16;
-    int g_width = (max_norm.x() - min_norm.x() + 1) * 16;
-    int g_height = (max_norm.y() - min_norm.y() + 1) * 16;
-
-    FILE* pam = fopen("test.ppm", "r+");
-    fseek(pam, header_size, SEEK_CUR);
-    for (size_t i = 0; i < nr_pixels; ++i) {
-      size_t index = i * 4;
-      std::swap(img_coor.first.data[index], img_coor.first.data[index + 2]);
-    }
-    fseek(pam, offset_y * g_width * 4 + offset_x * 4, SEEK_CUR);
-    for (size_t i = 0; i < height; ++i) {
-      for (size_t j = 0; j < width; ++j) {
-        if (img_coor.first.data[i * width * 4 + j * 4 + 3] != 0) {
-          fwrite(&(img_coor.first.data[i * width * 4 + j * 4]), 4, 1, pam);
-        } else {
-          fseek(pam, 4, SEEK_CUR);
-        }
-      }
-      fseek(pam, g_width * 4 - width * 4, SEEK_CUR);
-    }
-    fclose(pam);
   } else {
     std::cerr << "must not happen!" << std::endl;
     exit(1);
