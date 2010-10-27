@@ -35,7 +35,7 @@ int main() {
   }
   for (int i = 0; i < 288; ++i) {
     for (int j = 0; j < 64; ++j) {
-      // printf("%d %d: %d %d %d\n", i, j, to3D[i][j][0], to3D[i][j][0], to3D[i][j][0]);
+      // printf("%d %d: %d %d %d\n", i, j, to3D[i][j][0], to3D[i][j][1], to3D[i][j][2]);
       if (mask[i][j] == -1) {
         printf("-");
       } else {
