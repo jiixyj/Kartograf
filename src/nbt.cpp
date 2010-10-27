@@ -429,7 +429,8 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       if (set_.color) {
         double pi = boost::math::constants::pi<double>();
         color = Color(std::atan(((1.0 - y / 127.0) - 0.5) * 10) / pi + 0.5,
-                      1.0, 1.0, 1.0);
+                      1.0, 0.8, 1.0);
+        color.toRGB();
       } else {
         color = Color(y, y, y, 255);
       }
@@ -655,15 +656,19 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
           Color& color = myimg.at(zz, xx, 0);
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
-          color = color.lighter((y - 64) / 2 + 96);
-          size_t light_index_tmp =
-                            static_cast<size_t>(y + 1 + z * 128 + x * 128 * 16);
-          if (y != 127) ++light_index_tmp;
-          size_t light_index = light_index_tmp / 2;
-          bool light_remainder = light_index_tmp % 2;
-          int light = block_light[light_index];
-          light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
-          color = color.darker(50 + (15-light) * 100);
+          if (!set_.heightmap) {
+            color = color.lighter((y - 64) / 2 + 96);
+            if (0) {
+              size_t light_index_tmp =
+                                static_cast<size_t>(y + 1 + z * 128 + x * 128 * 16);
+              if (y != 127) ++light_index_tmp;
+              size_t light_index = light_index_tmp / 2;
+              bool light_remainder = light_index_tmp % 2;
+              int light = block_light[light_index];
+              light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
+              color = color.darker(50 + (15-light) * 100);
+            }
+          }
           int random1 = dither();
           int random2 = dither();
           color.setRedF(color.redF() * (1 + (random1 + random2) / 510.0));
