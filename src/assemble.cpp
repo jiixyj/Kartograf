@@ -117,8 +117,8 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
 
 Settings getSettings() {
   Settings set;
-  set.topview = true;
-  set.oblique = false;
+  set.topview = false;
+  set.oblique = true;
   set.heightmap = false;
   set.color = false;
   set.shadow_strength = 0;

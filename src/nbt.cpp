@@ -422,7 +422,7 @@ Color nbt::calculateRelief(const nbt::map& cache, Color input,
 }
 
 Color nbt::calculateMap(const nbt::map& cache, Color input,
-                         int x, int y, int z, int j, int i, bool zigzag) const {
+                         int x, int y, int z, int j, int i, int32_t zigzag) const {
   Color color = input;
   if (set_.topview) {
     if (set_.heightmap) {
@@ -457,8 +457,8 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     std::stack<Color> colorstack;
     int& dec = (set_.rotate % 2 == 0) ? z : x;
     int blocks_hit = 0;
+    int32_t blockid = getValue(cache, x, y, z, j, i);
     do {
-      int32_t blockid = getValue(cache, x, y, z, j, i);
       if (zigzag) {
         intmapit it = upperHalf.find(blockid);
         if (it != upperHalf.end()) blockid = (*it).second;
@@ -474,17 +474,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         colorstack.push(colors_oblique[blockid]);
       }
       if (blockid == 0) blocks_hit = false;
-      if (zigzag) {
-        if (set_.rotate <= 1) {
-          --dec;
-        } else {
-          ++dec;
-        }
-        zigzag = false;
-      } else {
-        --y;
-        zigzag = true;
-      }
+      blockid = goOneStepIntoScene(cache, x, y, z, j, i, zigzag);
       if (!colorstack.empty() && colorstack.top().alphaF() >= 1) break;
       if (dec == -1 || dec == 16) {
         std::stack<Color> colorstack_inner = colorstack;
@@ -557,10 +547,6 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       if (zz > 15) x = 0;
     }
   } else if (set_.isometric) {
-    xx2 = xx / 2;
-    xx2r = xx % 2;
-    zz2 = zz / 2;
-    zz2r = zz % 2;
   }
 }
 
