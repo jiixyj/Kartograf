@@ -557,7 +557,10 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       if (zz > 15) x = 0;
     }
   } else if (set_.isometric) {
-    
+    xx2 = xx / 2;
+    xx2r = xx % 2;
+    zz2 = zz / 2;
+    zz2r = zz % 2;
   }
 }
 
@@ -607,7 +610,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else if (set_.oblique) {
     myimg = Image<Color>(16 + 128, 16, 1);
   } else if (set_.isometric) {
-    myimg = Image<Color>(32 + 256, 16, 1);
+    myimg = Image<Color>(32 + 256, 64, 1);
   } else {
     throw std::runtime_error("at least one of topview, oblique or isometic must be chosen!");
   }
