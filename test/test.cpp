@@ -28,6 +28,27 @@ int main() {
             to3D[cy+i][cx+j][0] = x;
             to3D[cy+i][cx+j][1] = y;
             to3D[cy+i][cx+j][2] = z;
+            if (index == 1) {
+              mask[cy+i][cx+j] = 6;
+              to3D[cy+i][cx+j][0] = x+1;
+              to3D[cy+i][cx+j][1] = y;
+              to3D[cy+i][cx+j][2] = z;
+            } else if (index == 4) {
+              mask[cy+i][cx+j] = 5;
+              to3D[cy+i][cx+j][0] = x;
+              to3D[cy+i][cx+j][1] = y;
+              to3D[cy+i][cx+j][2] = z+1;
+            } else if (index == 13) {
+              mask[cy+i][cx+j] = 4;
+              to3D[cy+i][cx+j][0] = x;
+              to3D[cy+i][cx+j][1] = y-1;
+              to3D[cy+i][cx+j][2] = z;
+            } else if (index == 16) {
+              mask[cy+i][cx+j] = 7;
+              to3D[cy+i][cx+j][0] = x;
+              to3D[cy+i][cx+j][1] = y-1;
+              to3D[cy+i][cx+j][2] = z;
+            }
           }
         }
       }
