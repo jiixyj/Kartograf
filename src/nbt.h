@@ -43,7 +43,7 @@ class nbt {
   Color calculateMap(const nbt::map& cache, Color input, int x, int y, int z,
                                     int j, int i, int32_t zigzag = 0) const;
   Color calculateShadow(const nbt::map& cache, Color input, int x, int y, int z,
-                                       int j, int i, bool zigzag = false) const;
+                                       int j, int i, int32_t zigzag = false) const;
   Color calculateRelief(const nbt::map& cache, Color input, int x, int y, int z,
                                        int j, int i) const;
   int32_t xPos_min_;

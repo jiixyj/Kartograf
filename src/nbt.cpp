@@ -201,27 +201,30 @@ char nbt::getValue(const nbt::map& cache,
 }
 
 bool nbt::allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const {
-  for (int n = 1; n <= 16; ++n) {
-    if (set_.rotate == 0) {
-      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i - n));
-      if (it != cache.end())
-        return false;
-    } else if (set_.rotate == 1) {
-      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j - n, i));
-      if (it != cache.end())
-        return false;
-    } else if (set_.rotate == 2) {
-      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i + n));
-      if (it != cache.end())
-        return false;
-    } else if (set_.rotate == 3) {
-      nbt::map::const_iterator it = cache.find(std::pair<int, int>(j + n, i));
-      if (it != cache.end())
-        return false;
+  if (set_.oblique) {
+    for (int n = 1; n <= 16; ++n) {
+      if (set_.rotate == 0) {
+        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i - n));
+        if (it != cache.end())
+          return false;
+      } else if (set_.rotate == 1) {
+        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j - n, i));
+        if (it != cache.end())
+          return false;
+      } else if (set_.rotate == 2) {
+        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i + n));
+        if (it != cache.end())
+          return false;
+      } else if (set_.rotate == 3) {
+        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j + n, i));
+        if (it != cache.end())
+          return false;
+      }
     }
+    return true;
+  } else {
+    return false;
   }
-  // std::cout << i << " " << j << std::endl;
-  return true;
 }
 
 Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
@@ -308,18 +311,12 @@ Color nbt::checkReliefNormal(const nbt::map& cache, Color input,
 
 Color nbt::calculateShadow(const nbt::map& cache, Color input,
                             int x, int y, int z, int j, int i,
-                            bool zigzag) const {
+                            int32_t zigzag) const {
   Color color = input;
   if (set_.shadow) {
     int blockid = getValue(cache, x, y, z, j, i);
     if (!set_.topview) {
-      if (zigzag) {
-        intmapit it = upperHalf.find(blockid);
-        if (it != upperHalf.end()) blockid = (*it).second;
-      } else {
-        intmapit it = lowerHalf.find(blockid);
-        if (it != lowerHalf.end()) blockid = (*it).second;
-      }
+      changeBlockParts(blockid, zigzag);
     }
     if (emitLight.count(blockid) == 1) {
       return color;
@@ -333,9 +330,13 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
     if (set_.topview) {
       shadow_amount = 0;
     } else {
-      shadow_amount = ((sun_direction == 3 || sun_direction == 4
-                     || sun_direction == 5) ? 0 : 1)
-                    * !zigzag * set_.relief_strength * 2;
+      bool vertical_block_part = !zigzag;
+      if (set_.isometric) {
+        vertical_block_part = !(zigzag == 1 || zigzag == 2 || zigzag == 5 || zigzag == 6);
+      }
+      shadow_amount = !(sun_direction == 3 || sun_direction == 4
+                     || sun_direction == 5)
+                    * vertical_block_part * set_.relief_strength * 2;
       int32_t blockid2;
       if (set_.rotate == 0) {
         blockid = getValue(cache, x - 1, y - 1, z, j, i);
@@ -795,7 +796,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else if (set_.isometric) {
     myimg = Image<Color>(32 + 256, 64, 1);
   } else {
-    throw std::runtime_error("at least one of topview, oblique or isometic must be chosen!");
+    throw std::runtime_error("at least one of topview, oblique or isometric must be chosen!");
   }
   tag_ptr tag = tag_at(j, i);
   if (tag) {
