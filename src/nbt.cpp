@@ -475,7 +475,8 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         colorstack.push(colors_oblique[blockid]);
       }
       if (blockid == 0) blocks_hit = false;
-      blockid = goOneStepIntoScene(cache, x, y, z, j, i, zigzag);
+      goOneStepIntoScene(x, y, z, zigzag);
+      blockid = getValue(cache, x, y, z, j, i);
       if (!colorstack.empty() && colorstack.top().alphaF() >= 1) break;
       if (dec == -1 || dec == 16) {
         std::stack<Color> colorstack_inner = colorstack;
@@ -495,6 +496,9 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       colorstack.pop();
     }
     color = Color::blend(color, tmp);
+  } else if (set_.isometric) {
+    int32_t blockid = getValue(cache, x, y, z, j, i);
+    color = Color::blend(colors[blockid], color);
   }
   return color;
 }
@@ -502,6 +506,69 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
 inline int clamp(int value) {
   return (value > 255) ? 255 : ((value < 0) ? 0 : value);
 }
+
+std::vector<std::vector<int> > make_mask() {
+  const int max_y = 127;
+  const int half_x = 32;
+  std::vector<std::vector<int> > mask(288, std::vector<int>(64, -1));
+  for (int y = 0; y < 128; ++y) {
+    for (int z = 15; z >= 0; --z) {
+      for (int x = 15; x >= 0; --x) {
+        double dz;
+        int px = 15-x;
+        int pz = 15-z;
+        int cx, cy;
+        cx = 2 * px - 2 * pz;
+        cy = px + 2 * (max_y-y) + pz;
+        // cz = sqrt2 * x - sqrt2 * (max_y-y) + sqrt2 * z;
+        cy += 2;
+        cx += half_x;
+        // fprintf(stdout, "%d %d %d: %d %d\n", z, x, y, cy, cx);
+        int index = 0;
+        for (int i = -2; i < 2; ++i) {
+          for (int j = -2; j < 2; ++j) {
+            mask[cy+i][cx+j] = index++;
+          }
+        }
+      }
+    }
+  }
+  return mask;
+}
+
+std::vector<std::vector<std::vector<int > > > make_to3D() {
+  const int max_y = 127;
+  const int half_x = 32;
+  std::vector<std::vector<std::vector<int > > > to3D(288, std::vector<std::vector<int> >(64, std::vector<int>(3,-1)));
+  for (int y = 0; y < 128; ++y) {
+    for (int z = 15; z >= 0; --z) {
+      for (int x = 15; x >= 0; --x) {
+        double dz;
+        int px = 15-x;
+        int pz = 15-z;
+        int cx, cy;
+        cx = 2 * px - 2 * pz;
+        cy = px + 2 * (max_y-y) + pz;
+        // cz = sqrt2 * x - sqrt2 * (max_y-y) + sqrt2 * z;
+        cy += 2;
+        cx += half_x;
+        // fprintf(stdout, "%d %d %d: %d %d\n", z, x, y, cy, cx);
+        int index = 0;
+        for (int i = -2; i < 2; ++i) {
+          for (int j = -2; j < 2; ++j) {
+            to3D[cy+i][cx+j][0] = x;
+            to3D[cy+i][cx+j][1] = y;
+            to3D[cy+i][cx+j][2] = z;
+          }
+        }
+      }
+    }
+  }
+  return to3D;
+}
+
+static std::vector<std::vector<int> > mask = make_mask();
+static std::vector<std::vector<std::vector<int > > > to3D = make_to3D();
 
 void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
                         int32_t xx, int32_t zz, int32_t& state) const {
@@ -548,13 +615,18 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       if (zz > 15) x = 0;
     }
   } else if (set_.isometric) {
+    state = mask[zz][xx];
+    x = to3D[zz][xx][0];
+    y = to3D[zz][xx][1];
+    z = to3D[zz][xx][2];
+    if (state == 0 || state == 3 || state == 12 || state == 15) {
+      goOneStepIntoScene(x, y, z, state);
+    }
   }
 }
 
-int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
-                                int32_t& x, int32_t& y, int32_t& z,
-                                int32_t j, int32_t i,
-                                int32_t& state) const {
+void nbt::goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
+                             int32_t& state) const {
   if (set_.topview) {
     --y;
   } else if (set_.oblique) {
@@ -650,7 +722,6 @@ int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
         break;
     }
   }
-  return getValue(cache, x, y, z, j, i);
 }
 
 void de_premultiply(Image<Color>& img) {
@@ -726,7 +797,8 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
         /* at this point x, y and z are block coordinates */
         int32_t block_type = getValue(cache, x, y, z, j, i);
         while (block_type == 0) {
-          block_type = goOneStepIntoScene(cache, x, y, z, j, i, state);
+          goOneStepIntoScene(x, y, z, state);
+          block_type = getValue(cache, x, y, z, j, i);
           if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
             goto endloop1;
           }
@@ -737,7 +809,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateRelief(cache, color, x, y, z, j, i);
           if (!set_.heightmap) {
             color = color.lighter((y - 64) / 2 + 96);
-            if (0) {
+            if (set_.nightmode) {
               size_t light_index_tmp =
                                 static_cast<size_t>(y + 1 + z * 128 + x * 128 * 16);
               if (y != 127) ++light_index_tmp;

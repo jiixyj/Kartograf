@@ -95,8 +95,8 @@ void MainForm::populateSceneItem() {
     pi->setFlag(QGraphicsItem::ItemIsMovable, false);
     pi->setFlag(QGraphicsItem::ItemIsSelectable, false);
     std::pair<int, int> projected = projectCoords(
-                                       std::make_pair(16 * img_coor.second.x(),
-                                                      16 * img_coor.second.y()),
+                                       std::make_pair(64 * img_coor.second.x(),
+                                                      64 * img_coor.second.y()),
                                        bf_->set().rotate);
     pi->setPos(projected.first, projected.second);
     if (bf_->set().rotate == 0) {

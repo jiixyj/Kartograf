@@ -118,15 +118,17 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
 Settings getSettings() {
   Settings set;
   set.topview = false;
-  set.oblique = true;
+  set.oblique = false;
+  set.isometric = true;
   set.heightmap = false;
   set.color = false;
   set.shadow_strength = 0;
   set.shadow_quality = true;
   set.shadow_quality_ultra = false;
-  set.relief_strength = 10;
+  set.relief_strength = 0;
   set.sun_direction = 1;
   set.rotate = 1;
+  set.nightmode = 0;
   set.sun_direction = (set.sun_direction + ((set.rotate + 3) % 4) * 2) % 8;
   set.shadow = set.shadow_strength;
   set.relief = set.relief_strength;
