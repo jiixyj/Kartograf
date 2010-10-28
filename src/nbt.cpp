@@ -330,13 +330,21 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
     if (set_.topview) {
       shadow_amount = 0;
     } else {
-      bool vertical_block_part = !zigzag;
-      if (set_.isometric) {
-        vertical_block_part = !(zigzag == 1 || zigzag == 2 || zigzag == 5 || zigzag == 6);
+      if (set_.oblique) {
+        if (!zigzag)
+          shadow_amount = !(sun_direction == 3 || sun_direction == 4
+                         || sun_direction == 5)
+                        * set_.shadow_strength / 3;
+      } else if (set_.isometric) {
+        if (zigzag == 4 || zigzag == 8 || zigzag == 9 || zigzag == 13)
+          shadow_amount = !(sun_direction == 3 || sun_direction == 4
+                         || sun_direction == 5)
+                        * set_.shadow_strength / 3;
+        else if (zigzag == 7 || zigzag == 10 || zigzag == 11 || zigzag == 14)
+          shadow_amount = !(sun_direction == 6 || sun_direction == 7
+                          || sun_direction == 8)
+                        * set_.shadow_strength / 3;
       }
-      shadow_amount = !(sun_direction == 3 || sun_direction == 4
-                     || sun_direction == 5)
-                    * vertical_block_part * set_.relief_strength * 2;
       int32_t blockid2;
       if (set_.rotate == 0) {
         blockid = getValue(cache, x - 1, y - 1, z, j, i);
@@ -353,8 +361,8 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
       }
       if ((sun_direction == 1 &&
            colors[blockid].alphaF() <= 0)
-       || (sun_direction == 2)
-       || (sun_direction == 6)
+       || (sun_direction == 2 && (!set_.isometric || zigzag == 4 || zigzag == 8 || zigzag == 9 || zigzag == 13))
+       || (sun_direction == 6 && (!set_.isometric || zigzag == 7 || zigzag == 10 || zigzag == 11 || zigzag == 14))
        || (sun_direction == 7 &&
            colors[blockid2].alphaF() <= 0)) {
         shadow_amount >>= 2;

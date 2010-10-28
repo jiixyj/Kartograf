@@ -98,18 +98,11 @@ void MainForm::populateSceneItem() {
                                        std::make_pair(16 * img_coor.second.x(),
                                                       16 * img_coor.second.y()),
                                        bf_->set().rotate);
-    p = std::make_pair(2 * p.first - 2 * p.second, p.first + p.second);
+    if (bf_->set().isometric) {
+      p = std::make_pair(2 * p.first - 2 * p.second, p.first + p.second);
+    }
     pi->setPos(p.first, p.second);
     pi->setZValue(p.second);
-    // if (bf_->set().rotate == 0) {
-    //   pi->setZValue(img_coor.second.y());
-    // } else if (bf_->set().rotate == 1) {
-    //   pi->setZValue(img_coor.second.x());
-    // } else if (bf_->set().rotate == 2) {
-    //   pi->setZValue(-img_coor.second.y());
-    // } else if (bf_->set().rotate == 3) {
-    //   pi->setZValue(-img_coor.second.x());
-    // }
   } else {
     throw std::runtime_error("must not happen in populateSceneItem()!");
   }
