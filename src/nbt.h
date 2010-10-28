@@ -62,6 +62,7 @@ class nbt {
                      int32_t xx, int32_t zz, int32_t& state) const;
   void goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
                              int32_t& state) const;
+  void changeBlockParts(int32_t& blockid, int state) const;
 };
 
 #endif  // SRC_NBT_NBT_H_

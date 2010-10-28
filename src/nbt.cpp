@@ -421,6 +421,26 @@ Color nbt::calculateRelief(const nbt::map& cache, Color input,
   return color;
 }
 
+void nbt::changeBlockParts(int32_t& blockid, int state) const {
+  if (set_.oblique) {
+    if (state) {
+      intmapit it = upperHalf.find(blockid);
+      if (it != upperHalf.end()) blockid = (*it).second;
+    } else {
+      intmapit it = lowerHalf.find(blockid);
+      if (it != lowerHalf.end()) blockid = (*it).second;
+    }
+  } else if (set_.isometric) {
+    if (state == 1 || state == 2 || state == 5 || state == 6) {
+      intmapit it = upperHalf.find(blockid);
+      if (it != upperHalf.end()) blockid = (*it).second;
+    } else {
+      intmapit it = lowerHalf.find(blockid);
+      if (it != lowerHalf.end()) blockid = (*it).second;
+    }
+  }
+}
+
 Color nbt::calculateMap(const nbt::map& cache, Color input,
                          int x, int y, int z, int j, int i, int32_t zigzag) const {
   Color color = input;
@@ -459,13 +479,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     int blocks_hit = 0;
     int32_t blockid = getValue(cache, x, y, z, j, i);
     do {
-      if (zigzag) {
-        intmapit it = upperHalf.find(blockid);
-        if (it != upperHalf.end()) blockid = (*it).second;
-      } else {
-        intmapit it = lowerHalf.find(blockid);
-        if (it != lowerHalf.end()) blockid = (*it).second;
-      }
+      changeBlockParts(blockid, zigzag);
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
                                                                        zigzag));
