@@ -570,6 +570,85 @@ int32_t nbt::goOneStepIntoScene(const nbt::map& cache,
       --y;
       state = true;
     }
+  } else if (set_.isometric) {
+    switch (state) {
+      case 0:
+        state = 6;
+        x = x + 1;
+        break;
+      case 1:
+        state = 7;
+        x = x + 1;
+        break;
+      case 2:
+        state = 4;
+        z = z + 1;
+        break;
+      case 3:
+        state = 5;
+        z = z + 1;
+        break;
+      case 4:
+        state = 10;
+        x = x + 1;
+        break;
+      case 5:
+        state = 16;
+        break;
+      case 6:
+        state = 17;
+        break;
+      case 7:
+        state = 9;
+        z = z + 1;
+        break;
+      case 8:
+        state = 14;
+        x = x + 1;
+        break;
+      case 9:
+        state = 18;
+        break;
+      case 10:
+        state = 19;
+        break;
+      case 11:
+        state = 13;
+        z = z + 1;
+        break;
+      case 12:
+        state = 4;
+        y = y - 1;
+        break;
+      case 13:
+        state = 5;
+        y = y - 1;
+        break;
+      case 14:
+        state = 6;
+        y = y - 1;
+        break;
+      case 15:
+        state = 7;
+        y = y - 1;
+        break;
+      case 16:
+        state = 11;
+        x = x + 1;
+        break;
+      case 17:
+        state = 8;
+        z = z + 1;
+        break;
+      case 18:
+        state = 1;
+        y = y - 1;
+        break;
+      case 19:
+        state = 2;
+        y = y - 1;
+        break;
+    }
   }
   return getValue(cache, x, y, z, j, i);
 }
