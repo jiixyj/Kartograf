@@ -622,6 +622,18 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
     if (state == 0 || state == 3 || state == 12 || state == 15) {
       goOneStepIntoScene(x, y, z, state);
     }
+    if (set_.rotate == 3) {
+      int tmp = x;
+      x = z;
+      z = 15 - tmp;
+    } else if (set_.rotate == 0) {
+      x = 15 - x;
+      z = 15 - z;
+    } else if (set_.rotate == 1) {
+      int tmp = x;
+      x = 15 - z;
+      z = tmp;
+    }
   }
 }
 
@@ -643,6 +655,18 @@ void nbt::goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
       state = true;
     }
   } else if (set_.isometric) {
+    if (set_.rotate == 3) {
+      int tmp = z;
+      z = x;
+      x = 15 - tmp;
+    } else if (set_.rotate == 0) {
+      x = 15 - x;
+      z = 15 - z;
+    } else if (set_.rotate == 1) {
+      int tmp = z;
+      z = 15 - x;
+      x = tmp;
+    }
     switch (state) {
       case 0:
         state = 6;
@@ -720,6 +744,18 @@ void nbt::goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
         state = 2;
         y = y - 1;
         break;
+    }
+    if (set_.rotate == 3) {
+      int tmp = x;
+      x = z;
+      z = 15 - tmp;
+    } else if (set_.rotate == 0) {
+      x = 15 - x;
+      z = 15 - z;
+    } else if (set_.rotate == 1) {
+      int tmp = x;
+      x = 15 - z;
+      z = tmp;
     }
   }
 }
