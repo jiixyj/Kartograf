@@ -13,14 +13,16 @@ int main(int ac, char* av[]) {
     std::pair<int, int> min_norm, max_norm;
     calculateMinMaxPoint(min_norm, max_norm, bf);
     std::string buffer_file = "";
-    uint32_t width, height;
-    uint16_t header_size = writeHeader(buffer_file, min_norm, max_norm,
-                                       boost::ref(width), boost::ref(height), bf);
 
     size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
     boost::progress_display show_progress(range);
     std::list<std::vector<int> > tiles(range);
     size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);
+
+    uint32_t width, height;
+    uint16_t header_size = writeHeader(buffer_file, min_norm, max_norm,
+                                       boost::ref(width), boost::ref(height), bf);
+
     tbb::atomic<size_t> progress_index, mem_index;
     progress_index = 0;
     mem_index = 0;

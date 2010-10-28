@@ -5,6 +5,10 @@
 uint8_t* global_image;
 uint32_t g_width;
 uint32_t g_height;
+int32_t g_x_min = 0;
+int32_t g_y_min = 0;
+int32_t g_x_max = 0;
+int32_t g_y_max = 0;
 
 std::pair<int, int> projectCoords(std::pair<int, int> p, int phi) {
   if (phi == 0) return p;
@@ -66,9 +70,14 @@ uint16_t writeHeader(std::string filename,
                    std::pair<int, int> max_norm,
                    uint32_t& width, uint32_t& height,
                    const nbt& bf) {
-  width =  static_cast<uint32_t>(max_norm.first - min_norm.first + 1) * 16;
-  height = static_cast<uint32_t>(max_norm.second - min_norm.second + 1) * 16;
-  if (bf.set().oblique) height += 128;
+  if (bf.set().isometric) {
+    width = g_x_max - g_x_min + 64;
+    height = g_y_max - g_y_min + 288;
+  } else {
+    width =  static_cast<uint32_t>(max_norm.first - min_norm.first + 1) * 16;
+    height = static_cast<uint32_t>(max_norm.second - min_norm.second + 1) * 16;
+    if (bf.set().oblique) height += 128;
+  }
   uint16_t header_size = 0;
   if (filename.size()) {
     std::stringstream ss;
@@ -106,8 +115,11 @@ void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
     }
     *index_ += 1;
     bp = projectCoords(bp, bf_->set().rotate);
-    int offset_x = (bp.first - min_norm_.first) * 16;
-    int offset_y = (bp.second - min_norm_.second) * 16;
+    if (bf_->set().isometric) {
+      bp = std::make_pair(2 * bp.first - 2 * bp.second, bp.first + bp.second);
+    }
+    int offset_x = bp.first * 16 - g_x_min;
+    int offset_y = bp.second * 16 - g_y_min;
     render_tile("", image, std::make_pair(offset_x, offset_y), 0);
   }
 }
@@ -122,10 +134,10 @@ Settings getSettings() {
   set.isometric = true;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 60;
+  set.shadow_strength = 0;
   set.shadow_quality = true;
   set.shadow_quality_ultra = true;
-  set.relief_strength = 10;
+  set.relief_strength = 0;
   set.sun_direction = 2;
   set.rotate = 1;
   set.nightmode = 0;
@@ -203,6 +215,21 @@ size_t fillTiles(std::list<std::vector<int> >& tiles, const nbt& bf,
       if (bf.exists(p.first, p.second, path)) {
         p = projectCoords(p, bf.set().rotate);
         it->push_back(p.first);
+        if (bf.set().isometric) {
+          p = std::make_pair(32 * p.first - 32 * p.second, 16 * (p.first + p.second));
+        }
+        if (p.first < g_x_min) {
+          g_x_min = p.first;
+        }
+        if (p.second < g_y_min) {
+          g_y_min = p.second;
+        }
+        if (p.first > g_x_max) {
+          g_x_max = p.first;
+        }
+        if (p.second > g_y_max) {
+          g_y_max = p.second;
+        }
       }
     }
     tiles_nr += it->size();
