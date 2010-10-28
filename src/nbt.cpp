@@ -454,9 +454,8 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       }
       color = Color::blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
     }
-  } else if (set_.oblique) {
+  } else if (set_.oblique || set_.isometric) {
     std::stack<Color> colorstack;
-    int& dec = (set_.rotate % 2 == 0) ? z : x;
     int blocks_hit = 0;
     int32_t blockid = getValue(cache, x, y, z, j, i);
     do {
@@ -478,7 +477,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       goOneStepIntoScene(x, y, z, zigzag);
       blockid = getValue(cache, x, y, z, j, i);
       if (!colorstack.empty() && colorstack.top().alphaF() >= 1) break;
-      if (dec == -1 || dec == 16) {
+      if (x == -1 || z == -1 || x == 16 || z == 16) {
         std::stack<Color> colorstack_inner = colorstack;
         bool clear = true;
         while (!colorstack.empty()) {
@@ -496,9 +495,6 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       colorstack.pop();
     }
     color = Color::blend(color, tmp);
-  } else if (set_.isometric) {
-    int32_t blockid = getValue(cache, x, y, z, j, i);
-    color = Color::blend(colors[blockid], color);
   }
   return color;
 }
