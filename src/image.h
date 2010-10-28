@@ -20,6 +20,8 @@ class Image {
   }
   Image<uint8_t> floyd_steinberg() const;
   Image<uint8_t> floyd_steinberg_zigzag() const;
+
+  static inline void clamp_double(double& d);
 };
 
 #endif  // _IMAGE_H
