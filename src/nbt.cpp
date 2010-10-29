@@ -299,7 +299,7 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
     int xx = x;
     int zz = z;
     int sun_direction = ((set_.sun_direction - ((set_.rotate + 3) % 4) * 2) + 8) % 8;
-    int shadow_amount;
+    int shadow_amount = 0;
     if (set_.topview) {
       shadow_amount = 0;
     } else {
@@ -502,58 +502,53 @@ inline int clamp(int value) {
   return (value > 255) ? 255 : ((value < 0) ? 0 : value);
 }
 
-std::vector<std::vector<int> > make_mask() {
+static std::vector<std::vector<int> > make_state_mask() {
   const int max_y = 127;
   const int half_x = 32;
-  std::vector<std::vector<int> > mask(288, std::vector<int>(64, -1));
+  std::vector<std::vector<int> > ret(288, std::vector<int>(64, -1));
   for (int y = 0; y < 128; ++y) {
     for (int z = 15; z >= 0; --z) {
       for (int x = 15; x >= 0; --x) {
-        double dz;
         int px = 15-x;
         int pz = 15-z;
         int cx, cy;
         cx = 2 * px - 2 * pz;
         cy = px + 2 * (max_y-y) + pz;
-        // cz = sqrt2 * x - sqrt2 * (max_y-y) + sqrt2 * z;
         cy += 2;
         cx += half_x;
-        // fprintf(stdout, "%d %d %d: %d %d\n", z, x, y, cy, cx);
         int index = 0;
         for (int i = -2; i < 2; ++i) {
           for (int j = -2; j < 2; ++j) {
-            mask[cy+i][cx+j] = index++;
+            ret[static_cast<size_t>(cy+i)][static_cast<size_t>(cx+j)] = index++;
           }
         }
       }
     }
   }
-  return mask;
+  return ret;
 }
 
-std::vector<std::vector<std::vector<int > > > make_to3D() {
+static std::vector<std::vector<std::vector<int > > > make_to3D() {
   const int max_y = 127;
   const int half_x = 32;
   std::vector<std::vector<std::vector<int > > > to3D(288, std::vector<std::vector<int> >(64, std::vector<int>(3,-1)));
   for (int y = 0; y < 128; ++y) {
     for (int z = 15; z >= 0; --z) {
       for (int x = 15; x >= 0; --x) {
-        double dz;
         int px = 15-x;
         int pz = 15-z;
         int cx, cy;
         cx = 2 * px - 2 * pz;
         cy = px + 2 * (max_y-y) + pz;
-        // cz = sqrt2 * x - sqrt2 * (max_y-y) + sqrt2 * z;
         cy += 2;
         cx += half_x;
-        // fprintf(stdout, "%d %d %d: %d %d\n", z, x, y, cy, cx);
-        int index = 0;
         for (int i = -2; i < 2; ++i) {
           for (int j = -2; j < 2; ++j) {
-            to3D[cy+i][cx+j][0] = x;
-            to3D[cy+i][cx+j][1] = y;
-            to3D[cy+i][cx+j][2] = z;
+            size_t index_y = static_cast<size_t>(cy + i);
+            size_t index_x = static_cast<size_t>(cx + i);
+            to3D[index_y][index_x][0] = x;
+            to3D[index_y][index_x][1] = y;
+            to3D[index_y][index_x][2] = z;
           }
         }
       }
@@ -562,7 +557,7 @@ std::vector<std::vector<std::vector<int > > > make_to3D() {
   return to3D;
 }
 
-static std::vector<std::vector<int> > mask = make_mask();
+static std::vector<std::vector<int> > state_mask = make_state_mask();
 static std::vector<std::vector<std::vector<int > > > to3D = make_to3D();
 
 void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
@@ -610,10 +605,12 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       if (zz > 15) x = 0;
     }
   } else if (set_.isometric) {
-    state = mask[zz][xx];
-    x = to3D[zz][xx][0];
-    y = to3D[zz][xx][1];
-    z = to3D[zz][xx][2];
+    size_t index_zz = static_cast<size_t>(zz);
+    size_t index_xx = static_cast<size_t>(xx);
+    state = state_mask[index_zz][index_xx];
+    x = to3D[index_zz][index_xx][0];
+    y = to3D[index_zz][index_xx][1];
+    z = to3D[index_zz][index_xx][2];
     if (state == 0 || state == 3 || state == 12 || state == 15) {
       goOneStepIntoScene(x, y, z, state);
     }
@@ -738,6 +735,9 @@ void nbt::goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
       case 19:
         state = 2;
         y = y - 1;
+        break;
+      default:
+        throw std::runtime_error("Does not happen!");
         break;
     }
     if (set_.rotate == 3) {
