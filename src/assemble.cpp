@@ -2,7 +2,10 @@
 
 #include <png.h>
 
+#include <tbb/mutex.h>
+
 uint8_t* global_image;
+uint32_t* global_image_depth;
 uint32_t g_width;
 uint32_t g_height;
 int32_t g_x_min = 0;
@@ -27,6 +30,8 @@ int render_tile(std::string filename,
   uint16_t width = image.cols;
   uint16_t height = image.rows;
 
+  static tbb::mutex render_mutex;
+
   for (size_t i = 0; i < 1u * width * height; ++i) {
     size_t index = i * 4;
     std::swap(image.data[index], image.data[index + 2]);
@@ -50,17 +55,20 @@ int render_tile(std::string filename,
   } else {
     long pos = (projected.second * static_cast<long>(g_width)
               + projected.first) * 4;
+    render_mutex.lock();
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-        if (image.data[i * width * 4 + j * 4 + 3] != 0) {
+        if (image.data[i * width * 4 + j * 4 + 3] != 0 && global_image_depth[pos / 4] <= projected.second) {
           memcpy(global_image + pos,
                  &image.data[i * width * 4 + j * 4],
                  4);
+          global_image_depth[pos / 4] = projected.second;
         }
         pos += 4;
       }
       pos += static_cast<long>((g_width - width) * 4);
     }
+    render_mutex.unlock();
   }
   return 0;
 }
@@ -96,7 +104,9 @@ uint16_t writeHeader(std::string filename,
     fclose(pam);
   } else {
     global_image = reinterpret_cast<uint8_t*>
-                   (malloc(static_cast<size_t>(width * height * 4)));
+                   (calloc(static_cast<size_t>(width * height), 4));
+    global_image_depth = reinterpret_cast<uint32_t*>
+                         (calloc(static_cast<size_t>(width * height), sizeof(int32_t)));
     g_width = width;
     g_height = height;
   }
@@ -198,6 +208,7 @@ void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
     fclose(pam);
   } else {
     free(global_image);
+    free(global_image_depth);
   }
 }
 
