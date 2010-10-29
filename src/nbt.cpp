@@ -612,9 +612,6 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
     x = to3D[index_zz][index_xx][0];
     y = to3D[index_zz][index_xx][1];
     z = to3D[index_zz][index_xx][2];
-    if (state == 0 || state == 3 || state == 12 || state == 15) {
-      goOneStepIntoScene(x, y, z, state);
-    }
     if (set_.rotate == 3) {
       int tmp = x;
       x = z;
@@ -626,6 +623,9 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       int tmp = x;
       x = 15 - z;
       z = tmp;
+    }
+    if (state == 0 || state == 3 || state == 12 || state == 15) {
+      goOneStepIntoScene(x, y, z, state);
     }
   }
 }
