@@ -174,6 +174,7 @@ void nbt::setSettings(Settings set__) {
 char nbt::getValue(const nbt::map& cache,
                  int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
   if (y < 0 || y >= 128) {
+    std::cerr << "this is probably a bug" << std::endl;
     return 0;
   }
   while (x < 0) {
@@ -460,14 +461,10 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
   } else if (set_.oblique || set_.isometric) {
     std::stack<Color> colorstack;
     int blocks_hit = 0;
-    int32_t blockid = getValue(cache, x, y, z, j, i);
-    do {
+    int32_t blockid;
+    while (y >= 0) {
+      blockid = getValue(cache, x, y, z, j, i);
       changeBlockParts(blockid, zigzag);
-      while (blockid == 0) {
-        goOneStepIntoScene(x, y, z, zigzag);
-        blockid = getValue(cache, x, y, z, j, i);
-        changeBlockParts(blockid, zigzag);
-      }
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         if (blockid != 0) {
           colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
@@ -479,7 +476,6 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       }
       if (blockid == 0) blocks_hit = false;
       goOneStepIntoScene(x, y, z, zigzag);
-      blockid = getValue(cache, x, y, z, j, i);
       if (!colorstack.empty() && colorstack.top().alphaF() >= 1) break;
       if (x == -1 || z == -1 || x == 16 || z == 16) {
         std::stack<Color> colorstack_inner = colorstack;
@@ -491,7 +487,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         if (clear) return Color(0, 0, 0, 0);
         colorstack = colorstack_inner;
       }
-    } while (y >= 0);
+    }
     Color tmp(0, 0, 0, 0);
     while (!colorstack.empty()) {
       tmp = Color::blend(colorstack.top(), tmp);
@@ -841,11 +837,11 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
         while (block_type == 0) {
           old_x = x; old_y = y; old_z = z;
           goOneStepIntoScene(x, y, z, state);
-          block_type = getValue(cache, x, y, z, j, i);
-          changeBlockParts(block_type, state);
           if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
             goto endloop1;
           }
+          block_type = getValue(cache, x, y, z, j, i);
+          changeBlockParts(block_type, state);
         }
         {
           Color& color = myimg.at(zz, xx, 0);
