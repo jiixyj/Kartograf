@@ -105,15 +105,12 @@ uint16_t writeHeader(std::string filename,
 
     pam.seekp(width * height * 4 - 1, std::ios_base::cur);
     pam.put('\0');
-    global_image_depth = reinterpret_cast<int32_t*>
-                         (calloc(static_cast<size_t>(width * height), sizeof(int32_t)));
+    global_image_depth = new int32_t[width * height];
     g_width = width;
     g_height = height;
   } else {
-    global_image = reinterpret_cast<uint8_t*>
-                   (calloc(static_cast<size_t>(width * height), 4));
-    global_image_depth = reinterpret_cast<int32_t*>
-                         (calloc(static_cast<size_t>(width * height), sizeof(int32_t)));
+    global_image = new uint8_t[width * height * 4];
+    global_image_depth = new int32_t[width * height];
     g_width = width;
     g_height = height;
   }
@@ -217,10 +214,10 @@ void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
   fclose(out);
   if (pam) {
     fclose(pam);
-    free(global_image_depth);
+    delete[] global_image_depth;
   } else {
-    free(global_image);
-    free(global_image_depth);
+    delete[] global_image;
+    delete[] global_image_depth;
   }
 }
 
