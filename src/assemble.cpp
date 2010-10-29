@@ -144,10 +144,10 @@ Settings getSettings() {
   set.isometric = true;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 0;
+  set.shadow_strength = 60;
   set.shadow_quality = true;
   set.shadow_quality_ultra = true;
-  set.relief_strength = 0;
+  set.relief_strength = 10;
   set.sun_direction = 2;
   set.rotate = 1;
   set.nightmode = 0;

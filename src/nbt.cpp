@@ -200,33 +200,6 @@ char nbt::getValue(const nbt::map& cache,
   }
 }
 
-bool nbt::allEmptyBehind(const nbt::map& cache, int32_t j, int32_t i) const {
-  if (set_.oblique) {
-    for (int n = 1; n <= 16; ++n) {
-      if (set_.rotate == 0) {
-        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i - n));
-        if (it != cache.end())
-          return false;
-      } else if (set_.rotate == 1) {
-        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j - n, i));
-        if (it != cache.end())
-          return false;
-      } else if (set_.rotate == 2) {
-        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i + n));
-        if (it != cache.end())
-          return false;
-      } else if (set_.rotate == 3) {
-        nbt::map::const_iterator it = cache.find(std::pair<int, int>(j + n, i));
-        if (it != cache.end())
-          return false;
-      }
-    }
-    return true;
-  } else {
-    return false;
-  }
-}
-
 Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
                                 int x, int y, int z, int j, int i) const {
   int xd = 0, zd = 0;
@@ -472,8 +445,10 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       if (set_.shadow_quality_ultra) {
         for (int h = height_low_bound; h < y; ++h) {
           char blknr = getValue(cache, x, h, z, j, i);
-          color = Color::blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
-                                                                         color);
+          if (blknr != 0) {
+            color = Color::blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
+                                                                           color);
+          }
         }
       } else {
         for (int h = height_low_bound; h < y; ++h) {
@@ -490,8 +465,10 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     do {
       changeBlockParts(blockid, zigzag);
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
-        colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
-                                                                       zigzag));
+        if (blockid != 0) {
+          colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
+                                                                         zigzag));
+        }
         ++blocks_hit;
       } else {
         colorstack.push(colors_oblique[blockid]);
@@ -509,7 +486,6 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         }
         if (clear) return Color(0, 0, 0, 0);
         colorstack = colorstack_inner;
-        if (allEmptyBehind(cache, j, i)) break;
       }
     } while (y >= 0);
     Color tmp(0, 0, 0, 0);
