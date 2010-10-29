@@ -858,7 +858,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
               light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
               light = std::max(4, light);
               if (!emitLight.count(block_type))
-                color = color.lighter(100 * std::pow(0.8, (15-light)));
+                color = color.lighter(static_cast<int>(100 * std::pow(0.8, (15-light)) + 0.5));
             }
           }
           int random1 = dither();

@@ -5,7 +5,7 @@
 #include <tbb/mutex.h>
 
 uint8_t* global_image;
-uint32_t* global_image_depth;
+int32_t* global_image_depth;
 uint32_t g_width;
 uint32_t g_height;
 int32_t g_x_min = 0;
@@ -58,11 +58,11 @@ int render_tile(std::string filename,
     render_mutex.lock();
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-        if (image.data[i * width * 4 + j * 4 + 3] != 0 && global_image_depth[pos / 4] <= projected.second) {
+        if (image.data[i * width * 4 + j * 4 + 3] != 0 && global_image_depth[pos >> 2] <= projected.second) {
           memcpy(global_image + pos,
                  &image.data[i * width * 4 + j * 4],
                  4);
-          global_image_depth[pos / 4] = projected.second;
+          global_image_depth[pos >> 2] = projected.second;
         }
         pos += 4;
       }
@@ -79,8 +79,8 @@ uint16_t writeHeader(std::string filename,
                    uint32_t& width, uint32_t& height,
                    const nbt& bf) {
   if (bf.set().isometric) {
-    width = g_x_max - g_x_min + 64;
-    height = g_y_max - g_y_min + 288;
+    width = static_cast<uint32_t>(g_x_max - g_x_min + 64);
+    height = static_cast<uint32_t>(g_y_max - g_y_min + 288);
   } else {
     width =  static_cast<uint32_t>(max_norm.first - min_norm.first + 1) * 16;
     height = static_cast<uint32_t>(max_norm.second - min_norm.second + 1) * 16;
@@ -105,7 +105,7 @@ uint16_t writeHeader(std::string filename,
   } else {
     global_image = reinterpret_cast<uint8_t*>
                    (calloc(static_cast<size_t>(width * height), 4));
-    global_image_depth = reinterpret_cast<uint32_t*>
+    global_image_depth = reinterpret_cast<int32_t*>
                          (calloc(static_cast<size_t>(width * height), sizeof(int32_t)));
     g_width = width;
     g_height = height;
