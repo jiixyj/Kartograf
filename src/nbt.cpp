@@ -627,6 +627,9 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
     }
     if (state == 0 || state == 3 || state == 12 || state == 15) {
       goOneStepIntoScene(x, y, z, state);
+      if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
+        state = -1;
+      }
     }
   }
 }
@@ -827,10 +830,12 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;
         projectCoords(x, y, z, xx, zz, state);
+        int32_t old_x = x, old_y = y, old_z = z;
         if (state == -1) continue;
         /* at this point x, y and z are block coordinates */
         int32_t block_type = getValue(cache, x, y, z, j, i);
         while (block_type == 0) {
+          old_x = x; old_y = y; old_z = z;
           goOneStepIntoScene(x, y, z, state);
           block_type = getValue(cache, x, y, z, j, i);
           if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
@@ -845,13 +850,13 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
             color = color.lighter((y - 64) / 2 + 96);
             if (set_.nightmode) {
               size_t light_index_tmp =
-                                static_cast<size_t>(y + 1 + z * 128 + x * 128 * 16);
-              if (y != 127) ++light_index_tmp;
+                                static_cast<size_t>(old_y + old_z * 128 + old_x * 128 * 16);
               size_t light_index = light_index_tmp / 2;
               bool light_remainder = light_index_tmp % 2;
               int light = block_light[light_index];
               light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
-              color = color.darker(50 + (15-light) * 100);
+              light = std::max(4, light);
+              color = color.lighter(100 * std::pow(0.8, (15-light)));
             }
           }
           int random1 = dither();
