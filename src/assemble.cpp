@@ -125,11 +125,13 @@ void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
     }
     *index_ += 1;
     bp = projectCoords(bp, bf_->set().rotate);
+    int offset_x = (bp.first - min_norm_.first) * 16;
+    int offset_y = (bp.second - min_norm_.second) * 16;
     if (bf_->set().isometric) {
       bp = std::make_pair(2 * bp.first - 2 * bp.second, bp.first + bp.second);
+      offset_x = bp.first * 16 - g_x_min;
+      offset_y = bp.second * 16 - g_y_min;
     }
-    int offset_x = bp.first * 16 - g_x_min;
-    int offset_y = bp.second * 16 - g_y_min;
     render_tile("", image, std::make_pair(offset_x, offset_y), 0);
   }
 }
