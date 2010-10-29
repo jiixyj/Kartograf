@@ -141,9 +141,9 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
 
 Settings getSettings() {
   Settings set;
-  set.topview = false;
+  set.topview = true;
   set.oblique = false;
-  set.isometric = true;
+  set.isometric = false;
   set.heightmap = false;
   set.color = false;
   set.shadow_strength = 60;
