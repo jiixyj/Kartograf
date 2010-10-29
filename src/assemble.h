@@ -8,14 +8,9 @@
 #include "./nbt.h"
 
 std::pair<int, int> projectCoords(std::pair<int, int> p, int phi);
-int render_tile(std::string filename,
-                Image<uint8_t>& image,
-                std::pair<int, int> projected,
-                uint16_t header_size);
 uint16_t writeHeader(std::string filename,
                    std::pair<int, int> min_norm,
                    std::pair<int, int> max_norm,
-                   int32_t& width, int32_t& height,
                    const nbt& bf);
 class ApplyFoo {
   nbt* bf_;

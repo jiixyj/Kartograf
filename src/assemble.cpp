@@ -77,23 +77,22 @@ int render_tile(Image<uint8_t>& image,
 uint16_t writeHeader(std::string filename,
                    std::pair<int, int> min_norm,
                    std::pair<int, int> max_norm,
-                   int32_t& width, int32_t& height,
                    const nbt& bf) {
   if (bf.set().isometric) {
-    width =  g_x_max - g_x_min + 64;
-    height = g_y_max - g_y_min + 288;
+    g_width =  g_x_max - g_x_min + 64;
+    g_height = g_y_max - g_y_min + 288;
   } else {
-    width =  (max_norm.first - min_norm.first + 1) * 16;
-    height = (max_norm.second - min_norm.second + 1) * 16;
-    if (bf.set().oblique) height += 128;
+    g_width =  (max_norm.first - min_norm.first + 1) * 16;
+    g_height = (max_norm.second - min_norm.second + 1) * 16;
+    if (bf.set().oblique) g_height += 128;
   }
   uint16_t header_size = 0;
   if (filename.size()) {
     g_filename = filename;
     std::stringstream ss;
     ss << "P7\n"
-       << "WIDTH "     << width << "\n"
-       << "HEIGHT "    << height << "\n"
+       << "WIDTH "     << g_width << "\n"
+       << "HEIGHT "    << g_height << "\n"
        << "DEPTH "     << 4 << "\n"
        << "MAXVAL "    << 255 << "\n"
        << "TUPLTYPE "  << "RGB_ALPHA" << "\n"
@@ -102,16 +101,12 @@ uint16_t writeHeader(std::string filename,
     std::ofstream pam(filename.c_str());
     pam << ss.str();
 
-    pam.seekp(width * height * 4 - 1, std::ios_base::cur);
+    pam.seekp(g_width * g_height * 4 - 1, std::ios_base::cur);
     pam.put('\0');
-    global_image_depth = new int32_t[width * height];
-    g_width = width;
-    g_height = height;
+    global_image_depth = new int32_t[g_width * g_height];
   } else {
-    global_image = new uint8_t[width * height * 4];
-    global_image_depth = new int32_t[width * height];
-    g_width = width;
-    g_height = height;
+    global_image = new uint8_t[g_width * g_height * 4];
+    global_image_depth = new int32_t[g_width * g_height];
   }
   return header_size;
 }
@@ -186,7 +181,8 @@ void pamToPng(std::string png_name) {
   png_info* infoP;
   pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   infoP = png_create_info_struct(pngP);
-  png_set_IHDR(pngP, infoP, g_width, g_height, 8,
+  png_set_IHDR(pngP, infoP, static_cast<png_uint_32>(g_width),
+                            static_cast<png_uint_32>(g_height), 8,
                PNG_COLOR_TYPE_RGB_ALPHA,
                PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT,
@@ -195,7 +191,7 @@ void pamToPng(std::string png_name) {
   png_write_info(pngP, infoP);
 
   png_byte* pngRow = new png_byte[g_width * 4];
-  for (size_t i = 0; i < g_height; ++i) {
+  for (int32_t i = 0; i < g_height; ++i) {
     if (pam) {
       fread(pngRow, 4, g_width, pam);
     } else {
