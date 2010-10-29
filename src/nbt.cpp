@@ -288,9 +288,7 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
   Color color = input;
   if (set_.shadow) {
     int blockid = getValue(cache, x, y, z, j, i);
-    if (!set_.topview) {
-      changeBlockParts(blockid, zigzag);
-    }
+    changeBlockParts(blockid, zigzag);
     if (emitLight.count(blockid) == 1) {
       return color;
     }
@@ -465,6 +463,11 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     int32_t blockid = getValue(cache, x, y, z, j, i);
     do {
       changeBlockParts(blockid, zigzag);
+      while (blockid == 0) {
+        goOneStepIntoScene(x, y, z, zigzag);
+        blockid = getValue(cache, x, y, z, j, i);
+        changeBlockParts(blockid, zigzag);
+      }
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         if (blockid != 0) {
           colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
@@ -834,10 +837,12 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
         if (state == -1) continue;
         /* at this point x, y and z are block coordinates */
         int32_t block_type = getValue(cache, x, y, z, j, i);
+        changeBlockParts(block_type, state);
         while (block_type == 0) {
           old_x = x; old_y = y; old_z = z;
           goOneStepIntoScene(x, y, z, state);
           block_type = getValue(cache, x, y, z, j, i);
+          changeBlockParts(block_type, state);
           if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
             goto endloop1;
           }
@@ -856,7 +861,8 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
               int light = block_light[light_index];
               light = light_remainder ? (light & 0xF0) >> 4 : light & 0x0F;
               light = std::max(4, light);
-              color = color.lighter(100 * std::pow(0.8, (15-light)));
+              if (!emitLight.count(block_type))
+                color = color.lighter(100 * std::pow(0.8, (15-light)));
             }
           }
           int random1 = dither();
