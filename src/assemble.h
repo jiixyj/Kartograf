@@ -15,7 +15,7 @@ int render_tile(std::string filename,
 uint16_t writeHeader(std::string filename,
                    std::pair<int, int> min_norm,
                    std::pair<int, int> max_norm,
-                   uint32_t& width, uint32_t& height,
+                   int32_t& width, int32_t& height,
                    const nbt& bf);
 class ApplyFoo {
   nbt* bf_;

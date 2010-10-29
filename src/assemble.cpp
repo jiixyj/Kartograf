@@ -7,8 +7,8 @@
 
 uint8_t* global_image;
 int32_t* global_image_depth;
-uint32_t g_width;
-uint32_t g_height;
+int32_t g_width;
+int32_t g_height;
 int32_t g_x_min = 0;
 int32_t g_y_min = 0;
 int32_t g_x_max = 0;
@@ -37,13 +37,12 @@ int render_tile(Image<uint8_t>& image,
     size_t index = i * 4;
     std::swap(image.data[index], image.data[index + 2]);
   }
-  int32_t pos = (projected.second * static_cast<int32_t>(g_width)
+  int32_t pos = (projected.second * g_width
                + projected.first) * 4;
   render_mutex.lock();
   if (g_filename.size()) {
     std::fstream pam(g_filename.c_str());
-    pam.seekp(g_header_size, std::ios_base::cur);
-    pam.seekp(pos, std::ios_base::cur);
+    pam.seekp(g_header_size + pos, std::ios_base::cur);
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
         if (image.data[i * width * 4 + j * 4 + 3] != 0 &&
@@ -68,7 +67,7 @@ int render_tile(Image<uint8_t>& image,
         }
         pos += 4;
       }
-      pos += (static_cast<int32_t>(g_width) - width) * 4;
+      pos += (g_width - width) * 4;
     }
   }
   render_mutex.unlock();
@@ -78,14 +77,14 @@ int render_tile(Image<uint8_t>& image,
 uint16_t writeHeader(std::string filename,
                    std::pair<int, int> min_norm,
                    std::pair<int, int> max_norm,
-                   uint32_t& width, uint32_t& height,
+                   int32_t& width, int32_t& height,
                    const nbt& bf) {
   if (bf.set().isometric) {
-    width =  static_cast<uint32_t>(g_x_max - g_x_min + 64);
-    height = static_cast<uint32_t>(g_y_max - g_y_min + 288);
+    width =  g_x_max - g_x_min + 64;
+    height = g_y_max - g_y_min + 288;
   } else {
-    width =  static_cast<uint32_t>(max_norm.first - min_norm.first + 1) * 16;
-    height = static_cast<uint32_t>(max_norm.second - min_norm.second + 1) * 16;
+    width =  (max_norm.first - min_norm.first + 1) * 16;
+    height = (max_norm.second - min_norm.second + 1) * 16;
     if (bf.set().oblique) height += 128;
   }
   uint16_t header_size = 0;
