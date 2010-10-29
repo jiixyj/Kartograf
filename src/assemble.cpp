@@ -113,7 +113,7 @@ uint16_t writeHeader(std::string filename,
 
 void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
                                                          ::iterator>& r) const {
-  for(std::vector<int>::iterator j=r.begin(); j!=r.end(); ++j) {
+  for (std::vector<int>::iterator j = r.begin(); j != r.end(); ++j) {
     bool result = false;
     std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                       (4 - bf_->set().rotate) % 4);
@@ -230,7 +230,8 @@ size_t fillTiles(std::list<std::vector<int> >& tiles, const nbt& bf,
         p = projectCoords(p, bf.set().rotate);
         it->push_back(p.first);
         if (bf.set().isometric) {
-          p = std::make_pair(32 * p.first - 32 * p.second, 16 * (p.first + p.second));
+          p = std::make_pair(32 * p.first - 32 * p.second,
+                             16 * (p.first + p.second));
         }
         if (p.first < g_x_min) {
           g_x_min = p.first;
