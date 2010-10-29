@@ -417,6 +417,7 @@ void nbt::changeBlockParts(int32_t& blockid, int state) const {
       intmapit it = upperHalf.find(blockid);
       if (it != upperHalf.end()) blockid = (*it).second;
     } else {
+      if ((blockid == 2 || blockid == 78) && (state == 4 || state == 9 || state == 10 || state == 7)) return;
       intmapit it = lowerHalf.find(blockid);
       if (it != lowerHalf.end()) blockid = (*it).second;
     }
