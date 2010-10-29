@@ -2,6 +2,7 @@
 
 #include <png.h>
 
+#include <fstream>
 #include <tbb/mutex.h>
 
 uint8_t* global_image;
@@ -12,6 +13,8 @@ int32_t g_x_min = 0;
 int32_t g_y_min = 0;
 int32_t g_x_max = 0;
 int32_t g_y_max = 0;
+uint16_t g_header_size = 0;
+std::string g_filename = "";
 
 std::pair<int, int> projectCoords(std::pair<int, int> p, int phi) {
   if (phi == 0) return p;
@@ -23,10 +26,8 @@ std::pair<int, int> projectCoords(std::pair<int, int> p, int phi) {
                         p.first * sin_phi + p.second * cos_phi);
 }
 
-int render_tile(std::string filename,
-                Image<uint8_t>& image,
-                std::pair<int, int> projected,
-                uint16_t header_size) {
+int render_tile(Image<uint8_t>& image,
+                std::pair<int, int> projected) {
   uint16_t width = image.cols;
   uint16_t height = image.rows;
 
@@ -36,40 +37,41 @@ int render_tile(std::string filename,
     size_t index = i * 4;
     std::swap(image.data[index], image.data[index + 2]);
   }
-  if (filename.size()) {
-    FILE* pam = fopen(filename.c_str(), "r+b");
-    fseek(pam, header_size, SEEK_CUR);
-    fseek(pam, (projected.second * static_cast<long>(g_width)
-              + projected.first) * 4, SEEK_CUR);
+  int32_t pos = (projected.second * static_cast<int32_t>(g_width)
+               + projected.first) * 4;
+  render_mutex.lock();
+  if (g_filename.size()) {
+    std::fstream pam(g_filename.c_str());
+    pam.seekp(g_header_size, std::ios_base::cur);
+    pam.seekp(pos, std::ios_base::cur);
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-        if (image.data[i * width * 4 + j * 4 + 3] != 0) {
-          fwrite(&(image.data[i * width * 4 + j * 4]), 4, 1, pam);
+        if (image.data[i * width * 4 + j * 4 + 3] != 0 &&
+            global_image_depth[pos >> 2] <= projected.second) {
+          pam.write(reinterpret_cast<const char*>
+                    (&(image.data[i * width * 4 + j * 4])), 4);
         } else {
-          fseek(pam, 4, SEEK_CUR);
+          pam.seekp(4, std::ios_base::cur);
         }
       }
-      fseek(pam, static_cast<long>((g_width - width) * 4), SEEK_CUR);
+      pam.seekp((g_width - width) * 4, std::ios_base::cur);
     }
-    fclose(pam);
   } else {
-    long pos = (projected.second * static_cast<long>(g_width)
-              + projected.first) * 4;
-    render_mutex.lock();
     for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-        if (image.data[i * width * 4 + j * 4 + 3] != 0 && global_image_depth[pos >> 2] <= projected.second) {
-          memcpy(global_image + pos,
-                 &image.data[i * width * 4 + j * 4],
-                 4);
+        if (image.data[i * width * 4 + j * 4 + 3] != 0 &&
+            global_image_depth[pos >> 2] <= projected.second) {
+          std::copy(&image.data[i * width * 4 + j * 4],
+                    &image.data[i * width * 4 + j * 4] + 4,
+                    global_image + pos);
           global_image_depth[pos >> 2] = projected.second;
         }
         pos += 4;
       }
-      pos += static_cast<long>((g_width - width) * 4);
+      pos += (static_cast<int32_t>(g_width) - width) * 4;
     }
-    render_mutex.unlock();
   }
+  render_mutex.unlock();
   return 0;
 }
 
@@ -79,7 +81,7 @@ uint16_t writeHeader(std::string filename,
                    uint32_t& width, uint32_t& height,
                    const nbt& bf) {
   if (bf.set().isometric) {
-    width = static_cast<uint32_t>(g_x_max - g_x_min + 64);
+    width =  static_cast<uint32_t>(g_x_max - g_x_min + 64);
     height = static_cast<uint32_t>(g_y_max - g_y_min + 288);
   } else {
     width =  static_cast<uint32_t>(max_norm.first - min_norm.first + 1) * 16;
@@ -88,6 +90,7 @@ uint16_t writeHeader(std::string filename,
   }
   uint16_t header_size = 0;
   if (filename.size()) {
+    g_filename = filename;
     std::stringstream ss;
     ss << "P7\n"
        << "WIDTH "     << width << "\n"
@@ -96,12 +99,16 @@ uint16_t writeHeader(std::string filename,
        << "MAXVAL "    << 255 << "\n"
        << "TUPLTYPE "  << "RGB_ALPHA" << "\n"
        << "ENDHDR"     << "\n";
-    header_size = static_cast<uint16_t>(ss.str().size());
-    FILE* pam = fopen(filename.c_str(), "wb");
-    fwrite(ss.str().c_str(), 1, header_size, pam);
-    fseek(pam, static_cast<long>(width * height * 4 - 1), SEEK_CUR);
-    fwrite("", 1, 1, pam);
-    fclose(pam);
+    g_header_size = header_size = static_cast<uint16_t>(ss.str().size());
+    std::ofstream pam(filename.c_str());
+    pam << ss.str();
+
+    pam.seekp(width * height * 4 - 1, std::ios_base::cur);
+    pam.put('\0');
+    global_image_depth = reinterpret_cast<int32_t*>
+                         (calloc(static_cast<size_t>(width * height), sizeof(int32_t)));
+    g_width = width;
+    g_height = height;
   } else {
     global_image = reinterpret_cast<uint8_t*>
                    (calloc(static_cast<size_t>(width * height), 4));
@@ -132,7 +139,7 @@ void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
       offset_x = bp.first * 16 - g_x_min;
       offset_y = bp.second * 16 - g_y_min;
     }
-    render_tile("", image, std::make_pair(offset_x, offset_y), 0);
+    render_tile(image, std::make_pair(offset_x, offset_y));
   }
 }
 ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
@@ -146,10 +153,10 @@ Settings getSettings() {
   set.isometric = false;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 60;
+  set.shadow_strength = 0;
   set.shadow_quality = true;
   set.shadow_quality_ultra = true;
-  set.relief_strength = 10;
+  set.relief_strength = 0;
   set.sun_direction = 2;
   set.rotate = 1;
   set.nightmode = 0;
@@ -192,22 +199,25 @@ void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
   png_init_io(pngP, out);
   png_write_info(pngP, infoP);
 
-  png_byte* pngRow = reinterpret_cast<png_byte*>(malloc(width * 4));
+  png_byte* pngRow = new png_byte[width * 4];
   for (size_t i = 0; i < height; ++i) {
     if (pam) {
       fread(pngRow, 4, width, pam);
     } else {
-      memcpy(pngRow, global_image + i * width * 4, width * 4);
+      std::copy(global_image + i * width * 4,
+                global_image + (i + 1) * width * 4,
+                pngRow);
     }
     png_write_row(pngP, pngRow);
   }
-  free(pngRow);
+  delete[] pngRow;
 
   png_write_end(pngP, infoP);
   png_destroy_write_struct(&pngP, &infoP);
   fclose(out);
   if (pam) {
     fclose(pam);
+    free(global_image_depth);
   } else {
     free(global_image);
     free(global_image_depth);
