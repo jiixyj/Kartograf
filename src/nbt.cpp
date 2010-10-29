@@ -545,7 +545,7 @@ static std::vector<std::vector<std::vector<int > > > make_to3D() {
         for (int i = -2; i < 2; ++i) {
           for (int j = -2; j < 2; ++j) {
             size_t index_y = static_cast<size_t>(cy + i);
-            size_t index_x = static_cast<size_t>(cx + i);
+            size_t index_x = static_cast<size_t>(cx + j);
             to3D[index_y][index_x][0] = x;
             to3D[index_y][index_x][1] = y;
             to3D[index_y][index_x][2] = z;
@@ -577,6 +577,7 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
       z = xx;
     }
     y = 127;
+    state = 0;
   } else if (set_.oblique) {
     state = (zz > 15) ? false : true;
     if (set_.rotate == 0) {
@@ -825,6 +826,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;
         projectCoords(x, y, z, xx, zz, state);
+        if (state == -1) continue;
         /* at this point x, y and z are block coordinates */
         int32_t block_type = getValue(cache, x, y, z, j, i);
         while (block_type == 0) {
