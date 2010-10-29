@@ -175,19 +175,18 @@ void calculateMinMaxPoint(std::pair<int, int>& min_norm,
                             std::max(min.second, max.second));
 }
 
-void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
-              uint32_t width, uint32_t height) {
+void pamToPng(std::string png_name) {
   FILE* pam = NULL;
-  if (pam_name.size()) {
-    pam = fopen(pam_name.c_str(), "rb");
-    fseek(pam, header_size, SEEK_CUR);
+  if (g_filename.size()) {
+    pam = fopen(g_filename.c_str(), "rb");
+    fseek(pam, g_header_size, SEEK_CUR);
   }
   FILE* out = fopen(png_name.c_str(), "wb");
   png_struct* pngP;
   png_info* infoP;
   pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   infoP = png_create_info_struct(pngP);
-  png_set_IHDR(pngP, infoP, width, height, 8,
+  png_set_IHDR(pngP, infoP, g_width, g_height, 8,
                PNG_COLOR_TYPE_RGB_ALPHA,
                PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT,
@@ -195,13 +194,13 @@ void pamToPng(std::string pam_name, std::string png_name, uint16_t header_size,
   png_init_io(pngP, out);
   png_write_info(pngP, infoP);
 
-  png_byte* pngRow = new png_byte[width * 4];
-  for (size_t i = 0; i < height; ++i) {
+  png_byte* pngRow = new png_byte[g_width * 4];
+  for (size_t i = 0; i < g_height; ++i) {
     if (pam) {
-      fread(pngRow, 4, width, pam);
+      fread(pngRow, 4, g_width, pam);
     } else {
-      std::copy(global_image + i * width * 4,
-                global_image + (i + 1) * width * 4,
+      std::copy(global_image + i * g_width * 4,
+                global_image + (i + 1) * g_width * 4,
                 pngRow);
     }
     png_write_row(pngP, pngRow);

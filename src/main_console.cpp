@@ -12,7 +12,7 @@ int main(int ac, char* av[]) {
     bf.setSettings(getSettings());
     std::pair<int, int> min_norm, max_norm;
     calculateMinMaxPoint(min_norm, max_norm, bf);
-    std::string buffer_file = "tmp2.pam";
+    std::string buffer_file = "";
 
     size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
     boost::progress_display show_progress(range);
@@ -43,7 +43,7 @@ int main(int ac, char* av[]) {
     }
     bf.clearCache();
 
-    pamToPng(buffer_file, "test.png", header_size, width, height);
+    pamToPng("test.png");
   } catch (std::runtime_error e) {
     std::cerr << e.what() << std::endl;
     return 1;
