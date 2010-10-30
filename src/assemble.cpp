@@ -107,7 +107,6 @@ uint16_t writeHeader(std::string filename,
     global_image = reinterpret_cast<uint8_t*>
                    (calloc(static_cast<size_t>(g_width * g_height), 4));
     if (!global_image) {
-      fprintf(stderr, "Allocating %zu bytes of memory failed\n", static_cast<size_t>(g_width) * g_height * 4ul);
       throw std::runtime_error("Memory allocation error");
     }
     global_image_depth = reinterpret_cast<int32_t*>
@@ -205,7 +204,7 @@ void pamToPng(std::string png_name) {
     if (pam) {
       fread(pngRow, 4, static_cast<size_t>(g_width), pam);
     } else {
-      memcpy(pngRow, global_image + i * g_width * 4, g_width * 4);
+      memcpy(pngRow, global_image + i * g_width * 4, static_cast<size_t>(g_width) * 4);
     }
     png_write_row(pngP, pngRow);
   }
