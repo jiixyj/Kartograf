@@ -106,6 +106,10 @@ uint16_t writeHeader(std::string filename,
   } else {
     global_image = reinterpret_cast<uint8_t*>
                    (calloc(static_cast<size_t>(g_width * g_height), 4));
+    if (!global_image) {
+      fprintf(stderr, "Allocating %zu bytes of memory failed\n", static_cast<size_t>(g_width) * g_height * 4ul);
+      throw std::runtime_error("Memory allocation error");
+    }
     global_image_depth = reinterpret_cast<int32_t*>
                          (calloc(static_cast<size_t>(g_width * g_height), sizeof(int32_t)));
   }
@@ -180,17 +184,22 @@ void pamToPng(std::string png_name) {
   FILE* out = fopen(png_name.c_str(), "wb");
   png_struct* pngP;
   png_info* infoP;
+  fprintf(stderr, "Set up PNG structs\n");
   pngP = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   infoP = png_create_info_struct(pngP);
+  fprintf(stderr, "Set up PNG IHDR\n");
   png_set_IHDR(pngP, infoP, static_cast<png_uint_32>(g_width),
                             static_cast<png_uint_32>(g_height), 8,
                PNG_COLOR_TYPE_RGB_ALPHA,
                PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
+  fprintf(stderr, "Init IO\n");
   png_init_io(pngP, out);
+  fprintf(stderr, "Write Info\n");
   png_write_info(pngP, infoP);
 
+  fprintf(stderr, "Write rows\n");
   png_byte* pngRow = new png_byte[g_width * 4];
   for (int32_t i = 0; i < g_height; ++i) {
     if (pam) {
@@ -202,6 +211,7 @@ void pamToPng(std::string png_name) {
   }
   delete[] pngRow;
 
+  fprintf(stderr, "Write end\n");
   png_write_end(pngP, infoP);
   png_destroy_write_struct(&pngP, &infoP);
   fclose(out);
