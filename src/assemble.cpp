@@ -37,8 +37,8 @@ int render_tile(Image<uint8_t>& image,
     size_t index = i * 4;
     std::swap(image.data[index], image.data[index + 2]);
   }
-  int32_t pos = (projected.second * g_width
-               + projected.first) * 4;
+  int64_t pos = (projected.second * g_width
+               + projected.first) * 4l;
   render_mutex.lock();
   if (g_filename.size()) {
     std::fstream pam(g_filename.c_str());
@@ -103,10 +103,13 @@ uint16_t writeHeader(std::string filename,
 
     pam.seekp(g_width * g_height * 4 - 1, std::ios_base::cur);
     pam.put('\0');
-    global_image_depth = new int32_t[g_width * g_height];
+    global_image_depth = reinterpret_cast<int32_t*>
+                         (calloc(static_cast<size_t>(g_width * g_height), sizeof(int32_t)));
   } else {
-    global_image = new uint8_t[g_width * g_height * 4];
-    global_image_depth = new int32_t[g_width * g_height];
+    global_image = reinterpret_cast<uint8_t*>
+                   (calloc(static_cast<size_t>(g_width * g_height), 4));
+    global_image_depth = reinterpret_cast<int32_t*>
+                         (calloc(static_cast<size_t>(g_width * g_height), sizeof(int32_t)));
   }
   return header_size;
 }
@@ -139,15 +142,15 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
 
 Settings getSettings() {
   Settings set;
-  set.topview = true;
+  set.topview = false;
   set.oblique = false;
-  set.isometric = false;
+  set.isometric = true;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 0;
+  set.shadow_strength = 60;
   set.shadow_quality = true;
   set.shadow_quality_ultra = true;
-  set.relief_strength = 0;
+  set.relief_strength = 10;
   set.sun_direction = 2;
   set.rotate = 1;
   set.nightmode = 0;
@@ -208,10 +211,10 @@ void pamToPng(std::string png_name) {
   fclose(out);
   if (pam) {
     fclose(pam);
-    delete[] global_image_depth;
+    free(global_image_depth);
   } else {
-    delete[] global_image;
-    delete[] global_image_depth;
+    free(global_image);
+    free(global_image_depth);
   }
 }
 
