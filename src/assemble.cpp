@@ -106,11 +106,11 @@ uint16_t writeHeader(std::string filename,
   } else {
     global_image = reinterpret_cast<uint8_t*>
                    (calloc(static_cast<size_t>(g_width * g_height), 4));
-    if (!global_image) {
-      throw std::runtime_error("Memory allocation error");
-    }
     global_image_depth = reinterpret_cast<int32_t*>
                          (calloc(static_cast<size_t>(g_width * g_height), sizeof(int32_t)));
+    if (!global_image || !global_image_depth) {
+      throw std::runtime_error("Memory allocation error");
+    }
   }
   return header_size;
 }
