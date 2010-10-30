@@ -179,7 +179,6 @@ std::ostream& operator <<(std::ostream& os, const list& obj) {
 }
 std::ostream& operator <<(std::ostream& os, const compound& obj) {
   os << obj.tags.size() << " entries\n";
-  os << std::string(indent, ' ') << "{\n";
   output_stuff<compound, std::list<tag*>::const_iterator>
               (os, obj);
   return os;
