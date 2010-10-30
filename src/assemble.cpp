@@ -60,9 +60,7 @@ int render_tile(Image<uint8_t>& image,
       for (size_t j = 0; j < width; ++j) {
         if (image.data[i * width * 4 + j * 4 + 3] != 0 &&
             global_image_depth[pos >> 2] <= projected.second) {
-          std::copy(&image.data[i * width * 4 + j * 4],
-                    &image.data[i * width * 4 + j * 4] + 4,
-                    global_image + pos);
+          memcpy(global_image + pos, &image.data[i * width * 4 + j * 4], 4);
           global_image_depth[pos >> 2] = projected.second;
         }
         pos += 4;
@@ -198,9 +196,7 @@ void pamToPng(std::string png_name) {
     if (pam) {
       fread(pngRow, 4, static_cast<size_t>(g_width), pam);
     } else {
-      std::copy(global_image + i * g_width * 4,
-                global_image + (i + 1) * g_width * 4,
-                pngRow);
+      memcpy(pngRow, global_image + i * g_width * 4, g_width * 4);
     }
     png_write_row(pngP, pngRow);
   }
