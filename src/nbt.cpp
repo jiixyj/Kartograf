@@ -416,7 +416,7 @@ void nbt::changeBlockParts(int32_t& blockid, int state) const {
       intmapit it = upperHalf.find(blockid);
       if (it != upperHalf.end()) blockid = (*it).second;
     } else {
-      if ((blockid == 2 || blockid == 78) && (state == 4 || state == 9 || state == 10 || state == 7)) return;
+      if ((blockid == 2) && (state == 4 || state == 9 || state == 10 || state == 7)) return;
       intmapit it = lowerHalf.find(blockid);
       if (it != lowerHalf.end()) blockid = (*it).second;
     }
@@ -465,6 +465,12 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
     while (y >= 0) {
       blockid = getValue(cache, x, y, z, j, i);
       changeBlockParts(blockid, zigzag);
+      if (y != 127 && getValue(cache, x, y + 1, z, j, i) == 78) {
+        if (set_.isometric && (zigzag == 8 || zigzag == 13 || zigzag == 14 || zigzag == 11)) ;
+        else if (set_.oblique && zigzag == 0) ;
+        else
+          blockid = 78;
+      }
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         if (blockid != 0) {
           colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,

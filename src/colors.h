@@ -48,6 +48,7 @@ static std::map<int, int> upperHalf = boost::assign::map_list_of
   (70, 0)  // stone pressure plate
   (71, 0)  // iron door
   (72, 0)  // wooden pressure plate
+  (78, 0)  // dito for snow
   (85, 0)  // fence
 ;
 
@@ -56,7 +57,7 @@ static std::map<int, int> lowerHalf = boost::assign::map_list_of
   (50, 0)  // torch
   (75, 0)  // redstone torch (off)
   (76, 0)  // redstone torch (on)
-  (78, 3)  // dito for snow
+  (78, 0)  // dito for snow
 ;
 
 static std::set<int> noShadow = boost::assign::list_of
@@ -72,6 +73,7 @@ static std::set<int> noShadow = boost::assign::list_of
   (70)
   (72)
   (76)
+  (78)
   (79)
 ;
 
