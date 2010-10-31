@@ -98,6 +98,8 @@ void nbt::construct_world() {
   bf::recursive_directory_iterator end_itr;
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
     std::string fn = itr->path().filename();
+    if (!fn.compare(0, 9, "level.dat")) continue;
+    if (!fn.compare("session.lock")) continue;
     size_t first = fn.find(".");
     size_t second = fn.find(".", first + 1);
     if (second != std::string::npos) {
