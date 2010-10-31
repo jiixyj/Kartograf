@@ -75,11 +75,16 @@ static std::set<int> noShadow = boost::assign::list_of
   (76)
   (78)
   (79)
+  (91)
 ;
 
 static std::set<int> emitLight = boost::assign::list_of
+  (10)
+  (11)
   (50)
+  (51)
   (76)
+  (91)
 ;
 
 typedef std::map<int, Color>::iterator colorit;
@@ -150,6 +155,12 @@ static std::map<int, Color> colors = boost::assign::map_list_of
   (83, Color( 82,106, 56,140))    // OK
   (84, Color(107, 73, 55,255))    // OK
   (85, Color( 68, 54, 30,143))    // OK (?)
+  (86, Color(203,126, 27, 27))    // OK Pumpkin
+  (87, Color(118, 61, 59,255))    // OK
+  (88, Color( 82, 62, 49,255))    // OK
+  (89, Color(143,119, 71,255))    // OK
+  (90, Color( 34,  5, 73, 96))    // OK (?) Portal
+  (91, Color(203,126, 27, 27))    // OK Jack-O-Lantern
 ;
 
 static std::map<int, Color> make_colors_oblique() {

@@ -473,6 +473,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         else
           blockid = 78;
       }
+      size_t color_map_size = colors_oblique.size();
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         if (blockid != 0) {
           colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
@@ -481,6 +482,9 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         ++blocks_hit;
       } else {
         colorstack.push(colors_oblique[blockid]);
+      }
+      if (colors_oblique.size() > color_map_size) {
+        std::cerr << "Block " << blockid << "has not been implemented yet\n";
       }
       if (blockid == 0) blocks_hit = false;
       goOneStepIntoScene(x, y, z, zigzag);
