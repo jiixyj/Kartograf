@@ -14,3 +14,4 @@ target_link_libraries(nbtparse MainForm)
 target_link_libraries(cart assemble)
 
 add_subdirectory(MainForm)
+add_subdirectory(gtkmm)

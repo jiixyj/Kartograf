@@ -26,6 +26,15 @@ include_directories(SYSTEM ${${PROJECT_NAME}_SOURCE_DIR}/include)
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS filesystem system REQUIRED)
 
+##### GTK2
+find_package(GTK2 COMPONENTS gtk gtkmm)
+if(GTK2_FOUND)
+  include_directories(SYSTEM ${GTK2_INCLUDE_DIRS})
+  include_directories(SYSTEM "/usr/include/gdk-pixbuf-2.0")
+  include_directories(SYSTEM "/usr/lib/pangomm-1.4/include/")
+  include_directories(SYSTEM "/usr/include/freetype2/")
+endif()
+
 ##### Qt
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
