@@ -204,7 +204,9 @@ void pamToPng(std::string png_name) {
     if (pam) {
       fread(pngRow, 4, static_cast<size_t>(g_width), pam);
     } else {
-      memcpy(pngRow, global_image + i * g_width * 4, static_cast<size_t>(g_width) * 4);
+      memcpy(pngRow, &global_image[static_cast<size_t>(i)
+                                 * static_cast<size_t>(g_width) * 4],
+             static_cast<size_t>(g_width) * 4);
     }
     png_write_row(pngP, pngRow);
   }
