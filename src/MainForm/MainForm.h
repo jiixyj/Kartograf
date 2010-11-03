@@ -2,6 +2,7 @@
 #define SRC_NBT_MAINFORM_MAINFORM_H_
 
 #include <QtGui>
+#define TBB_DEPRECATED true
 #include <tbb/concurrent_queue.h>
 
 #include "../image.h"
@@ -37,7 +38,6 @@ class MainForm : public QGraphicsView {
   nbt* bf_;
   int16_t scale_;
   typedef QPair<Image<uint8_t>, QPoint> image_coords;
-  // tbb::strict_ppl::concurrent_queue<image_coords> images;
   tbb::concurrent_queue<image_coords> images;
 
   MainForm(const MainForm&);
