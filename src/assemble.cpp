@@ -39,7 +39,7 @@ int render_tile(Image<uint8_t>& image,
   }
   int64_t pos = (projected.second * g_width
                + projected.first) * 4l;
-  render_mutex.lock();
+  tbb::mutex::scoped_lock lock(render_mutex);
   if (g_filename.size()) {
     std::fstream pam(g_filename.c_str());
     pam.seekp(g_header_size + pos, std::ios_base::cur);
@@ -68,7 +68,6 @@ int render_tile(Image<uint8_t>& image,
       pos += (g_width - width) * 4;
     }
   }
-  render_mutex.unlock();
   return 0;
 }
 

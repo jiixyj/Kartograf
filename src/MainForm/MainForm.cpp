@@ -86,7 +86,7 @@ void MainForm::saveToFile() {
 
 void MainForm::populateSceneItem() {
   MainForm::image_coords img_coor;
-  if (images.try_pop(img_coor)) {
+  if (images.pop_if_present(img_coor)) {
     QImage img(&(img_coor.first.data[0]),
                img_coor.first.cols,
                img_coor.first.rows,

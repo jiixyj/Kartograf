@@ -4,6 +4,7 @@
 #include <boost/progress.hpp>
 #include <tbb/atomic.h>
 #include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
 
 #include "./nbt.h"
 
@@ -18,8 +19,7 @@ class ApplyFoo {
   tbb::atomic<size_t>* index_;
   std::pair<int, int> min_norm_;
  public:
-  void operator() (const tbb::blocked_range<std::vector<int>
-                                                          ::iterator>& r) const;
+  void operator() (const tbb::blocked_range<std::vector<int>::iterator>& r) const;
   ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
            std::pair<int, int> min_norm);
  private:

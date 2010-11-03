@@ -1,5 +1,8 @@
 #include "./assemble.h"
 
+#include <tbb/tbb_exception.h>
+#include <tbb/task_scheduler_init.h>
+
 int main(int ac, char* av[]) {
   try {
     if (ac != 2) {
@@ -26,6 +29,7 @@ int main(int ac, char* av[]) {
     mem_index = 0;
     show_progress.restart(tiles_nr);
     std::list<std::vector<int> >::iterator it = tiles.begin();
+    tbb::task_scheduler_init init;
     for (int i = min_norm.second; i <= max_norm.second; ++i) {
       tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
                                                          (it->begin(), it->end()),
