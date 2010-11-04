@@ -79,6 +79,7 @@ elseif("${CMAKE_CXX_COMPILER}" MATCHES ".*clang.*")
   string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" "" WARNINGS ${WARNINGS})
   string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""           WARNINGS ${WARNINGS})
   string(REGEX REPLACE "[^\n]*-funsafe-loop-optimizations[^\n]*\n" "" OPTIMIZATIONS ${OPTIMIZATIONS})
+  set(WARNINGS "${WARNINGS} -Wno-mismatched-tags")
 endif()
 
 # strip comments and newlines

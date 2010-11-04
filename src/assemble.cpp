@@ -198,7 +198,7 @@ void pamToPng(std::string png_name) {
   png_write_info(pngP, infoP);
 
   fprintf(stderr, "Write rows\n");
-  png_byte* pngRow = new png_byte[g_width * 4];
+  png_byte* pngRow = new png_byte[static_cast<size_t>(g_width) * 4];
   for (int32_t i = 0; i < g_height; ++i) {
     if (pam) {
       fread(pngRow, 4, static_cast<size_t>(g_width), pam);
