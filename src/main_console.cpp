@@ -1,5 +1,6 @@
 #include "./assemble.h"
 
+#include <cstdio>
 #include <tbb/tbb_exception.h>
 #include <tbb/task_scheduler_init.h>
 
@@ -23,6 +24,11 @@ int main(int ac, char* av[]) {
     size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);
 
     writeHeader(buffer_file, min_norm, max_norm, bf);
+    FILE* out_file = fopen("test.png", "wb");
+    if (!out_file) {
+      std::cerr << "Could not open output image file!" << std::endl;
+      return 1;
+    }
 
     tbb::atomic<size_t> progress_index, mem_index;
     progress_index = 0;
@@ -45,7 +51,7 @@ int main(int ac, char* av[]) {
     }
     bf.clearCache();
 
-    pamToPng("test.png");
+    pamToPng(out_file);
   } catch (std::runtime_error e) {
     std::cerr << e.what() << std::endl;
     return 1;

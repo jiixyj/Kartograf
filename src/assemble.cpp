@@ -173,13 +173,12 @@ void calculateMinMaxPoint(std::pair<int, int>& min_norm,
                             std::max(min.second, max.second));
 }
 
-void pamToPng(std::string png_name) {
+void pamToPng(FILE* out) {
   FILE* pam = NULL;
   if (g_filename.size()) {
     pam = fopen(g_filename.c_str(), "rb");
     fseek(pam, g_header_size, SEEK_CUR);
   }
-  FILE* out = fopen(png_name.c_str(), "wb");
   png_struct* pngP;
   png_info* infoP;
   fprintf(stderr, "Set up PNG structs\n");

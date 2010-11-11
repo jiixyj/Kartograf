@@ -30,7 +30,7 @@ Settings getSettings();
 void calculateMinMaxPoint(std::pair<int, int>& min_norm,
                           std::pair<int, int>& max_norm,
                           const nbt& bf);
-void pamToPng(std::string png_name);
+void pamToPng(FILE* out_file);
 size_t fillTiles(std::list<std::vector<int> >& tiles, const nbt& bf,
                  const std::pair<int, int>& min_norm,
                  const std::pair<int, int>& max_norm,
