@@ -10,6 +10,7 @@ class MainGUI : public QWidget {
   MainGUI(std::string world_string);
 
  public slots:
+  void start_rendering();
 
  signals:
 
