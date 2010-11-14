@@ -14,6 +14,9 @@ class MainForm : public QGraphicsView {
 
  public:
   MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent = NULL);
+  void set_nbt(nbt* bf) {
+    bf_ = bf;
+  }
 
  public slots:
   void populateScene();

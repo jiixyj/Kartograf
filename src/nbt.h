@@ -15,6 +15,8 @@ class nbt {
   explicit nbt(int world);
   explicit nbt(const std::string&);
 
+  static bool exist_world(int world);
+
   std::string string() const;
   int32_t xPos_min() const { return xPos_min_; }
   int32_t zPos_min() const { return zPos_min_; }

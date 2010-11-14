@@ -94,6 +94,26 @@ nbt::nbt(const std::string& filename)
   gzclose(filein);
 }
 
+bool nbt::exist_world(int world) {
+  boost::filesystem::path dir;
+  char* home_dir;
+  if ((home_dir = getenv("HOME"))) {
+  } else if ((home_dir = getenv("APPDATA"))) {
+  } else {
+    return false;
+  }
+  std::stringstream ss;
+  ss << "World" << world;
+  if (bf::exists(dir = bf::path(home_dir) / ".minecraft/saves/" / ss.str())) {
+    return true;
+  } else if (bf::exists(dir = bf::path(home_dir) / "Library/"
+                          "Application Support/minecraft/saves/" / ss.str())) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void nbt::construct_world() {
   bf::recursive_directory_iterator end_itr;
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
