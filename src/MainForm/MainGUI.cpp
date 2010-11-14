@@ -118,6 +118,7 @@ MainGUI::MainGUI(std::string world_string)
 
   QBoxLayout* global = new QHBoxLayout(this);
   QScrollArea* left_scroll_area = new QScrollArea;
+  left_scroll_area->setFrameStyle(QFrame::NoFrame | QFrame::Plain);
   QBoxLayout* left_side = new QVBoxLayout;
   left_side->addWidget(groupBox);
   left_side->addWidget(renderBox);
