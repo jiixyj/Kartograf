@@ -105,6 +105,7 @@ MainGUI::MainGUI(std::string world_string)
   rotate_mapper->setMapping(rotate2, 3);
   rotate_mapper->setMapping(rotate3, 2);
   connect(rotate_mapper, SIGNAL(mapped(int)), this, SLOT(set_rotate(int)));
+  rotate0->click();
 
   QSpinBox* relief_strength = new QSpinBox(this);
   connect(relief_strength, SIGNAL(valueChanged(int)), this, SLOT(set_relief_strength(int)));
@@ -116,6 +117,7 @@ MainGUI::MainGUI(std::string world_string)
   QLabel* shadow_label = new QLabel("shadow strength:");
 
   QBoxLayout* global = new QHBoxLayout(this);
+  QScrollArea* left_scroll_area = new QScrollArea;
   QBoxLayout* left_side = new QVBoxLayout;
   left_side->addWidget(groupBox);
   left_side->addWidget(renderBox);
@@ -126,9 +128,20 @@ MainGUI::MainGUI(std::string world_string)
   left_side->addWidget(lightBox);
   left_side->addWidget(rotateBox);
   left_side->addStretch(1);
+  QWidget* left_widget = new QWidget;
+  left_widget->setLayout(left_side);
+  left_scroll_area->setWidget(left_widget);
+  QVBoxLayout* left_side_all = new QVBoxLayout;
+  left_side_all->addWidget(left_scroll_area);
   start_button = new QPushButton("Start rendering", this);
-  left_side->addWidget(start_button);
-  global->addLayout(left_side);
+  left_side_all->addWidget(start_button);
+  left_side_all->setContentsMargins(0, 0, 0, 0);
+  QWidget* left_side_all_widget = new QWidget;
+  left_side_all_widget->setLayout(left_side_all);
+  left_side_all_widget->setFixedWidth(left_side_all_widget->sizeHint().width()
+                                    + left_scroll_area->verticalScrollBar()
+                                                      ->sizeHint().width() + 3);
+  global->addWidget(left_side_all_widget);
 
 
   mf = new MainForm(&scene, bf);
