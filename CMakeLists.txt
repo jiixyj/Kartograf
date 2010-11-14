@@ -68,5 +68,10 @@ include("CompilerFlags.txt")  # This sets WARNINGS and OPTIMIZATIONS
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi -pedantic ${WARNINGS} ${OPTIMIZATIONS}")
 include("CrossCompile.txt")   # This is for MinGW cross compile support
 
+if(CMAKE_COMPILER_IS_GNUCXX AND COMPILER_VERSION STRLESS "4.2.2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${Boost_INCLUDE_DIR} -isystem${QT_QTGUI_INCLUDE_DIR} -isystem${QT_QTCORE_INCLUDE_DIR}")
+  string(REGEX REPLACE "-pedantic " ""    CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+endif()
+
 
 add_subdirectory(src)

@@ -67,6 +67,14 @@ execute_process(
 
 # remove unsupported warning flags
 if(CMAKE_COMPILER_IS_GNUCXX)
+  if(COMPILER_VERSION STRLESS "4.2.2")
+    string(REGEX REPLACE "[^\n]*-Wlogical-op[^\n]*\n" ""               WARNINGS ${WARNINGS})
+    string(REGEX REPLACE "[^\n]*-Wvla[^\n]*\n" ""               WARNINGS ${WARNINGS})
+    string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""               WARNINGS ${WARNINGS})
+    string(REGEX REPLACE "[^\n]*-Wmissing-noreturn[^\n]*\n" ""               WARNINGS ${WARNINGS})
+    string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" ""               WARNINGS ${WARNINGS})
+    string(REGEX REPLACE "[^\n]*-Wstrict-overflow=4[^\n]*\n" ""               WARNINGS ${WARNINGS})
+  endif()
   if(COMPILER_VERSION STRLESS "4.3.4")
     string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""               WARNINGS ${WARNINGS})
   endif()
