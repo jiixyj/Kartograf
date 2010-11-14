@@ -12,6 +12,9 @@ class MainGUI : public QWidget {
 
  public slots:
   void set_render_mode(int value);
+  void set_relief_strength(int value);
+  void set_shadow_strength(int value);
+  void set_sun_direction(int value);
 
   void set_new_world();
   void toggle_rendering();

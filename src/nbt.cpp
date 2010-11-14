@@ -189,7 +189,7 @@ nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
 }
 
 void nbt::setSettings(Settings set__) {
-  set_ = set__;
+  set_ = make_valid(set__);
   return;
 }
 

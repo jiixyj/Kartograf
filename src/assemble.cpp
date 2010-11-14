@@ -151,12 +151,9 @@ Settings getSettings() {
   set.shadow_quality = true;
   set.shadow_quality_ultra = true;
   set.relief_strength = 10;
-  set.sun_direction = 2;
+  set.sun_direction = 1;
   set.rotate = 1;
   set.nightmode = 0;
-  set.sun_direction = (set.sun_direction + ((set.rotate + 3) % 4) * 2) % 8;
-  set.shadow = set.shadow_strength;
-  set.relief = set.relief_strength;
   return set;
 }
 

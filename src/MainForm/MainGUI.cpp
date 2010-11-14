@@ -45,13 +45,63 @@ MainGUI::MainGUI(std::string world_string)
   render_mapper->setMapping(render3, 2);
   connect(render_mapper, SIGNAL(mapped(int)), this, SLOT(set_render_mode(int)));
 
+  QGroupBox *lightBox = new QGroupBox("sun direction");
+  QRadioButton* light0 = new QRadioButton();
+  QRadioButton* light1 = new QRadioButton();
+  QRadioButton* light2 = new QRadioButton();
+  QRadioButton* light3 = new QRadioButton();
+  QRadioButton* light4 = new QRadioButton();
+  QRadioButton* light5 = new QRadioButton();
+  QRadioButton* light6 = new QRadioButton();
+  QRadioButton* light7 = new QRadioButton();
+  QGridLayout *light_grid = new QGridLayout;
+  light_grid->addWidget(light0, 0, 0);
+  light_grid->addWidget(light1, 1, 0);
+  light_grid->addWidget(light2, 2, 0);
+  light_grid->addWidget(light3, 2, 1);
+  light_grid->addWidget(light4, 2, 2);
+  light_grid->addWidget(light5, 1, 2);
+  light_grid->addWidget(light6, 0, 2);
+  light_grid->addWidget(light7, 0, 1);
+  lightBox->setLayout(light_grid);
+  QSignalMapper* light_mapper = new QSignalMapper(this);
+  connect(light0, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light1, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light2, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light3, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light4, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light5, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light6, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  connect(light7, SIGNAL(clicked()), light_mapper, SLOT(map()));
+  light_mapper->setMapping(light0, 0);
+  light_mapper->setMapping(light1, 1);
+  light_mapper->setMapping(light2, 2);
+  light_mapper->setMapping(light3, 3);
+  light_mapper->setMapping(light4, 4);
+  light_mapper->setMapping(light5, 5);
+  light_mapper->setMapping(light6, 6);
+  light_mapper->setMapping(light7, 7);
+  connect(light_mapper, SIGNAL(mapped(int)), this, SLOT(set_sun_direction(int)));
+  light0->click();
+
+  QSpinBox* relief_strength = new QSpinBox(this);
+  connect(relief_strength, SIGNAL(valueChanged(int)), this, SLOT(set_relief_strength(int)));
+  relief_strength->setValue(10);
+  QSpinBox* shadow_strength = new QSpinBox(this);
+  connect(shadow_strength, SIGNAL(valueChanged(int)), this, SLOT(set_shadow_strength(int)));
+  shadow_strength->setValue(60);
+  QLabel* relief_label = new QLabel("relief strength:");
+  QLabel* shadow_label = new QLabel("shadow strength:");
+
   QBoxLayout* global = new QHBoxLayout(this);
-
-
   QBoxLayout* left_side = new QVBoxLayout;
-
   left_side->addWidget(groupBox);
   left_side->addWidget(renderBox);
+  left_side->addWidget(relief_label);
+  left_side->addWidget(relief_strength);
+  left_side->addWidget(shadow_label);
+  left_side->addWidget(shadow_strength);
+  left_side->addWidget(lightBox);
   left_side->addStretch(1);
   start_button = new QPushButton("Start rendering", this);
   left_side->addWidget(start_button);
@@ -64,6 +114,19 @@ MainGUI::MainGUI(std::string world_string)
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
   connect(&new_world_setup_watcher, SIGNAL(finished()), this, SLOT(toggle_rendering()));
   connect(&watcher, SIGNAL(finished()), this, SLOT(handle_finished()));
+}
+
+void MainGUI::set_relief_strength(int value) {
+  set.relief = set.relief_strength = value;
+}
+
+void MainGUI::set_shadow_strength(int value) {
+  set.shadow = set.shadow_strength = value;
+}
+
+void MainGUI::set_sun_direction(int value) {
+  value = (value + 1) % 8;
+  set.sun_direction = value;
 }
 
 void MainGUI::set_render_mode(int value) {

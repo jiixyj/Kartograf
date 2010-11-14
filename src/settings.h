@@ -35,4 +35,6 @@ struct  Settings {
   int rotate;
 };
 
+Settings make_valid(Settings set_);
+
 #endif  // SRC_NBT_SETTINGS_H_
