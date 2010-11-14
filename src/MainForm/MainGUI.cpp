@@ -84,6 +84,28 @@ MainGUI::MainGUI(std::string world_string)
   connect(light_mapper, SIGNAL(mapped(int)), this, SLOT(set_sun_direction(int)));
   light0->click();
 
+  QGroupBox *rotateBox = new QGroupBox("rotation");
+  QRadioButton* rotate0 = new QRadioButton();
+  QRadioButton* rotate1 = new QRadioButton();
+  QRadioButton* rotate2 = new QRadioButton();
+  QRadioButton* rotate3 = new QRadioButton();
+  QGridLayout *rotate_grid = new QGridLayout;
+  rotate_grid->addWidget(rotate0, 0, 1);
+  rotate_grid->addWidget(rotate1, 1, 0);
+  rotate_grid->addWidget(rotate2, 2, 1);
+  rotate_grid->addWidget(rotate3, 1, 2);
+  rotateBox->setLayout(rotate_grid);
+  QSignalMapper* rotate_mapper = new QSignalMapper(this);
+  connect(rotate0, SIGNAL(clicked()), rotate_mapper, SLOT(map()));
+  connect(rotate1, SIGNAL(clicked()), rotate_mapper, SLOT(map()));
+  connect(rotate2, SIGNAL(clicked()), rotate_mapper, SLOT(map()));
+  connect(rotate3, SIGNAL(clicked()), rotate_mapper, SLOT(map()));
+  rotate_mapper->setMapping(rotate0, 1);
+  rotate_mapper->setMapping(rotate1, 0);
+  rotate_mapper->setMapping(rotate2, 3);
+  rotate_mapper->setMapping(rotate3, 2);
+  connect(rotate_mapper, SIGNAL(mapped(int)), this, SLOT(set_rotate(int)));
+
   QSpinBox* relief_strength = new QSpinBox(this);
   connect(relief_strength, SIGNAL(valueChanged(int)), this, SLOT(set_relief_strength(int)));
   relief_strength->setValue(10);
@@ -102,6 +124,7 @@ MainGUI::MainGUI(std::string world_string)
   left_side->addWidget(shadow_label);
   left_side->addWidget(shadow_strength);
   left_side->addWidget(lightBox);
+  left_side->addWidget(rotateBox);
   left_side->addStretch(1);
   start_button = new QPushButton("Start rendering", this);
   left_side->addWidget(start_button);
@@ -143,6 +166,10 @@ void MainGUI::set_render_mode(int value) {
     set.oblique = false;
     set.isometric = true;
   }
+}
+
+void MainGUI::set_rotate(int value) {
+  set.rotate = value;
 }
 
 int MainGUI::current_world() {

@@ -14,9 +14,8 @@ struct  Settings {
                shadow_quality_ultra(false),
                shadow_strength(0),
                nightmode(false),
-               sun_direction(2),
+               sun_direction(1),
                rotate(1) {
-    sun_direction = (sun_direction + ((rotate + 3) % 4) * 2) % 8;
   }
   bool topview;
     bool heightmap;
