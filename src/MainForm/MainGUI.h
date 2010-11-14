@@ -10,7 +10,8 @@ class MainGUI : public QWidget {
   MainGUI(std::string world_string);
 
  public slots:
-  void start_rendering();
+  void toggle_rendering();
+  void handle_finished();
 
  signals:
 
@@ -19,7 +20,11 @@ class MainGUI : public QWidget {
  private:
   nbt* bf;
   MainForm* mf;
+  QPushButton* start_button;
   QGraphicsScene scene;
+  void start_helper();
+  QFuture<void> worker;
+  QFutureWatcher<void> watcher;
 };
 
 #endif  // SRC_NBT_MAINFORM_MAINFORM_H_

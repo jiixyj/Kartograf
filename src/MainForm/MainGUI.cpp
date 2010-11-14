@@ -13,14 +13,27 @@ MainGUI::MainGUI(std::string world_string) {
 
   QBoxLayout* global = new QHBoxLayout(this);
 
-  QPushButton* start_button = new QPushButton("Start Rendering", this);
-  connect(start_button, SIGNAL(clicked()), this, SLOT(start_rendering()));
+  start_button = new QPushButton("Start rendering", this);
+  connect(start_button, SIGNAL(clicked()), this, SLOT(toggle_rendering()));
   global->addWidget(start_button);
+  connect(&watcher, SIGNAL(finished()), this, SLOT(handle_finished()));
 
   mf = new MainForm(&scene, bf);
   global->addWidget(mf);
 }
 
-void MainGUI::start_rendering() {
-  QFuture<void>(QtConcurrent::run(mf, &MainForm::populateScene));
+void MainGUI::handle_finished() {
+  start_button->setText("Start rendering");
+  start_button->setEnabled(true);
+}
+
+void MainGUI::toggle_rendering() {
+  if (start_button->text() == "Start rendering") {
+    start_button->setText("Abort rendering");
+    worker = QFuture<void>(QtConcurrent::run(mf, &MainForm::populateScene));
+    watcher.setFuture(worker);
+  } else {
+    mf->StopPopulateScene();
+    start_button->setEnabled(false);
+  }
 }

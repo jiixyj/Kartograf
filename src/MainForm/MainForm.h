@@ -17,6 +17,7 @@ class MainForm : public QGraphicsView {
 
  public slots:
   void populateScene();
+  void StopPopulateScene();
   void populateSceneItem();
   void scale();
   void saveToFile();
@@ -39,6 +40,8 @@ class MainForm : public QGraphicsView {
   int16_t scale_;
   typedef QPair<Image<uint8_t>, QPoint> image_coords;
   tbb::concurrent_queue<image_coords> images;
+
+  bool stop;
 
   MainForm(const MainForm&);
   MainForm& operator=(const MainForm&);

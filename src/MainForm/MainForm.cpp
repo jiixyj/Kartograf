@@ -5,7 +5,7 @@
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
                  : QGraphicsView(img, parent_), scene_(), bf_(bf), scale_(1),
-                   images() {
+                   images(), stop(false) {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
   connect(this, SIGNAL(renderNewImage()), this, SLOT(populateSceneItem()));
   connect(this, SIGNAL(saveToFileSignal()), this, SLOT(saveToFile()));
@@ -19,6 +19,7 @@ class ApplyFooQT {
  public:
   void operator()( const tbb::blocked_range<std::vector<int>::iterator>& r ) const {
     for(std::vector<int>::iterator j=r.begin(); j!=r.end(); ++j) {
+      if (mainform_->stop) break;
       bool result = false;
       std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                         (4 - mainform_->bf_->set().rotate) % 4);
@@ -41,8 +42,12 @@ class ApplyFooQT {
   ApplyFooQT& operator=(const ApplyFoo&);
 };
 
+void MainForm::StopPopulateScene() {
+  stop = true;
+}
 
 void MainForm::populateScene() {
+  stop = false;
   std::pair<int, int> min_norm, max_norm;
   calculateMinMaxPoint(min_norm, max_norm, *bf_);
   size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
@@ -59,6 +64,7 @@ void MainForm::populateScene() {
     tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
                                                        (it->begin(), it->end()),
                       ApplyFooQT(this, i, &progress_index));
+    if (stop) break;
     mem_index += progress_index;
     if (mem_index > 10000) {
       mem_index = 0;
@@ -69,7 +75,8 @@ void MainForm::populateScene() {
     progress_index = 0;
   }
   bf_->clearCache();
-  emit saveToFileSignal();
+  if (!stop)
+    emit saveToFileSignal();
 }
 
 void MainForm::renderNewImageEmitter() {
