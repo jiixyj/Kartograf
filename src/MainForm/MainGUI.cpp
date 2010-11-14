@@ -24,18 +24,39 @@ MainGUI::MainGUI(std::string world_string)
   vbox->addWidget(radio3);
   vbox->addWidget(radio4);
   vbox->addWidget(radio5);
-  vbox->addStretch(1);
   groupBox->setLayout(vbox);
+
+  QGroupBox* renderBox = new QGroupBox("render mode");
+  QRadioButton* render1 = new QRadioButton("top down");
+  QRadioButton* render2 = new QRadioButton("oblique");
+  QRadioButton* render3 = new QRadioButton("isometric");
+  render1->setChecked(true);
+  QVBoxLayout *vbox_render = new QVBoxLayout;
+  vbox_render->addWidget(render1);
+  vbox_render->addWidget(render2);
+  vbox_render->addWidget(render3);
+  renderBox->setLayout(vbox_render);
+  QSignalMapper* render_mapper = new QSignalMapper(this);
+  connect(render1, SIGNAL(clicked()), render_mapper, SLOT(map()));
+  connect(render2, SIGNAL(clicked()), render_mapper, SLOT(map()));
+  connect(render3, SIGNAL(clicked()), render_mapper, SLOT(map()));
+  render_mapper->setMapping(render1, 0);
+  render_mapper->setMapping(render2, 1);
+  render_mapper->setMapping(render3, 2);
+  connect(render_mapper, SIGNAL(mapped(int)), this, SLOT(set_render_mode(int)));
 
   QBoxLayout* global = new QHBoxLayout(this);
 
-  QBoxLayout* left_side = new QVBoxLayout;
-  left_side->addWidget(groupBox);
 
+  QBoxLayout* left_side = new QVBoxLayout;
+
+  left_side->addWidget(groupBox);
+  left_side->addWidget(renderBox);
+  left_side->addStretch(1);
   start_button = new QPushButton("Start rendering", this);
   left_side->addWidget(start_button);
-
   global->addLayout(left_side);
+
 
   mf = new MainForm(&scene, bf);
   global->addWidget(mf);
@@ -43,6 +64,22 @@ MainGUI::MainGUI(std::string world_string)
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
   connect(&new_world_setup_watcher, SIGNAL(finished()), this, SLOT(toggle_rendering()));
   connect(&watcher, SIGNAL(finished()), this, SLOT(handle_finished()));
+}
+
+void MainGUI::set_render_mode(int value) {
+  if (value == 0) {
+    set.topview = true;
+    set.oblique = false;
+    set.isometric = false;
+  } else if (value == 1) {
+    set.topview = false;
+    set.oblique = true;
+    set.isometric = false;
+  } else if (value == 2) {
+    set.topview = false;
+    set.oblique = false;
+    set.isometric = true;
+  }
 }
 
 int MainGUI::current_world() {
@@ -84,7 +121,7 @@ void MainGUI::set_new_world() {
 
 void MainGUI::toggle_rendering() {
   std::cout << bf->string();
-  bf->setSettings(getSettings());
+  bf->setSettings(set);
   mf->set_nbt(bf);
   scene.clear();
 

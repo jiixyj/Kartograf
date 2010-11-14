@@ -2,6 +2,22 @@
 #define SRC_NBT_SETTINGS_H_
 
 struct  Settings {
+  Settings() : topview(true),
+               heightmap(false),
+               color(false),
+               relief(false),
+               relief_strength(0),
+               oblique(false),
+               isometric(false),
+               shadow(false),
+               shadow_quality(false),
+               shadow_quality_ultra(false),
+               shadow_strength(0),
+               nightmode(false),
+               sun_direction(2),
+               rotate(1) {
+    sun_direction = (sun_direction + ((rotate + 3) % 4) * 2) % 8;
+  }
   bool topview;
     bool heightmap;
       bool color;

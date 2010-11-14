@@ -2,6 +2,7 @@
 #define SRC_NBT_MAINFORM_MAINGUI_H_
 
 #include "./MainForm.h"
+#include "../settings.h"
 
 class MainGUI : public QWidget {
   Q_OBJECT
@@ -10,6 +11,8 @@ class MainGUI : public QWidget {
   MainGUI(std::string world_string);
 
  public slots:
+  void set_render_mode(int value);
+
   void set_new_world();
   void toggle_rendering();
   void handle_finished();
@@ -28,6 +31,8 @@ class MainGUI : public QWidget {
 
   nbt* bf;
   MainForm* mf;
+  Settings set;
+
   QPushButton* start_button;
   QGraphicsScene scene;
   void start_helper();
