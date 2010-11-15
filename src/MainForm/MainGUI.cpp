@@ -247,6 +247,10 @@ void MainGUI::set_new_world() {
 }
 
 void MainGUI::toggle_rendering() {
+  if (bf->bad_world) {
+    handle_finished();
+    return;
+  }
   std::cout << bf->string();
   bf->setSettings(set);
   mf->set_nbt(bf);

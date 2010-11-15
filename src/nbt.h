@@ -35,6 +35,7 @@ class nbt {
   Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
   void clearCache() const;
 
+  bool bad_world;
   nbt::tag_ptr tag_;
  private:
   Color checkReliefDiagonal(const nbt::map& cache, Color input, int x, int y, int z,

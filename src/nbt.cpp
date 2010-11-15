@@ -21,7 +21,8 @@ std::string itoa(int value, int base) {
   return ret;
 }
 
-nbt::nbt(): tag_(),
+nbt::nbt(): bad_world(false),
+            tag_(),
             xPos_min_(std::numeric_limits<int32_t>::max()),
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
@@ -32,7 +33,8 @@ nbt::nbt(): tag_(),
             blockcache_() {}
 
 nbt::nbt(int world)
-          : tag_(),
+          : bad_world(false),
+            tag_(),
             xPos_min_(std::numeric_limits<int32_t>::max()),
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
@@ -60,7 +62,8 @@ nbt::nbt(int world)
 }
 
 nbt::nbt(const std::string& filename)
-          : tag_(),
+          : bad_world(false),
+            tag_(),
             xPos_min_(std::numeric_limits<int32_t>::max()),
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
@@ -117,6 +120,7 @@ bool nbt::exist_world(int world) {
 void nbt::construct_world() {
   bf::recursive_directory_iterator end_itr;
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
+    if (bf::is_directory(itr->path())) continue;
     std::string fn = itr->path().filename();
     if (!fn.compare(0, 9, "level.dat")) continue;
     if (!fn.compare("session.lock")) continue;
@@ -135,6 +139,8 @@ void nbt::construct_world() {
       xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
       zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
       zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
+    } else {
+      bad_world = true;
     }
   }
   std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;
