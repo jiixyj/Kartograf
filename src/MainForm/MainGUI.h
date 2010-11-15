@@ -42,7 +42,7 @@ class MainGUI : public QWidget {
   Settings set;
 
   QPushButton* start_button;
-  QGraphicsScene scene;
+  QGraphicsScene* scene;
   void start_helper();
   QFuture<void> worker;
   QFutureWatcher<void> watcher;

@@ -17,6 +17,10 @@ class MainForm : public QGraphicsView {
   void set_nbt(nbt* bf) {
     bf_ = bf;
   }
+  void reset_view(QGraphicsScene* new_scene) {
+    setScene(new_scene);
+    scene_ = new_scene;
+  }
 
  public slots:
   void populateScene();

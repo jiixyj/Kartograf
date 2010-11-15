@@ -6,7 +6,8 @@
 #include "../assemble.h"
 
 MainGUI::MainGUI(std::string world_string)
-          : bf(NULL) {
+          : bf(NULL),
+            scene(new QGraphicsScene()) {
   QGroupBox *groupBox = new QGroupBox("select world");
   radio1 = new QRadioButton(tr("World 1"));
   radio2 = new QRadioButton(tr("World 2"));
@@ -177,7 +178,7 @@ MainGUI::MainGUI(std::string world_string)
   global->addWidget(left_side_all_widget);
 
 
-  mf = new MainForm(&scene, bf);
+  mf = new MainForm(scene, bf);
   global->addWidget(mf);
 
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
@@ -304,7 +305,9 @@ void MainGUI::toggle_rendering() {
   std::cout << bf->string();
   bf->setSettings(set);
   mf->set_nbt(bf);
-  scene.clear();
+  delete scene;
+  scene = new QGraphicsScene();
+  mf->reset_view(scene);
 
   start_button->setText("Abort rendering");
   start_button->setEnabled(true);
