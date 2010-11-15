@@ -5,18 +5,26 @@
 
 #include "../assemble.h"
 
-MainGUI::MainGUI(std::string world_string)
-          : bf(NULL),
+MainGUI::MainGUI()
+          : current_world(0),
+            custom_world(new QLineEdit),
+            bf(NULL),
             scene(new QGraphicsScene()),
-            current_world(0) {
+            mf(new MainForm(scene, bf)),
+            set(),
+            start_button(new QPushButton("Start rendering", this)),
+            worker(),
+            watcher(),
+            new_world_setup(),
+            new_world_setup_watcher() {
+
   QGroupBox* groupBox = new QGroupBox("select world");
-  QRadioButton* radio1 = new QRadioButton(tr("World 1"));
-  QRadioButton* radio2 = new QRadioButton(tr("World 2"));
-  QRadioButton* radio3 = new QRadioButton(tr("World 3"));
-  QRadioButton* radio4 = new QRadioButton(tr("World 4"));
-  QRadioButton* radio5 = new QRadioButton(tr("World 5"));
-  QRadioButton* radio6 = new QRadioButton(tr("custom"));
-  custom_world = new QLineEdit;
+  QRadioButton* radio1 = new QRadioButton("World 1");
+  QRadioButton* radio2 = new QRadioButton("World 2");
+  QRadioButton* radio3 = new QRadioButton("World 3");
+  QRadioButton* radio4 = new QRadioButton("World 4");
+  QRadioButton* radio5 = new QRadioButton("World 5");
+  QRadioButton* radio6 = new QRadioButton("custom");
   radio1->setEnabled(nbt::exist_world(1));
   radio2->setEnabled(nbt::exist_world(2));
   radio3->setEnabled(nbt::exist_world(3));
@@ -182,7 +190,6 @@ MainGUI::MainGUI(std::string world_string)
   left_scroll_area->setWidget(left_widget);
   QVBoxLayout* left_side_all = new QVBoxLayout;
   left_side_all->addWidget(left_scroll_area);
-  start_button = new QPushButton("Start rendering", this);
   left_side_all->addWidget(start_button);
   left_side_all->setContentsMargins(0, 0, 0, 0);
   QWidget* left_side_all_widget = new QWidget;
@@ -191,9 +198,6 @@ MainGUI::MainGUI(std::string world_string)
                                     + left_scroll_area->verticalScrollBar()
                                                       ->sizeHint().width() + 3);
   global->addWidget(left_side_all_widget);
-
-
-  mf = new MainForm(scene, bf);
   global->addWidget(mf);
 
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
@@ -202,11 +206,11 @@ MainGUI::MainGUI(std::string world_string)
 }
 
 void MainGUI::set_relief_strength(int value) {
-  set.relief = set.relief_strength = value;
+  set.relief = (set.relief_strength = value);
 }
 
 void MainGUI::set_shadow_strength(int value) {
-  set.shadow = set.shadow_strength = value;
+  set.shadow = (set.shadow_strength = value);
 }
 
 void MainGUI::set_sun_direction(int value) {
@@ -252,7 +256,7 @@ void MainGUI::set_shadow_quality(int value) {
 }
 
 void MainGUI::load_custom_world() {
-  QString dir = QFileDialog::getExistingDirectory(this, tr("Open world"),
+  QString dir = QFileDialog::getExistingDirectory(this, "Open world",
                                                  QString(),
                                                  QFileDialog::ShowDirsOnly);
   if (dir != QString()) {

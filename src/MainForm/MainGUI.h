@@ -8,7 +8,7 @@ class MainGUI : public QWidget {
   Q_OBJECT
 
  public:
-  MainGUI(std::string world_string);
+  MainGUI();
 
  public slots:
   void set_current_world(int value);
@@ -34,11 +34,11 @@ class MainGUI : public QWidget {
   QLineEdit* custom_world;
 
   nbt* bf;
+  QGraphicsScene* scene;
   MainForm* mf;
   Settings set;
 
   QPushButton* start_button;
-  QGraphicsScene* scene;
   void start_helper();
   QFuture<void> worker;
   QFutureWatcher<void> watcher;
@@ -46,6 +46,9 @@ class MainGUI : public QWidget {
   QFuture<void> new_world_setup;
   QFutureWatcher<void> new_world_setup_watcher;
   void new_bf();
+
+  MainGUI(const MainGUI&);
+  MainGUI& operator=(const MainGUI&);
 };
 
 #endif  // SRC_NBT_MAINFORM_MAINFORM_H_
