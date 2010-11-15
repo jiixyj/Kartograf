@@ -137,6 +137,9 @@ MainGUI::MainGUI(std::string world_string)
   left_side->addWidget(shadow_strength);
   left_side->addWidget(lightBox);
   left_side->addWidget(rotateBox);
+  QCheckBox* night_mode_box = new QCheckBox("night mode");
+  left_side->addWidget(night_mode_box);
+  connect(night_mode_box, SIGNAL(stateChanged(int)), this, SLOT(set_night_mode(int)));
   left_side->addStretch(1);
   QWidget* left_widget = new QWidget;
   left_widget->setLayout(left_side);
@@ -193,6 +196,10 @@ void MainGUI::set_render_mode(int value) {
 
 void MainGUI::set_rotate(int value) {
   set.rotate = value;
+}
+
+void MainGUI::set_night_mode(int value) {
+  set.nightmode = value;
 }
 
 void MainGUI::load_custom_world() {

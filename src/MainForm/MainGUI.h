@@ -16,6 +16,7 @@ class MainGUI : public QWidget {
   void set_shadow_strength(int value);
   void set_sun_direction(int value);
   void set_rotate(int value);
+  void set_night_mode(int value);
 
   void set_new_world();
   void load_custom_world();
