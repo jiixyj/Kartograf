@@ -150,11 +150,11 @@ MainGUI::MainGUI(std::string world_string)
   QBoxLayout* left_side = new QVBoxLayout;
   left_side->addWidget(groupBox);
   left_side->addWidget(renderBox);
-  left_side->addWidget(relief_label);
-  left_side->addWidget(relief_strength);
+  left_side->addWidget(shadowBox);
   left_side->addWidget(shadow_label);
   left_side->addWidget(shadow_strength);
-  left_side->addWidget(shadowBox);
+  left_side->addWidget(relief_label);
+  left_side->addWidget(relief_strength);
   left_side->addWidget(lightBox);
   left_side->addWidget(rotateBox);
   QCheckBox* night_mode_box = new QCheckBox("night mode");
