@@ -53,6 +53,25 @@ MainGUI::MainGUI(std::string world_string)
   render_mapper->setMapping(render3, 2);
   connect(render_mapper, SIGNAL(mapped(int)), this, SLOT(set_render_mode(int)));
 
+  QGroupBox* shadowBox = new QGroupBox("shadow quality");
+  QRadioButton* shadow1 = new QRadioButton("normal");
+  QRadioButton* shadow2 = new QRadioButton("high");
+  QRadioButton* shadow3 = new QRadioButton("ultra");
+  shadow1->setChecked(true);
+  QVBoxLayout *vbox_shadow = new QVBoxLayout;
+  vbox_shadow->addWidget(shadow1);
+  vbox_shadow->addWidget(shadow2);
+  vbox_shadow->addWidget(shadow3);
+  shadowBox->setLayout(vbox_shadow);
+  QSignalMapper* shadow_mapper = new QSignalMapper(this);
+  connect(shadow1, SIGNAL(clicked()), shadow_mapper, SLOT(map()));
+  connect(shadow2, SIGNAL(clicked()), shadow_mapper, SLOT(map()));
+  connect(shadow3, SIGNAL(clicked()), shadow_mapper, SLOT(map()));
+  shadow_mapper->setMapping(shadow1, 0);
+  shadow_mapper->setMapping(shadow2, 1);
+  shadow_mapper->setMapping(shadow3, 2);
+  connect(shadow_mapper, SIGNAL(mapped(int)), this, SLOT(set_shadow_quality(int)));
+
   QGroupBox *lightBox = new QGroupBox("sun direction");
   QRadioButton* light0 = new QRadioButton();
   QRadioButton* light1 = new QRadioButton();
@@ -135,6 +154,7 @@ MainGUI::MainGUI(std::string world_string)
   left_side->addWidget(relief_strength);
   left_side->addWidget(shadow_label);
   left_side->addWidget(shadow_strength);
+  left_side->addWidget(shadowBox);
   left_side->addWidget(lightBox);
   left_side->addWidget(rotateBox);
   QCheckBox* night_mode_box = new QCheckBox("night mode");
@@ -200,6 +220,19 @@ void MainGUI::set_rotate(int value) {
 
 void MainGUI::set_night_mode(int value) {
   set.nightmode = value;
+}
+
+void MainGUI::set_shadow_quality(int value) {
+  if (value == 0) {
+    set.shadow_quality = false;
+    set.shadow_quality_ultra = false;
+  } else if (value == 1) {
+    set.shadow_quality = true;
+    set.shadow_quality_ultra = false;
+  } else if (value == 2) {
+    set.shadow_quality = true;
+    set.shadow_quality_ultra = true;
+  }
 }
 
 void MainGUI::load_custom_world() {
