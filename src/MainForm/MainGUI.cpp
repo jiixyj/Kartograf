@@ -13,6 +13,8 @@ MainGUI::MainGUI(std::string world_string)
   radio3 = new QRadioButton(tr("World 3"));
   radio4 = new QRadioButton(tr("World 4"));
   radio5 = new QRadioButton(tr("World 5"));
+  QRadioButton* radio6 = new QRadioButton(tr("custom"));
+  custom_world = new QLineEdit;
   radio1->setEnabled(nbt::exist_world(1));
   radio2->setEnabled(nbt::exist_world(2));
   radio3->setEnabled(nbt::exist_world(3));
@@ -24,7 +26,13 @@ MainGUI::MainGUI(std::string world_string)
   vbox->addWidget(radio3);
   vbox->addWidget(radio4);
   vbox->addWidget(radio5);
+  vbox->addWidget(radio6);
   groupBox->setLayout(vbox);
+  custom_world->setMaximumWidth(groupBox->sizeHint().width());
+  custom_world->setEnabled(false);
+  vbox->addWidget(custom_world);
+  connect(radio6, SIGNAL(toggled(bool)), custom_world, SLOT(setEnabled(bool)));
+  connect(radio6, SIGNAL(clicked()), this, SLOT(load_custom_world()));
 
   QGroupBox* renderBox = new QGroupBox("render mode");
   QRadioButton* render1 = new QRadioButton("top down");
@@ -119,6 +127,7 @@ MainGUI::MainGUI(std::string world_string)
   QBoxLayout* global = new QHBoxLayout(this);
   QScrollArea* left_scroll_area = new QScrollArea;
   left_scroll_area->setFrameStyle(QFrame::NoFrame | QFrame::Plain);
+  left_scroll_area->setLineWidth(0);
   QBoxLayout* left_side = new QVBoxLayout;
   left_side->addWidget(groupBox);
   left_side->addWidget(renderBox);
@@ -186,6 +195,16 @@ void MainGUI::set_rotate(int value) {
   set.rotate = value;
 }
 
+void MainGUI::load_custom_world() {
+  QString dir = QFileDialog::getExistingDirectory(this, tr("Open world"),
+                                                 QString(),
+                                                 QFileDialog::ShowDirsOnly);
+  if (dir != QString()) {
+    custom_world->setText(dir);
+  }
+}
+
+
 int MainGUI::current_world() {
   if (radio1->isChecked()) {
     return 1;
@@ -203,7 +222,11 @@ int MainGUI::current_world() {
 }
 
 void MainGUI::new_bf() {
-  bf = new nbt(current_world());
+  if (!current_world()) {
+    bf = new nbt(custom_world->text().toStdString());
+  } else {
+    bf = new nbt(current_world());
+  }
 }
 
 void MainGUI::set_new_world() {
@@ -212,7 +235,7 @@ void MainGUI::set_new_world() {
       delete bf;
       bf = NULL;
     }
-    if (!current_world()) return;
+    if (!current_world() && custom_world->text() == QString()) return;
     start_button->setText("Loading world...");
     start_button->setEnabled(false);
     new_world_setup = QFuture<void>(QtConcurrent::run(this, &MainGUI::new_bf));

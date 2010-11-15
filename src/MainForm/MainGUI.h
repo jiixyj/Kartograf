@@ -18,6 +18,7 @@ class MainGUI : public QWidget {
   void set_rotate(int value);
 
   void set_new_world();
+  void load_custom_world();
   void toggle_rendering();
   void handle_finished();
 
@@ -32,6 +33,7 @@ class MainGUI : public QWidget {
   QRadioButton *radio4;
   QRadioButton *radio5;
   int current_world();
+  QLineEdit* custom_world;
 
   nbt* bf;
   MainForm* mf;
