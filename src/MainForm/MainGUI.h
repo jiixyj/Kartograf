@@ -11,6 +11,12 @@ class MainGUI : public QWidget {
   MainGUI();
 
  public slots:
+
+ signals:
+
+ protected:
+
+ private slots:
   void set_current_world(int value);
   void set_render_mode(int value);
   void set_relief_strength(int value);
@@ -24,10 +30,6 @@ class MainGUI : public QWidget {
   void load_custom_world();
   void toggle_rendering();
   void handle_finished();
-
- signals:
-
- protected:
 
  private:
   int current_world;
