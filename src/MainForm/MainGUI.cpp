@@ -7,13 +7,14 @@
 
 MainGUI::MainGUI(std::string world_string)
           : bf(NULL),
-            scene(new QGraphicsScene()) {
-  QGroupBox *groupBox = new QGroupBox("select world");
-  radio1 = new QRadioButton(tr("World 1"));
-  radio2 = new QRadioButton(tr("World 2"));
-  radio3 = new QRadioButton(tr("World 3"));
-  radio4 = new QRadioButton(tr("World 4"));
-  radio5 = new QRadioButton(tr("World 5"));
+            scene(new QGraphicsScene()),
+            current_world(0) {
+  QGroupBox* groupBox = new QGroupBox("select world");
+  QRadioButton* radio1 = new QRadioButton(tr("World 1"));
+  QRadioButton* radio2 = new QRadioButton(tr("World 2"));
+  QRadioButton* radio3 = new QRadioButton(tr("World 3"));
+  QRadioButton* radio4 = new QRadioButton(tr("World 4"));
+  QRadioButton* radio5 = new QRadioButton(tr("World 5"));
   QRadioButton* radio6 = new QRadioButton(tr("custom"));
   custom_world = new QLineEdit;
   radio1->setEnabled(nbt::exist_world(1));
@@ -32,6 +33,20 @@ MainGUI::MainGUI(std::string world_string)
   custom_world->setMaximumWidth(groupBox->sizeHint().width());
   custom_world->setEnabled(false);
   vbox->addWidget(custom_world);
+  QSignalMapper* world_mapper = new QSignalMapper(this);
+  connect(radio1, SIGNAL(clicked()), world_mapper, SLOT(map()));
+  connect(radio2, SIGNAL(clicked()), world_mapper, SLOT(map()));
+  connect(radio3, SIGNAL(clicked()), world_mapper, SLOT(map()));
+  connect(radio4, SIGNAL(clicked()), world_mapper, SLOT(map()));
+  connect(radio5, SIGNAL(clicked()), world_mapper, SLOT(map()));
+  connect(radio6, SIGNAL(clicked()), world_mapper, SLOT(map()));
+  world_mapper->setMapping(radio1, 1);
+  world_mapper->setMapping(radio2, 2);
+  world_mapper->setMapping(radio3, 3);
+  world_mapper->setMapping(radio4, 4);
+  world_mapper->setMapping(radio5, 5);
+  world_mapper->setMapping(radio6, 0);
+  connect(world_mapper, SIGNAL(mapped(int)), this, SLOT(set_current_world(int)));
   connect(radio6, SIGNAL(toggled(bool)), custom_world, SLOT(setEnabled(bool)));
   connect(radio6, SIGNAL(clicked()), this, SLOT(load_custom_world()));
 
@@ -246,27 +261,15 @@ void MainGUI::load_custom_world() {
 }
 
 
-int MainGUI::current_world() {
-  if (radio1->isChecked()) {
-    return 1;
-  } else if (radio2->isChecked()) {
-    return 2;
-  } else if (radio3->isChecked()) {
-    return 3;
-  } else if (radio4->isChecked()) {
-    return 4;
-  } else if (radio5->isChecked()) {
-    return 5;
-  } else {
-    return 0;
-  }
+void MainGUI::set_current_world(int value) {
+  current_world = value;
 }
 
 void MainGUI::new_bf() {
-  if (!current_world()) {
+  if (!current_world) {
     bf = new nbt(custom_world->text().toStdString());
   } else {
-    bf = new nbt(current_world());
+    bf = new nbt(current_world);
   }
 }
 
@@ -276,7 +279,7 @@ void MainGUI::set_new_world() {
       delete bf;
       bf = NULL;
     }
-    if (!current_world() && custom_world->text() == QString()) {
+    if (!current_world && custom_world->text() == QString()) {
       QMessageBox msgBox;
       msgBox.setText("Please select a world!");
       msgBox.setIcon(QMessageBox::Warning);

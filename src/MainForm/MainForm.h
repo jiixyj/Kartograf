@@ -19,7 +19,6 @@ class MainForm : public QGraphicsView {
   }
   void reset_view(QGraphicsScene* new_scene) {
     setScene(new_scene);
-    scene_ = new_scene;
   }
 
  public slots:
@@ -42,7 +41,6 @@ class MainForm : public QGraphicsView {
  private:
   friend class ApplyFooQT;
 
-  QGraphicsScene* scene_;
   nbt* bf_;
   int16_t scale_;
   typedef QPair<Image<uint8_t>, QPoint> image_coords;

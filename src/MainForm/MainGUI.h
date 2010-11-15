@@ -11,6 +11,7 @@ class MainGUI : public QWidget {
   MainGUI(std::string world_string);
 
  public slots:
+  void set_current_world(int value);
   void set_render_mode(int value);
   void set_relief_strength(int value);
   void set_shadow_strength(int value);
@@ -29,12 +30,7 @@ class MainGUI : public QWidget {
  protected:
 
  private:
-  QRadioButton *radio1;
-  QRadioButton *radio2;
-  QRadioButton *radio3;
-  QRadioButton *radio4;
-  QRadioButton *radio5;
-  int current_world();
+  int current_world;
   QLineEdit* custom_world;
 
   nbt* bf;
