@@ -275,7 +275,13 @@ void MainGUI::set_new_world() {
       delete bf;
       bf = NULL;
     }
-    if (!current_world() && custom_world->text() == QString()) return;
+    if (!current_world() && custom_world->text() == QString()) {
+      QMessageBox msgBox;
+      msgBox.setText("Please select a world!");
+      msgBox.setIcon(QMessageBox::Warning);
+      msgBox.exec();
+      return;
+    }
     start_button->setText("Loading world...");
     start_button->setEnabled(false);
     new_world_setup = QFuture<void>(QtConcurrent::run(this, &MainGUI::new_bf));
@@ -289,6 +295,10 @@ void MainGUI::set_new_world() {
 void MainGUI::toggle_rendering() {
   if (bf->bad_world) {
     handle_finished();
+    QMessageBox msgBox;
+    msgBox.setText("Invalid world! Check if you have selected the right folder.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.exec();
     return;
   }
   std::cout << bf->string();
