@@ -13,6 +13,7 @@ class MainGUI : public QWidget {
  public slots:
 
  signals:
+  void disable_shadow_elements_signal(bool);
 
  protected:
 
@@ -25,6 +26,10 @@ class MainGUI : public QWidget {
   void set_rotate(int value);
   void set_night_mode(int value);
   void set_shadow_quality(int value);
+  void set_heightmap(bool value);
+  void set_heightmap_grey(bool value);
+  void set_heightmap_color(bool value);
+  void disable_shadow_elements(bool value);
 
   void set_new_world();
   void load_custom_world();
@@ -34,6 +39,7 @@ class MainGUI : public QWidget {
  private:
   int current_world;
   QLineEdit* custom_world;
+  QGroupBox* heightmapBox;
 
   nbt* bf;
   QGraphicsScene* scene;

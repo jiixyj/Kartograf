@@ -175,15 +175,32 @@ MainGUI::MainGUI()
   left_side->addWidget(groupBox);
   left_side->addWidget(renderBox);
   left_side->addWidget(shadowBox);
+  left_side->addWidget(lightBox);
   left_side->addWidget(shadow_label);
   left_side->addWidget(shadow_strength);
   left_side->addWidget(relief_label);
   left_side->addWidget(relief_strength);
-  left_side->addWidget(lightBox);
   left_side->addWidget(rotateBox);
+
   QCheckBox* night_mode_box = new QCheckBox("night mode");
   left_side->addWidget(night_mode_box);
   connect(night_mode_box, SIGNAL(stateChanged(int)), this, SLOT(set_night_mode(int)));
+
+  heightmapBox = new QGroupBox("heightmap");
+  heightmapBox->setCheckable(true);
+  heightmapBox->setChecked(false);
+  QRadioButton* heightmap_box1 = new QRadioButton("grey");
+  heightmap_box1->setChecked(true);
+  QRadioButton* heightmap_box2 = new QRadioButton("color");
+  QVBoxLayout *vbox_heightmap = new QVBoxLayout;
+  vbox_heightmap->addWidget(heightmap_box1);
+  vbox_heightmap->addWidget(heightmap_box2);
+  heightmapBox->setLayout(vbox_heightmap);
+  left_side->addWidget(heightmapBox);
+  connect(heightmapBox, SIGNAL(toggled(bool)), this, SLOT(set_heightmap(bool)));
+  connect(heightmap_box1, SIGNAL(toggled(bool)), this, SLOT(set_heightmap_grey(bool)));
+  connect(heightmap_box2, SIGNAL(toggled(bool)), this, SLOT(set_heightmap_color(bool)));
+
   left_side->addStretch(1);
   QWidget* left_widget = new QWidget;
   left_widget->setLayout(left_side);
@@ -199,10 +216,28 @@ MainGUI::MainGUI()
                                                       ->sizeHint().width() + 3);
   global->addWidget(left_side_all_widget);
   global->addWidget(mf);
+  /* constraints */
+  connect(render1, SIGNAL(toggled(bool)), heightmapBox, SLOT(setEnabled(bool)));
+  connect(render1, SIGNAL(toggled(bool)), this, SLOT(disable_shadow_elements(bool)));
+  connect(this, SIGNAL(disable_shadow_elements_signal(bool)), shadowBox, SLOT(setDisabled(bool)));
+  connect(this, SIGNAL(disable_shadow_elements_signal(bool)), shadow_label, SLOT(setDisabled(bool)));
+  connect(this, SIGNAL(disable_shadow_elements_signal(bool)), shadow_strength, SLOT(setDisabled(bool)));
+  connect(this, SIGNAL(disable_shadow_elements_signal(bool)), lightBox, SLOT(setDisabled(bool)));
+  connect(heightmapBox, SIGNAL(toggled(bool)), shadowBox, SLOT(setDisabled(bool)));
+  connect(heightmapBox, SIGNAL(toggled(bool)), shadow_label, SLOT(setDisabled(bool)));
+  connect(heightmapBox, SIGNAL(toggled(bool)), shadow_strength, SLOT(setDisabled(bool)));
+  connect(heightmapBox, SIGNAL(toggled(bool)), lightBox, SLOT(setDisabled(bool)));
 
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
   connect(&new_world_setup_watcher, SIGNAL(finished()), this, SLOT(toggle_rendering()));
   connect(&watcher, SIGNAL(finished()), this, SLOT(handle_finished()));
+}
+
+void MainGUI::disable_shadow_elements(bool value) {
+  if (value && heightmapBox->isChecked())
+    emit disable_shadow_elements_signal(true);
+  else if (heightmapBox->isChecked())
+    emit disable_shadow_elements_signal(false);
 }
 
 void MainGUI::set_relief_strength(int value) {
@@ -253,6 +288,20 @@ void MainGUI::set_shadow_quality(int value) {
     set.shadow_quality = true;
     set.shadow_quality_ultra = true;
   }
+}
+
+void MainGUI::set_heightmap(bool value) {
+  set.heightmap = value;
+}
+
+void MainGUI::set_heightmap_grey(bool value) {
+  if (value)
+    set.color = false;
+}
+
+void MainGUI::set_heightmap_color(bool value) {
+  if (value)
+    set.color = true;
 }
 
 void MainGUI::load_custom_world() {
