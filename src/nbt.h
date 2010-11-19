@@ -9,6 +9,12 @@
 #include "./colors.h"
 #include "./image.h"
 
+struct point3 {
+  int x;
+  int y;
+  int z;
+};
+
 class nbt {
  public:
   nbt();
@@ -26,6 +32,9 @@ class nbt {
   typedef boost::shared_ptr<const tag::tag> tag_ptr;
   bool exists(int32_t x, int32_t z, boost::filesystem::path& path) const;
   tag_ptr tag_at(int32_t x, int32_t z) const;
+
+  std::list<point3> a_star(int x_start, int y_start,
+                           int x_end, int y_end);
 
   void setSettings(Settings set);
   Settings set() const { return set_; }
