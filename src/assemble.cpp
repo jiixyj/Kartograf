@@ -197,7 +197,10 @@ void pamToPng(FILE* out) {
   png_byte* pngRow = new png_byte[static_cast<size_t>(g_width) * 4];
   for (int32_t i = 0; i < g_height; ++i) {
     if (pam) {
-      fread(pngRow, 4, static_cast<size_t>(g_width), pam);
+      size_t read = fread(pngRow, 4, static_cast<size_t>(g_width), pam);
+      if (read != 4 * static_cast<size_t>(g_width)) {
+        throw std::runtime_error("File reading failed!");
+      }
     } else {
       memcpy(pngRow, &global_image[static_cast<size_t>(i)
                                  * static_cast<size_t>(g_width) * 4],
