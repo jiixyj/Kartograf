@@ -9,7 +9,7 @@ target_link_libraries(tag ${ZLIB_LIBRARY})
 target_link_libraries(image colors)
 target_link_libraries(assemble nbt ${PNG_LIBRARY} ${TBB_LIBRARY})
 
-add_executable(nbtparse main)
+add_executable(nbtparse MACOSX_BUNDLE main)
 add_executable(cart main_console)
 target_link_libraries(nbtparse MainGUI)
 target_link_libraries(cart assemble)

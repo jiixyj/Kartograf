@@ -55,11 +55,13 @@ find_library(TBB_LIBRARY tbb)
 if(TBB_INCLUDE_DIR AND TBB_LIBRARY)
   set(TBB_FOUND TRUE)
   add_definitions(-DTBB_FOUND)
-  include_directories(${TBB_INCLUDE_DIR})
+  include_directories(SYSTEM ${TBB_INCLUDE_DIR})
 else()
   message(STATUS "Intel TBB library not found!")
 endif()
 mark_as_advanced(TBB_INCLUDE_DIR TBB_LIBRARY)
+message(STATUS ${TBB_INCLUDE_DIR})
+message(STATUS ${TBB_LIBRARY})
 
 
 ######################################
@@ -70,7 +72,7 @@ set(CMAKE_CXX_FLAGS "${VALID_FLAGS}")
 include("CrossCompile.txt")   # This is for MinGW cross compile support
 
  if(CMAKE_COMPILER_IS_GNUCXX AND COMPILER_VERSION STRLESS "4.2.2")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${Boost_INCLUDE_DIR} -isystem${QT_QTGUI_INCLUDE_DIR} -isystem${QT_QTCORE_INCLUDE_DIR}")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${Boost_INCLUDE_DIR} -isystem${QT_QTGUI_INCLUDE_DIR} -isystem${QT_QTCORE_INCLUDE_DIR} -isystem${TBB_INCLUDE_DIR}")
 #   string(REGEX REPLACE "-pedantic " ""    CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
  endif()
 
@@ -78,7 +80,7 @@ include("CrossCompile.txt")   # This is for MinGW cross compile support
 add_subdirectory(src)
 
 
-set(APPS ${${PROJECT_NAME}_BINARY_DIR}/nbtparse)  # paths to executables
+set(APPS ${${PROJECT_NAME}_BINARY_DIR}/nbtparse.app)  # paths to executables
 set(LIBS "")
 set(DIRS "")   # directories to search for prerequisites
 INSTALL(CODE "
