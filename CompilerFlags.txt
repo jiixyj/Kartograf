@@ -90,6 +90,10 @@ elseif("${COMPILER_TYPE}" MATCHES "clang.*")
   list(REMOVE_ITEM FLAGS "-Wmismatched-tags")
 endif()
 
+if(APPLE)
+  list(REMOVE_ITEM FLAGS "-Wmissing-include-dirs")
+endif()
+
 foreach(_warning ${FLAGS})
   string(REGEX REPLACE "[^a-zA-Z0-9]" "" __warning ${_warning})
   string(TOUPPER ${__warning} __warning)
