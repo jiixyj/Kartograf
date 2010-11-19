@@ -1,100 +1,121 @@
 # vim:ft=cmake:
 
-set(WARNINGS "
-  -Wfatal-errors
-  -Wall
-  -Wextra
-  -Wformat=2
-  -Wcomment
-  -Wshadow
-  -Wctor-dtor-privacy
-  -Wnon-virtual-dtor
-  -Wreorder
-  -Winit-self
-  -Wmissing-include-dirs
-  -Wunused
-  -Wunused-parameter
-  -Wunknown-pragmas
-  -Wstrict-overflow=2
-  -Wstrict-overflow=3
-  -Wstrict-overflow=4
-  -Wstrict-aliasing
-  -Wfloat-equal
-  -Wundef
-  -Wcast-qual
-  -Wcast-align
-  -Wwrite-strings
-  -Wmissing-format-attribute
-  -Wno-multichar
-  -Wpacked
-  -Wredundant-decls
-  -Winvalid-pch
-  -Wlong-long
-  -Wdisabled-optimization
-  -Wconversion
-  -Wabi
-  -Wstrict-null-sentinel
-  -Weffc++
-  -Wno-non-template-friend
-  -Wsign-promo
-  -Wswitch-default
-  -Wsync-nand
-  -Wlogical-op
-  -Wvla
-  -Wstack-protector
-  -Wold-style-cast
-  -Wno-pmf-conversions
-#  -Winline
-  -Wmissing-noreturn
-  -Wunsafe-loop-optimizations
-#  -Waggregate-return   # with this on, only POD may be returned from functions
-  -Wsign-conversion    # *very* pedantic sign warnings
-#  -Wpadded             # we don't need padding warnings on a quad core
-#  -Wswitch-enum        # warnings in mousePressEvent
- ")
-
-set(OPTIMIZATIONS "
-#  -fPIC
-  -funsafe-loop-optimizations
-  -fno-strict-aliasing
-  -funit-at-a-time      # needed for GCC 4.3.3
- ")
+execute_process(
+  COMMAND "${CMAKE_CXX_COMPILER}" "-v"
+  OUTPUT_VARIABLE COMPILER_TYPE
+  ERROR_VARIABLE COMPILER_TYPE
+)
 
 execute_process(
   COMMAND "${CMAKE_CXX_COMPILER}" "-dumpversion"
   OUTPUT_VARIABLE COMPILER_VERSION
 )
 
-# remove unsupported warning flags
+include(CheckCXXCompilerFlag)
+
+
+list(APPEND FLAGS "-ansi")
+list(APPEND FLAGS "-pedantic")
+
+list(APPEND FLAGS "-Wfatal-errors")
+list(APPEND FLAGS "-Wall")
+list(APPEND FLAGS "-Wextra")
+list(APPEND FLAGS "-Wformat=2")
+list(APPEND FLAGS "-Wcomment")
+list(APPEND FLAGS "-Wshadow")
+list(APPEND FLAGS "-Wctor-dtor-privacy")
+list(APPEND FLAGS "-Wnon-virtual-dtor")
+list(APPEND FLAGS "-Wreorder")
+list(APPEND FLAGS "-Winit-self")
+list(APPEND FLAGS "-Wmissing-include-dirs")
+list(APPEND FLAGS "-Wunused")
+list(APPEND FLAGS "-Wunused-parameter")
+list(APPEND FLAGS "-Wunknown-pragmas")
+list(APPEND FLAGS "-Wstrict-overflow=2")
+list(APPEND FLAGS "-Wstrict-overflow=3")
+list(APPEND FLAGS "-Wstrict-overflow=4")
+list(APPEND FLAGS "-Wstrict-aliasing")
+list(APPEND FLAGS "-Wfloat-equal")
+list(APPEND FLAGS "-Wundef")
+list(APPEND FLAGS "-Wcast-qual")
+list(APPEND FLAGS "-Wcast-align")
+list(APPEND FLAGS "-Wwrite-strings")
+list(APPEND FLAGS "-Wmissing-format-attribute")
+list(APPEND FLAGS "-Wno-multichar")
+list(APPEND FLAGS "-Wpacked")
+list(APPEND FLAGS "-Wredundant-decls")
+list(APPEND FLAGS "-Winvalid-pch")
+list(APPEND FLAGS "-Wlong-long")
+list(APPEND FLAGS "-Wdisabled-optimization")
+list(APPEND FLAGS "-Wconversion")
+list(APPEND FLAGS "-Wabi")
+list(APPEND FLAGS "-Wstrict-null-sentinel")
+list(APPEND FLAGS "-Weffc++")
+list(APPEND FLAGS "-Wno-non-template-friend")
+list(APPEND FLAGS "-Wsign-promo")
+list(APPEND FLAGS "-Wswitch-default")
+list(APPEND FLAGS "-Wsync-nand")
+list(APPEND FLAGS "-Wlogical-op")
+list(APPEND FLAGS "-Wvla")
+list(APPEND FLAGS "-Wstack-protector")
+list(APPEND FLAGS "-Wold-style-cast")
+list(APPEND FLAGS "-Wno-pmf-conversions")
+list(APPEND FLAGS "-Winline")
+list(APPEND FLAGS "-Wmissing-noreturn")
+list(APPEND FLAGS "-Wunsafe-loop-optimizations")
+list(APPEND FLAGS "-Waggregate-return")
+list(APPEND FLAGS "-Wsign-conversion")
+list(APPEND FLAGS "-Wpadded")
+list(APPEND FLAGS "-Wswitch-enum")
+
+list(APPEND FLAGS "-fPIC")
+list(APPEND FLAGS "-funsafe-loop-optimizations")
+list(APPEND FLAGS "-fno-strict-aliasing")
+list(APPEND FLAGS "-funit-at-a-time")
+
+
 if(CMAKE_COMPILER_IS_GNUCXX)
-  if(COMPILER_VERSION STRLESS "4.2.2")
-    string(REGEX REPLACE "[^\n]*-Wlogical-op[^\n]*\n" ""               WARNINGS ${WARNINGS})
-    string(REGEX REPLACE "[^\n]*-Wvla[^\n]*\n" ""               WARNINGS ${WARNINGS})
-    string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""               WARNINGS ${WARNINGS})
-    string(REGEX REPLACE "[^\n]*-Wmissing-noreturn[^\n]*\n" ""               WARNINGS ${WARNINGS})
-    string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" ""               WARNINGS ${WARNINGS})
-    string(REGEX REPLACE "[^\n]*-Wstrict-overflow=4[^\n]*\n" ""               WARNINGS ${WARNINGS})
-  endif()
-  if(COMPILER_VERSION STRLESS "4.3.4")
-    string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""               WARNINGS ${WARNINGS})
-  endif()
-  if(COMPILER_VERSION STREQUAL "4.4.1\n")
-    string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" ""   WARNINGS ${WARNINGS})
-  endif()
-elseif("${CMAKE_CXX_COMPILER}" MATCHES ".*clang.*")
-  string(REGEX REPLACE "[^\n]*-Wstrict-null-sentinel[^\n]*\n" ""      WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-Wno-non-template-friend[^\n]*\n" ""    WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""                 WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-Wlogical-op[^\n]*\n" ""                WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-Wno-pmf-conversions[^\n]*\n" ""        WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" "" WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""           WARNINGS ${WARNINGS})
-  string(REGEX REPLACE "[^\n]*-funsafe-loop-optimizations[^\n]*\n" "" OPTIMIZATIONS ${OPTIMIZATIONS})
-  set(WARNINGS "${WARNINGS} -Wno-mismatched-tags")
+  list(APPEND FLAGS "-Wno-inline")
+  list(APPEND FLAGS "-Wno-aggregate-return")
+  list(APPEND FLAGS "-Wno-padded")
+  list(APPEND FLAGS "-Wno-switch-enum")
+elseif("${COMPILER_TYPE}" MATCHES "clang.*")
+  list(APPEND FLAGS "-Wno-mismatched-tags")
 endif()
 
-# strip comments and newlines
-string(REGEX REPLACE "\ *#[^\n]*\n" "" WARNINGS ${WARNINGS})
-string(REGEX REPLACE "\n\ *" " "       WARNINGS ${WARNINGS})
-string(REGEX REPLACE "\ *#[^\n]*\n" "" OPTIMIZATIONS ${OPTIMIZATIONS})
-string(REGEX REPLACE "\n\ *" " "       OPTIMIZATIONS ${OPTIMIZATIONS})
+foreach(_warning ${FLAGS})
+  string(REGEX REPLACE "[^a-zA-Z0-9]" "" __warning ${_warning})
+  string(TOUPPER ${__warning} __warning)
+  CHECK_CXX_COMPILER_FLAG(${_warning} ${__warning})
+  if(${__warning})
+    set(VALID_FLAGS "${VALID_FLAGS} ${_warning}")
+  endif()
+endforeach()
+
+# remove unsupported warning flags
+# if(CMAKE_COMPILER_IS_GNUCXX)
+#   if(COMPILER_VERSION STRLESS "4.2.2")
+#     string(REGEX REPLACE "[^\n]*-Wlogical-op[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#     string(REGEX REPLACE "[^\n]*-Wvla[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#     string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#     string(REGEX REPLACE "[^\n]*-Wmissing-noreturn[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#     string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#     string(REGEX REPLACE "[^\n]*-Wstrict-overflow=4[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#   endif()
+#   if(COMPILER_VERSION STRLESS "4.3.4")
+#     string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""               WARNINGS ${WARNINGS})
+#   endif()
+#   if(COMPILER_VERSION STREQUAL "4.4.1\n")
+#     string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" ""   WARNINGS ${WARNINGS})
+#   endif()
+# elseif("${CMAKE_CXX_COMPILER}" MATCHES ".*clang.*")
+#   string(REGEX REPLACE "[^\n]*-Wstrict-null-sentinel[^\n]*\n" ""      WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-Wno-non-template-friend[^\n]*\n" ""    WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-Wsync-nand[^\n]*\n" ""                 WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-Wlogical-op[^\n]*\n" ""                WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-Wno-pmf-conversions[^\n]*\n" ""        WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-Wunsafe-loop-optimizations[^\n]*\n" "" WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-Wsign-conversion[^\n]*\n" ""           WARNINGS ${WARNINGS})
+#   string(REGEX REPLACE "[^\n]*-funsafe-loop-optimizations[^\n]*\n" "" OPTIMIZATIONS ${OPTIMIZATIONS})
+#   set(WARNINGS "${WARNINGS} -Wno-mismatched-tags")
+# endif()
