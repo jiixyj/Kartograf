@@ -8,6 +8,7 @@
 MainGUI::MainGUI()
           : current_world(0),
             custom_world(new QLineEdit),
+            heightmapBox(new QGroupBox("heightmap")),
             bf(NULL),
             scene(new QGraphicsScene()),
             mf(new MainForm(scene, bf)),
@@ -186,7 +187,6 @@ MainGUI::MainGUI()
   left_side->addWidget(night_mode_box);
   connect(night_mode_box, SIGNAL(stateChanged(int)), this, SLOT(set_night_mode(int)));
 
-  heightmapBox = new QGroupBox("heightmap");
   heightmapBox->setCheckable(true);
   heightmapBox->setChecked(false);
   QRadioButton* heightmap_box1 = new QRadioButton("grey");
