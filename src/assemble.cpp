@@ -142,15 +142,15 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
 
 Settings getSettings() {
   Settings set;
-  set.topview = false;
+  set.topview = true;
   set.oblique = false;
-  set.isometric = true;
+  set.isometric = false;
   set.heightmap = false;
   set.color = false;
-  set.shadow_strength = 60;
+  set.shadow_strength = 0;
   set.shadow_quality = true;
   set.shadow_quality_ultra = true;
-  set.relief_strength = 10;
+  set.relief_strength = 0;
   set.sun_direction = 1;
   set.rotate = 1;
   set.nightmode = 0;
@@ -198,7 +198,7 @@ void pamToPng(FILE* out) {
   for (int32_t i = 0; i < g_height; ++i) {
     if (pam) {
       size_t read = fread(pngRow, 4, static_cast<size_t>(g_width), pam);
-      if (read != 4 * static_cast<size_t>(g_width)) {
+      if (read != static_cast<size_t>(g_width)) {
         throw std::runtime_error("File reading failed!");
       }
     } else {

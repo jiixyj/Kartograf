@@ -16,7 +16,7 @@ int main(int ac, char* av[]) {
     bf.setSettings(getSettings());
     std::pair<int, int> min_norm, max_norm;
     calculateMinMaxPoint(min_norm, max_norm, bf);
-    std::string buffer_file = "";
+    std::string buffer_file = "tmp.pam";
 
     size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
     boost::progress_display show_progress(range);
