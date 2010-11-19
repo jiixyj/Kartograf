@@ -26,7 +26,7 @@ endif()
 
 ##### Boost
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost COMPONENTS filesystem system REQUIRED)
+find_package(Boost COMPONENTS filesystem system thread REQUIRED)
 
 ##### GTK2
 find_package(GTK2 COMPONENTS gtk gtkmm)
