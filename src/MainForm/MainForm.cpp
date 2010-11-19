@@ -149,3 +149,15 @@ void MainForm::mouseDoubleClickEvent(QMouseEvent* mevent) {
   mousePressEvent(mevent);
   return;
 }
+
+void MainForm::mouseMoveEvent(QMouseEvent* mevent) {
+  QPoint pos = mevent->pos();
+  QPointF scene_pos_float = mapToScene(pos);
+  QPoint scene_pos(floor(scene_pos_float.x()), floor(scene_pos_float.y()));
+  if (bf_ && bf_->set().topview) {
+    std::pair<int, int> scene_pos_mapped =
+                     projectCoords(std::make_pair(scene_pos.x(), scene_pos.y()),
+                                   (4 - bf_->set().rotate) % 4);
+    std::cerr << scene_pos_mapped.first << " " << scene_pos_mapped.second << std::endl;
+  }
+}
