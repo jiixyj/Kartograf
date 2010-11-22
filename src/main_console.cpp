@@ -13,6 +13,10 @@ int main(int ac, char* av[]) {
     }
     int world = atoi(av[1]);
     nbt bf = world ? nbt(world) : nbt(av[1]);
+    if (bf.bad_world) {
+      std::cerr << "Invalid World!" << std::endl;
+      return 1;
+    }
     std::cout << bf.string();
     bf.setSettings(getSettings());
     std::pair<int, int> min_norm, max_norm;
