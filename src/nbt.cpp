@@ -179,17 +179,17 @@ std::list<point3> a_star(int x_start, int z_start,
         // } else {
         //   cache.insert(*it);
         // }
-        int32_t block_type = getValue(cache, x, y, z, j, i);
-        changeBlockParts(block_type, state);
-        while (block_type == 0) {
-          old_x = x; old_y = y; old_z = z;
-          goOneStepIntoScene(x, y, z, state);
-          if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
-            goto endloop1;
-          }
-          block_type = getValue(cache, x, y, z, j, i);
-          changeBlockParts(block_type, state);
-        }
+        // int32_t block_type = getValue(cache, x, y, z, j, i);
+        // changeBlockParts(block_type, state);
+        // while (block_type == 0) {
+        //   old_x = x; old_y = y; old_z = z;
+        //   goOneStepIntoScene(x, y, z, state);
+        //   if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
+        //     goto endloop1;
+        //   }
+        //   block_type = getValue(cache, x, y, z, j, i);
+        //   changeBlockParts(block_type, state);
+        // }
 }
 
 nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
