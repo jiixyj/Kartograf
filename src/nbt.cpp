@@ -1005,7 +1005,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
           color = calculateMap(cache, color, x, y, z, j, i, state);
           color = calculateRelief(cache, color, x, y, z, j, i);
           if (!set_.heightmap) {
-            color = color.lighter((y - 64) / 2 + 96);
             if (set_.nightmode) {
               size_t light_index_tmp =
                                 static_cast<size_t>(old_y + old_z * 128 + old_x * 128 * 16);
