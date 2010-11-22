@@ -4,6 +4,9 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <fstream>
+
+#include "./png_read.h"
 
 namespace bf = boost::filesystem;
 
@@ -29,6 +32,7 @@ nbt::nbt(): bad_world(false),
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(getenv("HOME")),
             set_(),
+            has_biome_data(false),
             cache_mutex_(new boost::mutex),
             blockcache_() {}
 
@@ -41,6 +45,7 @@ nbt::nbt(int world)
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(),
             set_(),
+            has_biome_data(false),
             cache_mutex_(new boost::mutex),
             blockcache_() {
   char* home_dir;
@@ -70,6 +75,7 @@ nbt::nbt(const std::string& filename)
             zPos_max_(std::numeric_limits<int32_t>::min()),
             dir_(),
             set_(),
+            has_biome_data(false),
             cache_mutex_(new boost::mutex),
             blockcache_() {
   if (bf::is_directory(bf::status(dir_ = filename))) {
@@ -117,7 +123,49 @@ bool nbt::exist_world(int world) {
   }
 }
 
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+
 void nbt::construct_world() {
+  bf::path biome_dir = dir_ / "EXTRACTEDBIOMES";
+  if (bf::is_directory(biome_dir)) {
+    has_biome_data = true;
+    int width, height;
+    png_bytep* foliage_data_ = read_png_file((dir_ / "EXTRACTEDBIOMES" / "foliagecolor.png").string().c_str(), width, height);
+    png_bytep* grass_data_ = read_png_file((dir_ / "EXTRACTEDBIOMES" / "grasscolor.png").string().c_str(), width, height);
+    for (int y = 0; y < height; y++) {
+      std::copy(foliage_data_[y], foliage_data_[y] + width * 4, std::back_inserter(foliage_data));
+      std::copy(grass_data_[y], grass_data_[y] + width * 4, std::back_inserter(grass_data));
+      free(foliage_data_[y]);
+      free(grass_data_[y]);
+    }
+    bf::recursive_directory_iterator end_biome_itr;
+    cv::Mat test(256, 256, CV_8UC1);
+    test *= 0;
+    for (bf::recursive_directory_iterator itr(biome_dir); itr != end_biome_itr; ++itr) {
+      if (bf::extension(itr->path()).compare(".biome")) continue;
+      std::string fn = itr->path().filename();
+      size_t first = fn.find(".");
+      size_t second = fn.find(".", first + 1);
+      if (second != std::string::npos) {
+        long x = strtol(&(fn.c_str()[0]), NULL, 10);
+        long z = strtol(&(fn.c_str()[first + 1]), NULL, 10);
+        std::cout << x << " " << z << std::endl;
+        std::ifstream input(itr->path().string().c_str());
+        std::vector<uint16_t> indices;
+        for(int i = 0; i < 256*64; ++i) {
+          uint16_t dummy;
+          input.read(reinterpret_cast<char*>(&dummy) + 1, 1);
+          input.read(reinterpret_cast<char*>(&dummy), 1);
+          test.at<uint8_t>(dummy / 256, dummy % 256) = 255;
+          // std::cout << dummy << std::endl;
+          indices.push_back(dummy);
+        }
+        biome_indices[std::pair<int, int>(x, z)] = indices;
+      }
+    }
+    cv::imwrite("testt.png", test);
+  }
   bf::recursive_directory_iterator end_itr;
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
     if (bf::is_directory(itr->path())) continue;
@@ -480,6 +528,51 @@ void nbt::changeBlockParts(int32_t& blockid, int state) const {
   }
 }
 
+Color nbt::blockid_to_color(int value, int x, int z, int j, int i) const {
+  if (value == 2) {
+    while (x < 0) {
+      --j;
+      x += 16;
+    }
+    while (x > 15) {
+      ++j;
+      x -= 16;
+    }
+    while (z < 0) {
+      --i;
+      z += 16;
+    }
+    while (z > 15) {
+      ++i;
+      z -= 16;
+    }
+    std::cerr << j << " " << i <<std::endl;
+    int i_diff = ((i % 8) + 8) % 8;
+    int j_diff = ((j % 8) + 8) % 8;
+    int i_eight = i - i_diff;
+    int j_eight = j - j_diff;
+    std::cerr << j_eight << " " << i_eight <<std::endl;
+    std::cerr << j_diff << " " << i_diff << " " << z << " " << x <<std::endl;
+    const std::vector<uint16_t>& data = biome_indices.at(std::make_pair(j_eight, i_eight));
+    if (data.size() != 16384) {
+      std::cerr << "ERROR" << std::endl;
+      // exit(1);
+    } else {
+      std::cerr << i_diff * 256 * 8 + j_diff * 256 + z * 16 + x << std::endl;
+    }
+    uint16_t image_index = data.at(i_diff * 256 * 8 + j_diff * 256 + z * 16 + x);
+    std::cerr << image_index << std::endl;
+    std::cerr << "BLIB" << std::endl<<std::endl ;
+
+    // image_index = 1;
+    return Color((int) (unsigned char)grass_data[(size_t)image_index * 4 + 0],
+                 (int) (unsigned char)grass_data[(size_t)image_index * 4 + 1],
+                 (int) (unsigned char)grass_data[(size_t)image_index * 4 + 2],
+                 255);
+  }
+  return colors[value];
+}
+
 Color nbt::calculateMap(const nbt::map& cache, Color input,
                          int x, int y, int z, int j, int i, int32_t zigzag) const {
   Color color = input;
@@ -495,7 +588,7 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       }
     } else {
       int height_low_bound = y;
-      while (colors[getValue(cache, x, height_low_bound--, z, j, i)]
+      while (blockid_to_color(getValue(cache, x, height_low_bound--, z, j, i), x, z, j, i)
                                                               .alphaF() < 1) {
         if (height_low_bound == -1) break;
       }
@@ -503,17 +596,17 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
         for (int h = height_low_bound; h < y; ++h) {
           char blknr = getValue(cache, x, h, z, j, i);
           if (blknr != 0) {
-            color = Color::blend(calculateShadow(cache, colors[blknr], x, h, z, j, i),
+            color = Color::blend(calculateShadow(cache, blockid_to_color(blknr, x, z, j, i), x, h, z, j, i),
                                                                            color);
           }
         }
       } else {
         for (int h = height_low_bound; h < y; ++h) {
           char blknr = getValue(cache, x, h, z, j, i);
-          color = Color::blend(colors[blknr], color);
+          color = Color::blend(blockid_to_color(blknr, x, z, j, i), color);
         }
       }
-      color = Color::blend(calculateShadow(cache, colors[getValue(cache, x, y, z, j, i)], x, y, z, j, i), color);
+      color = Color::blend(calculateShadow(cache, blockid_to_color(getValue(cache, x, y, z, j, i), x, z, j, i), x, y, z, j, i), color);
     }
   } else if (set_.oblique || set_.isometric) {
     std::stack<Color> colorstack;

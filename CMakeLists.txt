@@ -25,6 +25,8 @@ endif()
 ##### Library setup              #####
 ######################################
 
+find_package(OpenCV)
+
 ##### Boost
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS filesystem system thread REQUIRED)

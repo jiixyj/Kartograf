@@ -57,6 +57,9 @@ class nbt {
                                        int j, int i, int32_t zigzag = false) const;
   Color calculateRelief(const nbt::map& cache, Color input, int x, int y, int z,
                                        int j, int i) const;
+
+  Color blockid_to_color(int value, int x, int z, int j, int i) const;
+
   int32_t xPos_min_;
   int32_t zPos_min_;
   int32_t xPos_max_;
@@ -64,6 +67,11 @@ class nbt {
 
   boost::filesystem::path dir_;
   Settings set_;
+
+  bool has_biome_data;
+  std::vector<char> foliage_data;
+  std::vector<char> grass_data;
+  std::map<std::pair<int, int>, std::vector<uint16_t> > biome_indices;
 
   mutable boost::shared_ptr<boost::mutex> cache_mutex_;
   mutable map blockcache_;
