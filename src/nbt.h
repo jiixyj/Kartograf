@@ -33,8 +33,8 @@ class nbt {
   bool exists(int32_t x, int32_t z, boost::filesystem::path& path) const;
   tag_ptr tag_at(int32_t x, int32_t z) const;
 
-  std::list<point3> a_star(int x_start, int y_start,
-                           int x_end, int y_end);
+  std::list<point3> a_star(int x_start, int z_start,
+                           int x_end, int z_end);
 
   void setSettings(Settings set);
   Settings set() const { return set_; }

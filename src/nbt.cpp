@@ -164,9 +164,32 @@ bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
   return true;
 }
 
-std::list<point3> a_star(int x_start, int y_start,
-                         int x_end, int y_end) {
-  
+std::list<point3> a_star(int x_start, int z_start,
+                         int x_end, int z_end) {
+        // nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
+        // if (it == blockcache_.end()) {
+        //   tag_ptr newtag = tag_at(jj, ii);
+        //   if (newtag) {
+        //     const std::string& pl = newtag->sub("Level")->
+        //                                sub("Blocks")->pay_<tag::byte_array>().p;
+        //     blockcache_.insert(nbt::map::value_type(std::pair<int, int>(jj, ii),
+        //                                             pl));
+        //     cache.insert(nbt::map::value_type(std::pair<int, int>(jj, ii), pl));
+        //   }
+        // } else {
+        //   cache.insert(*it);
+        // }
+        int32_t block_type = getValue(cache, x, y, z, j, i);
+        changeBlockParts(block_type, state);
+        while (block_type == 0) {
+          old_x = x; old_y = y; old_z = z;
+          goOneStepIntoScene(x, y, z, state);
+          if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
+            goto endloop1;
+          }
+          block_type = getValue(cache, x, y, z, j, i);
+          changeBlockParts(block_type, state);
+        }
 }
 
 nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
