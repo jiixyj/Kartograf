@@ -88,7 +88,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     list(REMOVE_ITEM FLAGS "-Wunsafe-loop-optimizations")
   endif()
 elseif("${COMPILER_TYPE}" MATCHES "clang.*")
-  list(REMOVE_ITEM FLAGS "-Wmismatched-tags")
+  list(APPEND FLAGS "-Wno-mismatched-tags")
 endif()
 
 if(APPLE)

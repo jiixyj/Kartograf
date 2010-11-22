@@ -33,6 +33,9 @@ nbt::nbt(): bad_world(false),
             dir_(getenv("HOME")),
             set_(),
             has_biome_data(false),
+            foliage_data(),
+            grass_data(),
+            biome_indices(),
             cache_mutex_(new boost::mutex),
             blockcache_() {}
 
@@ -46,6 +49,9 @@ nbt::nbt(int world)
             dir_(),
             set_(),
             has_biome_data(false),
+            foliage_data(),
+            grass_data(),
+            biome_indices(),
             cache_mutex_(new boost::mutex),
             blockcache_() {
   char* home_dir;
@@ -76,6 +82,9 @@ nbt::nbt(const std::string& filename)
             dir_(),
             set_(),
             has_biome_data(false),
+            foliage_data(),
+            grass_data(),
+            biome_indices(),
             cache_mutex_(new boost::mutex),
             blockcache_() {
   if (bf::is_directory(bf::status(dir_ = filename))) {
@@ -127,14 +136,14 @@ void nbt::construct_world() {
   bf::path biome_dir = dir_ / "EXTRACTEDBIOMES";
   if (bf::is_directory(biome_dir)) {
     has_biome_data = true;
-    int width, height;
+    uint32_t width, height;
     png_bytep* foliage_data_ = read_png_file((dir_ / "EXTRACTEDBIOMES" / "foliagecolor.png").string().c_str(), width, height);
     png_bytep* grass_data_ = read_png_file((dir_ / "EXTRACTEDBIOMES" / "grasscolor.png").string().c_str(), width, height);
-    for (int y = 0; y < height; y++) {
+    for (size_t y = 0; y < height; y++) {
       std::copy(foliage_data_[y], foliage_data_[y] + width * 4, std::back_inserter(foliage_data));
       std::copy(grass_data_[y], grass_data_[y] + width * 4, std::back_inserter(grass_data));
-      free(foliage_data_[y]);
-      free(grass_data_[y]);
+      delete[] foliage_data_[y];
+      delete[] grass_data_[y];
     }
     bf::recursive_directory_iterator end_biome_itr;
     for (bf::recursive_directory_iterator itr(biome_dir); itr != end_biome_itr; ++itr) {
@@ -154,7 +163,7 @@ void nbt::construct_world() {
           input.read(reinterpret_cast<char*>(&dummy), 1);
           indices.push_back(dummy);
         }
-        biome_indices[std::pair<int, int>(x, z)] = indices;
+        biome_indices[std::make_pair(x, z)] = indices;
       }
     }
   }
@@ -205,33 +214,33 @@ bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
   return true;
 }
 
-std::list<point3> a_star(int x_start, int z_start,
-                         int x_end, int z_end) {
-        // nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
-        // if (it == blockcache_.end()) {
-        //   tag_ptr newtag = tag_at(jj, ii);
-        //   if (newtag) {
-        //     const std::string& pl = newtag->sub("Level")->
-        //                                sub("Blocks")->pay_<tag::byte_array>().p;
-        //     blockcache_.insert(nbt::map::value_type(std::pair<int, int>(jj, ii),
-        //                                             pl));
-        //     cache.insert(nbt::map::value_type(std::pair<int, int>(jj, ii), pl));
-        //   }
-        // } else {
-        //   cache.insert(*it);
-        // }
-        // int32_t block_type = getValue(cache, x, y, z, j, i);
-        // changeBlockParts(block_type, state);
-        // while (block_type == 0) {
-        //   old_x = x; old_y = y; old_z = z;
-        //   goOneStepIntoScene(x, y, z, state);
-        //   if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
-        //     goto endloop1;
-        //   }
-        //   block_type = getValue(cache, x, y, z, j, i);
-        //   changeBlockParts(block_type, state);
-        // }
-}
+// std::list<point3> a_star(int x_start, int z_start,
+//                          int x_end, int z_end) {
+//         // nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
+//         // if (it == blockcache_.end()) {
+//         //   tag_ptr newtag = tag_at(jj, ii);
+//         //   if (newtag) {
+//         //     const std::string& pl = newtag->sub("Level")->
+//         //                                sub("Blocks")->pay_<tag::byte_array>().p;
+//         //     blockcache_.insert(nbt::map::value_type(std::pair<int, int>(jj, ii),
+//         //                                             pl));
+//         //     cache.insert(nbt::map::value_type(std::pair<int, int>(jj, ii), pl));
+//         //   }
+//         // } else {
+//         //   cache.insert(*it);
+//         // }
+//         // int32_t block_type = getValue(cache, x, y, z, j, i);
+//         // changeBlockParts(block_type, state);
+//         // while (block_type == 0) {
+//         //   old_x = x; old_y = y; old_z = z;
+//         //   goOneStepIntoScene(x, y, z, state);
+//         //   if (y < 0 || x < 0 || x > 15 || z < 0 || z > 15) {
+//         //     goto endloop1;
+//         //   }
+//         //   block_type = getValue(cache, x, y, z, j, i);
+//         //   changeBlockParts(block_type, state);
+//         // }
+// }
 
 nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
   bf::path tmp;
@@ -547,17 +556,21 @@ Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
     if (data.size() != 16384) {
       throw std::runtime_error("Error opening biome indices!");
     }
-    uint16_t image_index = data.at(i_diff * 256 * 8 + j_diff * 16 + z * 16 * 8 + x);
+    uint16_t image_index = data.at(static_cast<size_t>(
+                                   i_diff * 256 * 8
+                                 + z * 16 * 8
+                                 + j_diff * 16
+                                 + x));
 
     if (value == 2) {
-      return Color((int) (unsigned char)grass_data[(size_t)image_index * 4 + 0],
-                   (int) (unsigned char)grass_data[(size_t)image_index * 4 + 1],
-                   (int) (unsigned char)grass_data[(size_t)image_index * 4 + 2],
+      return Color(static_cast<uint8_t>(grass_data[image_index * 4u + 0]),
+                   static_cast<uint8_t>(grass_data[image_index * 4u + 1]),
+                   static_cast<uint8_t>(grass_data[image_index * 4u + 2]),
                    255);
     } else if (value == 18) {
-      Color ret ((int) (unsigned char)foliage_data[(size_t)image_index * 4 + 0],
-                 (int) (unsigned char)foliage_data[(size_t)image_index * 4 + 1],
-                 (int) (unsigned char)foliage_data[(size_t)image_index * 4 + 2],
+      Color ret (static_cast<uint8_t>(foliage_data[image_index * 4u + 0]),
+                 static_cast<uint8_t>(foliage_data[image_index * 4u + 1]),
+                 static_cast<uint8_t>(foliage_data[image_index * 4u + 2]),
                  255);
       Color leaves = oblique ? colors_oblique[value] : colors[value];
       ret.setAlphaF(leaves.alphaF());
