@@ -7,7 +7,8 @@
 int main(int ac, char* av[]) {
   try {
     if (ac != 2) {
-      std::cerr << "Usage: ./nbtparse [filename | world number]" << std::endl;
+      std::cerr << "Usage: " << boost::filesystem::path(av[0]).filename()
+                << " [filename | world number]" << std::endl;
       return 1;
     }
     int world = atoi(av[1]);
