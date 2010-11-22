@@ -58,7 +58,8 @@ class nbt {
   Color calculateRelief(const nbt::map& cache, Color input, int x, int y, int z,
                                        int j, int i) const;
 
-  Color blockid_to_color(int value, int x, int z, int j, int i) const;
+  Color blockid_to_color(int value, int x, int z, int j, int i,
+                         bool oblique = false) const;
 
   int32_t xPos_min_;
   int32_t zPos_min_;

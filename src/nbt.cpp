@@ -158,7 +158,6 @@ void nbt::construct_world() {
           input.read(reinterpret_cast<char*>(&dummy) + 1, 1);
           input.read(reinterpret_cast<char*>(&dummy), 1);
           test.at<uint8_t>(dummy / 256, dummy % 256) = 255;
-          // std::cout << dummy << std::endl;
           indices.push_back(dummy);
         }
         biome_indices[std::pair<int, int>(x, z)] = indices;
@@ -528,8 +527,9 @@ void nbt::changeBlockParts(int32_t& blockid, int state) const {
   }
 }
 
-Color nbt::blockid_to_color(int value, int x, int z, int j, int i) const {
-  if (value == 2) {
+Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
+                            bool oblique) const {
+  if (value == 2 || value == 18) {
     while (x < 0) {
       --j;
       x += 16;
@@ -546,31 +546,35 @@ Color nbt::blockid_to_color(int value, int x, int z, int j, int i) const {
       ++i;
       z -= 16;
     }
-    std::cerr << j << " " << i <<std::endl;
     int i_diff = ((i % 8) + 8) % 8;
     int j_diff = ((j % 8) + 8) % 8;
     int i_eight = i - i_diff;
     int j_eight = j - j_diff;
-    std::cerr << j_eight << " " << i_eight <<std::endl;
-    std::cerr << j_diff << " " << i_diff << " " << z << " " << x <<std::endl;
     const std::vector<uint16_t>& data = biome_indices.at(std::make_pair(j_eight, i_eight));
     if (data.size() != 16384) {
-      std::cerr << "ERROR" << std::endl;
-      // exit(1);
-    } else {
-      std::cerr << i_diff * 256 * 8 + j_diff * 256 + z * 16 + x << std::endl;
+      throw std::runtime_error("Error opening biome indices!");
     }
-    uint16_t image_index = data.at(i_diff * 256 * 8 + j_diff * 256 + z * 16 + x);
-    std::cerr << image_index << std::endl;
-    std::cerr << "BLIB" << std::endl<<std::endl ;
+    uint16_t image_index = data.at(i_diff * 256 * 8 + j_diff * 16 + z * 16 * 8 + x);
 
-    // image_index = 1;
-    return Color((int) (unsigned char)grass_data[(size_t)image_index * 4 + 0],
-                 (int) (unsigned char)grass_data[(size_t)image_index * 4 + 1],
-                 (int) (unsigned char)grass_data[(size_t)image_index * 4 + 2],
+    if (value == 2) {
+      return Color((int) (unsigned char)grass_data[(size_t)image_index * 4 + 0],
+                   (int) (unsigned char)grass_data[(size_t)image_index * 4 + 1],
+                   (int) (unsigned char)grass_data[(size_t)image_index * 4 + 2],
+                   255);
+    } else if (value == 18) {
+      Color ret ((int) (unsigned char)foliage_data[(size_t)image_index * 4 + 0],
+                 (int) (unsigned char)foliage_data[(size_t)image_index * 4 + 1],
+                 (int) (unsigned char)foliage_data[(size_t)image_index * 4 + 2],
                  255);
+      Color leaves = oblique ? colors_oblique[value] : colors[value];
+      ret.setAlphaF(leaves.alphaF());
+      ret.setRedF(leaves.alphaF() * ret.redF());
+      ret.setGreenF(leaves.alphaF() * ret.greenF());
+      ret.setBlueF(leaves.alphaF() * ret.blueF());
+      return ret;
+    }
   }
-  return colors[value];
+  return oblique ? colors_oblique[value] : colors[value];
 }
 
 Color nbt::calculateMap(const nbt::map& cache, Color input,
@@ -624,12 +628,12 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       size_t color_map_size = colors_oblique.size();
       if (set_.shadow_quality_ultra || blocks_hit <= set_.shadow_quality * 2) {
         if (blockid != 0) {
-          colorstack.push(calculateShadow(cache, colors_oblique[blockid], x, y, z, j, i,
+          colorstack.push(calculateShadow(cache, blockid_to_color(blockid, x, z, j, i, true), x, y, z, j, i,
                                                                          zigzag));
         }
         ++blocks_hit;
       } else {
-        colorstack.push(colors_oblique[blockid]);
+        colorstack.push(blockid_to_color(blockid, x, z, j, i, true));
       }
       if (colors_oblique.size() > color_map_size) {
         std::cerr << "Block " << blockid << "has not been implemented yet\n";
