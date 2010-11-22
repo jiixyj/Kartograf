@@ -522,7 +522,7 @@ void nbt::changeBlockParts(int32_t& blockid, int state) const {
 
 Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
                             bool oblique) const {
-  if (value == 2 || value == 18) {
+  if (has_biome_data && (value == 2 || value == 18)) {
     while (x < 0) {
       --j;
       x += 16;
