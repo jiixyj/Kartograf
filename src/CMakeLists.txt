@@ -11,8 +11,8 @@ target_link_libraries(assemble nbt ${PNG_LIBRARY} ${TBB_LIBRARY})
 
 add_executable(kartograf_qt4 MACOSX_BUNDLE main)
 add_executable(kartograf_cli main_console)
-target_link_libraries(kartograf_qt4 MainGUI ${OpenCV_LIBS})
-target_link_libraries(kartograf_cli assemble ${OpenCV_LIBS})
+target_link_libraries(kartograf_qt4 MainGUI)
+target_link_libraries(kartograf_cli assemble)
 
 add_subdirectory(MainForm)
 add_subdirectory(gtkmm)

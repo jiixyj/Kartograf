@@ -123,9 +123,6 @@ bool nbt::exist_world(int world) {
   }
 }
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-
 void nbt::construct_world() {
   bf::path biome_dir = dir_ / "EXTRACTEDBIOMES";
   if (bf::is_directory(biome_dir)) {
@@ -140,8 +137,6 @@ void nbt::construct_world() {
       free(grass_data_[y]);
     }
     bf::recursive_directory_iterator end_biome_itr;
-    cv::Mat test(256, 256, CV_8UC1);
-    test *= 0;
     for (bf::recursive_directory_iterator itr(biome_dir); itr != end_biome_itr; ++itr) {
       if (bf::extension(itr->path()).compare(".biome")) continue;
       std::string fn = itr->path().filename();
@@ -157,13 +152,11 @@ void nbt::construct_world() {
           uint16_t dummy;
           input.read(reinterpret_cast<char*>(&dummy) + 1, 1);
           input.read(reinterpret_cast<char*>(&dummy), 1);
-          test.at<uint8_t>(dummy / 256, dummy % 256) = 255;
           indices.push_back(dummy);
         }
         biome_indices[std::pair<int, int>(x, z)] = indices;
       }
     }
-    cv::imwrite("testt.png", test);
   }
   bf::recursive_directory_iterator end_itr;
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
