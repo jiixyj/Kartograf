@@ -26,13 +26,11 @@ class MainForm : public QGraphicsView {
   void StopPopulateScene();
   void populateSceneItem();
   void scale();
-  void saveToFile();
   void renderNewImageEmitter();
 
  signals:
   void scaleSig();
   void renderNewImage();
-  void saveToFileSignal();
 
  protected:
   void mousePressEvent(QMouseEvent* event);

@@ -14,6 +14,7 @@ class MainGUI : public QWidget {
 
  signals:
   void disable_shadow_elements_signal(bool);
+  void save_image_with_filename_signal(QString);
 
  protected:
 
@@ -35,6 +36,8 @@ class MainGUI : public QWidget {
   void load_custom_world();
   void toggle_rendering();
   void handle_finished();
+  void save_image();
+  void save_image_with_filename(QString filename);
 
  private:
   int current_world;
@@ -45,6 +48,8 @@ class MainGUI : public QWidget {
   QGraphicsScene* scene;
   MainForm* mf;
   Settings set;
+
+  void save_image_dialog();
 
   QPushButton* start_button;
   void start_helper();

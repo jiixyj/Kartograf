@@ -208,6 +208,10 @@ MainGUI::MainGUI()
   QVBoxLayout* left_side_all = new QVBoxLayout;
   left_side_all->addWidget(left_scroll_area);
   left_side_all->addWidget(start_button);
+  QPushButton* save_button = new QPushButton("Save image");
+  left_side_all->addWidget(save_button);
+  connect(save_button, SIGNAL(clicked()), this, SLOT(save_image()));
+
   left_side_all->setContentsMargins(0, 0, 0, 0);
   QWidget* left_side_all_widget = new QWidget;
   left_side_all_widget->setLayout(left_side_all);
@@ -231,6 +235,8 @@ MainGUI::MainGUI()
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
   connect(&new_world_setup_watcher, SIGNAL(finished()), this, SLOT(toggle_rendering()));
   connect(&watcher, SIGNAL(finished()), this, SLOT(handle_finished()));
+  connect(this, SIGNAL(save_image_with_filename_signal(QString)),
+          this, SLOT(save_image_with_filename(QString)));
 }
 
 void MainGUI::disable_shadow_elements(bool value) {
@@ -374,4 +380,20 @@ void MainGUI::toggle_rendering() {
 void MainGUI::handle_finished() {
   start_button->setText("Start rendering");
   start_button->setEnabled(true);
+}
+
+void MainGUI::save_image() {
+  QString filename = QFileDialog::getSaveFileName(this, "Save image",
+                            "",
+                            "Image (*.png)");
+  emit save_image_with_filename_signal(filename);
+}
+
+void MainGUI::save_image_with_filename(QString filename) {
+  QImage image(scene->sceneRect().toRect().size(), QImage::Format_ARGB32);
+  image.fill(0);
+  QPainter painter(&image);
+  scene->render(&painter, painter.viewport(), scene->sceneRect());
+  image.save(filename);
+  fprintf(stderr, "image saved!\n");
 }

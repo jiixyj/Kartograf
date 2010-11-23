@@ -8,7 +8,6 @@ MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
                    images(), stop(false) {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));
   connect(this, SIGNAL(renderNewImage()), this, SLOT(populateSceneItem()));
-  connect(this, SIGNAL(saveToFileSignal()), this, SLOT(saveToFile()));
   setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
@@ -75,22 +74,10 @@ void MainForm::populateScene() {
     progress_index = 0;
   }
   bf_->clearCache();
-  if (!stop)
-    emit saveToFileSignal();
 }
 
 void MainForm::renderNewImageEmitter() {
   emit renderNewImage();
-}
-
-void MainForm::saveToFile() {
-  QImage image(scene()->sceneRect().toRect().size(), QImage::Format_ARGB32);
-  image.fill(0);
-  QPainter painter(&image);
-  scene()->render(&painter, painter.viewport(), scene()->sceneRect());
-  image.save("image.png");
-  fprintf(stderr, "image saved!\n");
-  // throw std::runtime_error("image saved!");
 }
 
 void MainForm::populateSceneItem() {
