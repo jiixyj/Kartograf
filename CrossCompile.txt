@@ -2,8 +2,8 @@
 
 # MinGW cross compile setup - disregard if compiling for Linux
 if(WIN32)
-  # # suppress warning about auto import
-  # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
+  # suppress warning about auto import
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
   # # MinGW should link libstdc++ statically
   # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -L.")
   # list(INSERT CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a")

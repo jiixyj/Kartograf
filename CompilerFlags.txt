@@ -95,6 +95,10 @@ if(APPLE)
   list(REMOVE_ITEM FLAGS "-Wmissing-include-dirs")
 endif()
 
+if(WIN32)
+  list(REMOVE_ITEM FLAGS "-fPIC")
+endif()
+
 foreach(_warning ${FLAGS})
   string(REGEX REPLACE "[^a-zA-Z0-9]" "" __warning ${_warning})
   string(TOUPPER ${__warning} __warning)
