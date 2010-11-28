@@ -72,9 +72,9 @@ message(STATUS ${TBB_LIBRARY})
 ######################################
 ##### Compiler setup             #####
 ######################################
-include("CompilerFlags.txt")  # This sets VALID_FLAGS
+include("${CMAKE_MODULE_PATH}/CompilerFlags.txt")  # This sets VALID_FLAGS
 set(CMAKE_CXX_FLAGS "${VALID_FLAGS}")
-include("CrossCompile.txt")   # This is for MinGW cross compile support
+include("${CMAKE_MODULE_PATH}/CrossCompile.txt")   # This is for MinGW cross compile support
 
 if(CMAKE_COMPILER_IS_GNUCXX AND COMPILER_VERSION STRLESS "4.2.2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${Boost_INCLUDE_DIR} -isystem${QT_QTGUI_INCLUDE_DIR} -isystem${QT_QTCORE_INCLUDE_DIR} -isystem${TBB_INCLUDE_DIR}")
