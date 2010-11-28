@@ -67,6 +67,7 @@ class nbt {
   int32_t zPos_min_;
   int32_t xPos_max_;
   int32_t zPos_max_;
+  std::set<std::pair<int, int> > valid_coordinates;
 
   boost::filesystem::path dir_;
   Settings set_;

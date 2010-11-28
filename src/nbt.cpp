@@ -186,6 +186,7 @@ void nbt::construct_world() {
         xPos_max_ = std::max(x, xPos_max_);
         zPos_min_ = std::min(z, zPos_min_);
         zPos_max_ = std::max(z, zPos_max_);
+        valid_coordinates.insert(std::make_pair(x, z));
         chunk_found = true;
       }
     }
@@ -196,19 +197,15 @@ void nbt::construct_world() {
 }
 
 bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
+  if (!valid_coordinates.count(std::make_pair(x, z))) return false;
   int32_t x_tmp = x, z_tmp = z;
   while (x_tmp < 0) x_tmp += 64;
   while (z_tmp < 0) z_tmp += 64;
   path = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36);
-  if (!bf::exists(path)) {
-    return false;
-  }
   std::stringstream ss;
   ss << "c." << ((x < 0) ? "-" : "") << itoa(abs(x), 36) << "."
              << ((z < 0) ? "-" : "") << itoa(abs(z), 36) << ".dat";
-  if (!bf::exists(path /= ss.str())) {
-    return false;
-  }
+  path /= ss.str();
   return true;
 }
 
@@ -297,6 +294,7 @@ char nbt::getValue(const nbt::map& cache,
     ++i;
     z -= 16;
   }
+  if (!valid_coordinates.count(std::pair<int, int>(j, i))) return 0;
   nbt::map::const_accessor cacc;
   if (blockcache_.find(cacc, std::pair<int, int>(j, i))) {
     return cacc->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
@@ -1044,6 +1042,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
 }
 
 void nbt::clearCache() const {
+  blockcache_ = map();
 }
 
 std::string nbt::string() const {
