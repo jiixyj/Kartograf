@@ -4,6 +4,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/thread/mutex.hpp>
+#include <tbb/concurrent_hash_map.h>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -39,7 +40,7 @@ class nbt {
 
   void setSettings(Settings set);
   Settings set() const { return set_; }
-  typedef std::map<std::pair<int, int>, std::string> map;
+  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
   char getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
   Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
@@ -75,7 +76,6 @@ class nbt {
   std::vector<char> grass_data;
   std::map<std::pair<int, int>, std::vector<uint16_t> > biome_indices;
 
-  mutable boost::shared_ptr<boost::mutex> cache_mutex_;
   mutable map blockcache_;
 
   void construct_world();

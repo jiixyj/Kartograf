@@ -37,7 +37,6 @@ nbt::nbt(): bad_world(false),
             foliage_data(),
             grass_data(),
             biome_indices(),
-            cache_mutex_(new boost::mutex),
             blockcache_() {}
 
 nbt::nbt(int world)
@@ -53,7 +52,6 @@ nbt::nbt(int world)
             foliage_data(),
             grass_data(),
             biome_indices(),
-            cache_mutex_(new boost::mutex),
             blockcache_() {
   char* home_dir;
   if ((home_dir = getenv("HOME"))) {
@@ -86,7 +84,6 @@ nbt::nbt(const std::string& filename)
             foliage_data(),
             grass_data(),
             biome_indices(),
-            cache_mutex_(new boost::mutex),
             blockcache_() {
   if (bf::is_directory(bf::status(dir_ = filename))) {
     construct_world();
@@ -300,11 +297,21 @@ char nbt::getValue(const nbt::map& cache,
     ++i;
     z -= 16;
   }
-  nbt::map::const_iterator it = cache.find(std::pair<int, int>(j, i));
-  if (it != cache.end()) {
-    return it->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+  nbt::map::const_accessor cacc;
+  if (blockcache_.find(cacc, std::pair<int, int>(j, i))) {
+    return cacc->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
   } else {
-    return 0;
+    tag_ptr newtag = tag_at(j, i);
+    if (newtag) {
+      const std::string& pl = newtag->sub("Level")->
+                                       sub("Blocks")->pay_<tag::byte_array>().p;
+      nbt::map::accessor it;
+      blockcache_.insert(it, std::pair<int, int>(j, i));
+      it->second = pl;
+      return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+    } else {
+      return 0;
+    }
   }
 }
 
@@ -983,25 +990,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
     nbt::map cache;
-    cache_mutex_->lock();
-    for (int jj = j + 7; jj >= j - 7; --jj) {
-      for (int ii = i + 7; ii >= i - 7; --ii) {
-        nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
-        if (it == blockcache_.end()) {
-          tag_ptr newtag = tag_at(jj, ii);
-          if (newtag) {
-            const std::string& pl = newtag->sub("Level")->
-                                       sub("Blocks")->pay_<tag::byte_array>().p;
-            blockcache_.insert(nbt::map::value_type(std::pair<int, int>(jj, ii),
-                                                    pl));
-            cache.insert(nbt::map::value_type(std::pair<int, int>(jj, ii), pl));
-          }
-        } else {
-          cache.insert(*it);
-        }
-      }
-    }
-    cache_mutex_->unlock();
     for (uint16_t zz = 0; zz < myimg.rows; ++zz) {
       for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;
@@ -1056,9 +1044,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
 }
 
 void nbt::clearCache() const {
-  cache_mutex_->lock();
-  blockcache_.clear();
-  cache_mutex_->unlock();
 }
 
 std::string nbt::string() const {
