@@ -202,7 +202,7 @@ int main(int ac, char* av[]) {
       return 1;
     }
 
-    tbb::atomic<size_t> progress_index, mem_index;
+    tbb::atomic<size_t> progress_index;
     progress_index = 0;
     show_progress.restart(tiles_nr);
     std::list<std::vector<int> >::iterator it = tiles.begin();
