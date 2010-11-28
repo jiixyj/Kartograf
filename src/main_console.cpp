@@ -204,7 +204,6 @@ int main(int ac, char* av[]) {
 
     tbb::atomic<size_t> progress_index, mem_index;
     progress_index = 0;
-    mem_index = 0;
     show_progress.restart(tiles_nr);
     std::list<std::vector<int> >::iterator it = tiles.begin();
     tbb::task_scheduler_init init;
@@ -212,16 +211,10 @@ int main(int ac, char* av[]) {
       tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
                                                          (it->begin(), it->end()),
                         ApplyFoo(&bf, i, &progress_index, min_norm));
-      mem_index += progress_index;
-      if (mem_index > 10000) {
-        mem_index = 0;
-        bf.clearCache();
-      }
       ++it;
       show_progress += progress_index;
       progress_index = 0;
     }
-    bf.clearCache();
 
     pamToPng(out_file);
   } catch (std::runtime_error e) {

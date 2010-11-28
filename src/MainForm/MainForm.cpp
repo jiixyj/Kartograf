@@ -65,16 +65,10 @@ void MainForm::populateScene() {
                                                        (it->begin(), it->end()),
                       ApplyFooQT(this, i, &progress_index));
     if (stop) break;
-    mem_index += progress_index;
-    if (mem_index > 10000) {
-      mem_index = 0;
-      bf_->clearCache();
-    }
     ++it;
     show_progress += progress_index;
     progress_index = 0;
   }
-  bf_->clearCache();
 }
 
 void MainForm::renderNewImageEmitter() {

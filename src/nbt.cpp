@@ -5,6 +5,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <tbb/concurrent_queue.h>
 #include <fstream>
 
 #include "./png_read.h"
@@ -36,8 +37,7 @@ nbt::nbt(): bad_world(false),
             has_biome_data(false),
             foliage_data(),
             grass_data(),
-            biome_indices(),
-            blockcache_() {}
+            biome_indices() {}
 
 nbt::nbt(int world)
           : bad_world(false),
@@ -51,8 +51,7 @@ nbt::nbt(int world)
             has_biome_data(false),
             foliage_data(),
             grass_data(),
-            biome_indices(),
-            blockcache_() {
+            biome_indices() {
   char* home_dir;
   if ((home_dir = getenv("HOME"))) {
   } else if ((home_dir = getenv("APPDATA"))) {
@@ -83,8 +82,7 @@ nbt::nbt(const std::string& filename)
             has_biome_data(false),
             foliage_data(),
             grass_data(),
-            biome_indices(),
-            blockcache_() {
+            biome_indices() {
   if (bf::is_directory(bf::status(dir_ = filename))) {
     construct_world();
     return;
@@ -274,6 +272,9 @@ void nbt::setSettings(Settings set__) {
 
 char nbt::getValue(const nbt::map& cache,
                  int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
+  static map blockcache_;
+  static tbb::concurrent_bounded_queue<std::pair<int, int> > queue;
+
   if (y < 0 || y >= 128) {
     std::cerr << "this is probably a bug" << std::endl;
     return 0;
@@ -295,21 +296,34 @@ char nbt::getValue(const nbt::map& cache,
     z -= 16;
   }
   if (!valid_coordinates.count(std::pair<int, int>(j, i))) return 0;
-  nbt::map::const_accessor cacc;
-  if (blockcache_.find(cacc, std::pair<int, int>(j, i))) {
-    return cacc->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
-  } else {
-    tag_ptr newtag = tag_at(j, i);
-    if (newtag) {
-      const std::string& pl = newtag->sub("Level")->
-                                       sub("Blocks")->pay_<tag::byte_array>().p;
+  {
+    nbt::map::const_accessor cacc;
+    if (blockcache_.find(cacc, std::pair<int, int>(j, i))) {
+      return cacc->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+    }
+  }
+  tag_ptr newtag = tag_at(j, i);
+  if (newtag) {
+    const std::string& pl = newtag->sub("Level")->
+                                     sub("Blocks")->pay_<tag::byte_array>().p;
+    {
       nbt::map::accessor it;
       blockcache_.insert(it, std::pair<int, int>(j, i));
       it->second = pl;
-      return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
-    } else {
-      return 0;
     }
+    queue.push(std::pair<int, int>(j, i));
+
+    if (blockcache_.size() > 5000) {
+      while (blockcache_.size() > 1000) {
+        std::pair<int, int> foo;
+        queue.pop(foo);
+        blockcache_.erase(foo);
+      }
+    }
+
+    return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+  } else {
+    return 0;
   }
 }
 
@@ -1039,10 +1053,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   de_premultiply(myimg);
   Image<uint8_t> dithered = myimg.floyd_steinberg();
   return dithered;
-}
-
-void nbt::clearCache() const {
-  blockcache_ = map();
 }
 
 std::string nbt::string() const {
