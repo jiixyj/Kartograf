@@ -169,31 +169,33 @@ void nbt::construct_world() {
     }
   }
   bf::recursive_directory_iterator end_itr;
+  bool chunk_found = false;
+  if (!bf::exists(dir_ / "level.dat")) {
+    throw std::runtime_error("Invalid World folder!");
+  }
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
     if (bf::is_directory(itr->path())) continue;
-    std::string fn = itr->path().filename();
-    if (!fn.compare(0, 9, "level.dat")) continue;
-    if (!fn.compare("session.lock")) continue;
     if (bf::extension(itr->path()).compare(".dat")) continue;
+    std::string fn = itr->path().filename();
     size_t first = fn.find(".");
     size_t second = fn.find(".", first + 1);
     if (second != std::string::npos) {
       long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
-      if (errno == ERANGE) {
-        throw std::runtime_error("World is too big!");
-      }
       long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
-      if (errno == ERANGE) {
-        throw std::runtime_error("World is too big!");
+      long x_tmp = x, z_tmp = z;
+      while (x_tmp < 0) x_tmp += 64;
+      while (z_tmp < 0) z_tmp += 64;
+      bf::path check = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36) / fn;
+      if (bf::exists(check)) {
+        xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
+        xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
+        zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
+        zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
+        chunk_found = true;
       }
-      xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
-      xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
-      zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
-      zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
-    } else {
-      bad_world = true;
     }
   }
+  bad_world = !chunk_found;
   std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;
   std::cout << "z: " << zPos_min_ << " " << zPos_max_ << std::endl;
 }
