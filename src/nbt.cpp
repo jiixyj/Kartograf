@@ -274,13 +274,13 @@ void nbt::setSettings(Settings set__) {
 }
 
 const std::string& nbt::getBlock(int32_t j, int32_t i) const {
-  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
-  static map blockcache_;
+  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> tbb_map;
+  static tbb_map blockcache_;
   static tbb::concurrent_bounded_queue<std::pair<int, int> > queue;
-
+  std::pair<int, int> block(j, i);
   {
-    nbt::map::const_accessor cacc;
-    if (blockcache_.find(cacc, std::pair<int, int>(j, i))) {
+    tbb_map::const_accessor cacc;
+    if (blockcache_.find(cacc, block)) {
       return cacc->second;
     }
   }
@@ -289,11 +289,11 @@ const std::string& nbt::getBlock(int32_t j, int32_t i) const {
     const std::string& pl = newtag->sub("Level")->
                                      sub("Blocks")->pay_<tag::byte_array>().p;
     {
-      nbt::map::accessor it;
-      blockcache_.insert(it, std::pair<int, int>(j, i));
+      tbb_map::accessor it;
+      blockcache_.insert(it, block);
       it->second = pl;
     }
-    queue.push(std::pair<int, int>(j, i));
+    queue.push(block);
 
     if (blockcache_.size() > 5000) {
       while (blockcache_.size() > 1000) {
@@ -306,6 +306,39 @@ const std::string& nbt::getBlock(int32_t j, int32_t i) const {
     return pl;
   } else {
     throw std::runtime_error("Must not happen!");
+  }
+}
+
+char nbt::getValue(const nbt::map& cache,
+                 int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
+  if (y < 0 || y >= 128) {
+    std::cerr << "this is probably a bug" << std::endl;
+    return 0;
+  }
+  while (x < 0) {
+    --j;
+    x += 16;
+  }
+  while (x > 15) {
+    ++j;
+    x -= 16;
+  }
+  while (z < 0) {
+    --i;
+    z += 16;
+  }
+  while (z > 15) {
+    ++i;
+    z -= 16;
+  }
+  std::pair<int, int> block(j, i);
+  if (!valid_coordinates.count(block)) return 0;
+  nbt::map::const_iterator it = cache.find(block);
+  if (it != cache.end()) {
+    const std::string& pl = it->second;
+    return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+  } else {
+    throw std::runtime_error("cache in getValue is missing an element");
   }
 }
 
@@ -1010,6 +1043,13 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
     nbt::map cache;
+    for (int jj = j + 7; jj >= j - 7; --jj) {
+      for (int ii = i + 7; ii >= i - 7; --ii) {
+        if (valid_coordinates.count(std::pair<int, int>(jj, ii))) {
+          cache.insert(std::make_pair(std::make_pair(jj, ii), getBlock(jj, ii)));
+        }
+      }
+    }
     for (uint16_t zz = 0; zz < myimg.rows; ++zz) {
       for (uint16_t xx = 0; xx < myimg.cols; ++xx) {
         int32_t x, y, z, state = -1;

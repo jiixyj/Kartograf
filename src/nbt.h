@@ -35,15 +35,19 @@ class nbt {
   bool exists(int32_t x, int32_t z, boost::filesystem::path& path) const;
   tag_ptr tag_at(int32_t x, int32_t z) const;
 
-  std::list<point3> a_star(int x_start, int z_start,
-                           int x_end, int z_end);
+  Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
 
   void setSettings(Settings set);
   Settings set() const { return set_; }
+
   const std::string& getBlock(int32_t j, int32_t i) const;
+  char getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
+  typedef std::map<std::pair<int, int>, std::string> map;
   char getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
-  Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
+
+  std::list<point3> a_star(int x_start, int z_start,
+                           int x_end, int z_end);
 
   bool bad_world;
   nbt::tag_ptr tag_;
