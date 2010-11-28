@@ -8,6 +8,7 @@ It is redistributed under the MIT license. See LICENSE file for details.
 Features
 --------
 
+* Runs under Linux, Windows, OS X and FreeBSD (possible others)
 * Shadow rendering
 * Tuned for multi-core CPUs
 * Top-down, oblique and isometric projection
