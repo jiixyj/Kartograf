@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #ifndef SRC_NBT_MAINFORM_MAINFORM_H_
 #define SRC_NBT_MAINFORM_MAINFORM_H_
 

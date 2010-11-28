@@ -1,4 +1,4 @@
-# vim:ft=cmake:
+# See LICENSE file for copyright and license details.
 
 execute_process(
   COMMAND "${CMAKE_CXX_COMPILER}" "-v"
@@ -107,3 +107,5 @@ foreach(_warning ${FLAGS})
     set(VALID_FLAGS "${VALID_FLAGS} ${_warning}")
   endif()
 endforeach()
+
+# vim:ft=cmake:

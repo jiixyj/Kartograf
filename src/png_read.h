@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #include <png.h>
 
 png_bytep* read_png_file(const char* file_name, uint32_t& width, uint32_t& height) {

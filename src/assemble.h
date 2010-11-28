@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #ifndef _ASSEMBLE_H
 #define _ASSEMBLE_H
 

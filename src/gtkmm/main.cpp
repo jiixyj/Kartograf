@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #include <gtkmm.h>
 
 int main(int argc, char *argv[]) {

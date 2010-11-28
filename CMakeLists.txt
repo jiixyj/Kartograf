@@ -1,3 +1,5 @@
+# See LICENSE file for copyright and license details.
+
 ################################################################################
 # This CMakeLists.txt is devided into three sections:                          #
 #                                                                              #

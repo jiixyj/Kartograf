@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #ifndef _IMAGE_H
 #define _IMAGE_H
 

@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #include "./settings.h"
 
 Settings make_valid(Settings set_) {

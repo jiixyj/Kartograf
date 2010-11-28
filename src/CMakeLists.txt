@@ -1,3 +1,4 @@
+# See LICENSE file for copyright and license details.
 add_library(nbt nbt)
 add_library(tag tag)
 add_library(colors colors)

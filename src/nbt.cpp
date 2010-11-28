@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #include "./nbt.h"
 
 #include <boost/math/constants/constants.hpp>

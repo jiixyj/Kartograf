@@ -3,6 +3,7 @@ Kartograf
 
 Kartograf is a Minecraft map rendering tool. Its goal is to create pixel-perfect
 World renders.
+It is redistributed under the MIT license. See LICENSE file for details.
 
 Features
 --------

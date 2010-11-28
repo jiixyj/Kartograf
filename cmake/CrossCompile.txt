@@ -1,4 +1,4 @@
-# vim:ft=cmake:
+# See LICENSE file for copyright and license details.
 
 # MinGW cross compile setup - disregard if compiling for Linux
 if(WIN32)
@@ -27,3 +27,5 @@ if(WIN32)
   endforeach()
   unset(__LIBNAME CACHE)
 endif()
+
+# vim:ft=cmake:
