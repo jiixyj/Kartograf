@@ -228,7 +228,7 @@ int main(int ac, char* av[]) {
     std::cerr << e.what() << std::endl;
     return 1;
   } catch (tbb::captured_exception e) {
-    std::cerr << "In tbb loop: " << e.what() << std::endl;
+    std::cerr << "In tbb loop: " << e.what() << e.name() << std::endl;
     return 1;
   }
   return 0;

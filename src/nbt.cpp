@@ -553,7 +553,13 @@ Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
     int j_diff = ((j % 8) + 8) % 8;
     int i_eight = i - i_diff;
     int j_eight = j - j_diff;
-    const std::vector<uint16_t>& data = biome_indices.at(std::make_pair(j_eight, i_eight));
+    std::map<std::pair<int, int>, std::vector<uint16_t> >::const_iterator it =
+                           biome_indices.find(std::make_pair(j_eight, i_eight));
+    std::vector<uint16_t> foo;
+    const std::vector<uint16_t>& data = (it != biome_indices.end()) ? it->second : foo;
+    if (data.empty()) {
+      return oblique ? colors_oblique[value] : colors[value];
+    }
     if (data.size() != 16384) {
       throw std::runtime_error("Error opening biome indices!");
     }
