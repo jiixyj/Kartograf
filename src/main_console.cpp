@@ -21,7 +21,7 @@ int main(int ac, char* av[]) {
     std::stringstream ss;
     std::string program_name = boost::filesystem::path(av[0]).filename();
     ss << "Usage: " << program_name << " world-number [options]" << std::endl
-       << "   or: " << program_name << " filename [options]" << std::endl
+       << "   or: " << program_name << " directory-name [options]" << std::endl
                     << std::endl
                     << "Options";
     po::options_description desc(ss.str());
