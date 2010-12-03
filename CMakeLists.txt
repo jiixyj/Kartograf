@@ -29,7 +29,7 @@ endif()
 
 ##### Boost
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost COMPONENTS filesystem system REQUIRED)
+find_package(Boost COMPONENTS filesystem system program_options REQUIRED)
 if(WIN32)
   find_package(Boost COMPONENTS thread_win32 REQUIRED)
 else()

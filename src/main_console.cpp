@@ -4,16 +4,63 @@
 #include <cstdio>
 #include <tbb/tbb_exception.h>
 #include <tbb/task_scheduler_init.h>
+#include <boost/program_options.hpp>
+#include <boost/lexical_cast.hpp>
+
+namespace po = boost::program_options;
 
 int main(int ac, char* av[]) {
   try {
-    if (ac != 2) {
-      std::cerr << "Usage: " << boost::filesystem::path(av[0]).filename()
-                << " [filename | world number]" << std::endl;
+    std::string world;
+    std::stringstream ss;
+    std::string program_name = boost::filesystem::path(av[0]).filename();
+    ss << "Usage: " << program_name << " world-number [options]" << std::endl
+       << "   or: " << program_name << " filename [options]" << std::endl
+                    << std::endl
+                    << "Options";
+    po::options_description desc(ss.str());
+    desc.add_options()
+      ("help,h", "produce help message")
+    ;
+    po::options_description hidden("Hidden options");
+    hidden.add_options()
+      ("world-number,w", po::value<std::string>(&world),
+                         "Minecraft world number")
+    ;
+
+    po::positional_options_description p;
+    p.add("world-number", 1);
+    po::options_description all;
+    all.add(desc).add(hidden);
+    po::options_description visible;
+    visible.add(desc);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(ac, av).options(all).positional(p)
+                                             .allow_unregistered().run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+      std::cerr << visible << std::endl;
       return 1;
     }
-    int world = atoi(av[1]);
-    nbt bf = world ? nbt(world) : nbt(av[1]);
+
+    if (!vm.count("world-number")) {
+      std::cerr << visible << std::endl;
+      return 1;
+    }
+    int world_number;
+    try {
+      world_number = boost::lexical_cast<int>(world);
+      if (world_number > 5 || world_number < 1) {
+        std::cerr << "World number must lie between 1 and 5!" << std::endl;
+        return 1;
+      }
+    } catch (boost::bad_lexical_cast& e) {
+      world_number = 0;
+    }
+
+    nbt bf = world_number ? nbt(world_number) : nbt(av[1]);
     if (bf.bad_world) {
       std::cerr << "Invalid World!" << std::endl;
       return 1;
