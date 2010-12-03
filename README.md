@@ -10,6 +10,7 @@ Features
 
 * Runs under Linux, Windows, OS X and FreeBSD (possible others)
 * Shadow rendering
+* Biome rendering (using Minecraft Biome Extractor by Donkey Kong)
 * Tuned for multi-core CPUs
 * Top-down, oblique and isometric projection
 * CLI and GUI Interface
@@ -40,6 +41,9 @@ In the root folder, type:
 
 Usage
 -----
+
+If you'd like to have your biomes rendered, you must run Minecraft Biome
+Extractor first to create a "EXTRACTEDBIOMES" dir in your world dir.
 
 #### GUI
     ./kartograf_qt4
