@@ -141,23 +141,6 @@ ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
                    std::pair<int, int> min_norm)
         : bf_(bf), i_(i), index_(index), min_norm_(min_norm) {}
 
-Settings getSettings() {
-  Settings set;
-  set.topview = true;
-  set.oblique = false;
-  set.isometric = false;
-  set.heightmap = false;
-  set.color = false;
-  set.shadow_strength = 0;
-  set.shadow_quality = true;
-  set.shadow_quality_ultra = true;
-  set.relief_strength = 0;
-  set.sun_direction = 1;
-  set.rotate = 1;
-  set.nightmode = 0;
-  return set;
-}
-
 void calculateMinMaxPoint(std::pair<int, int>& min_norm,
                           std::pair<int, int>& max_norm,
                           const nbt& bf) {

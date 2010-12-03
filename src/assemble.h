@@ -27,8 +27,6 @@ class ApplyFoo {
   ApplyFoo& operator=(const ApplyFoo&);
 };
 
-Settings getSettings();
-
 void calculateMinMaxPoint(std::pair<int, int>& min_norm,
                           std::pair<int, int>& max_norm,
                           const nbt& bf);

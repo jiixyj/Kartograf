@@ -12,6 +12,10 @@ namespace po = boost::program_options;
 int main(int ac, char* av[]) {
   try {
     std::string world;
+    std::string render_mode;
+    std::string shadow_quality;
+    std::string sun_direction;
+
     std::stringstream ss;
     std::string program_name = boost::filesystem::path(av[0]).filename();
     ss << "Usage: " << program_name << " world-number [options]" << std::endl
@@ -20,7 +24,21 @@ int main(int ac, char* av[]) {
                     << "Options";
     po::options_description desc(ss.str());
     desc.add_options()
-      ("help,h", "produce help message")
+      ("help,h", "produce help message\n")
+      ("render-mode,m", po::value<std::string>(&render_mode)
+                                            ->default_value("top-view"),
+                        "'top-view'  or '0'\n"
+                        "'oblique'   or '1'\n"
+                        "'isometric' or '2'\n")
+      ("shadow-quality,q", po::value<std::string>(&shadow_quality)
+                                            ->default_value("normal"),
+                        "'normal'    or '0'\n"
+                        "'high'      or '1'\n"
+                        "'ultra'     or '2'\n")
+      ("sun-direction,d", po::value<std::string>(&sun_direction)
+                                            ->default_value("NW"),
+                        "'NW', 'W', 'SW', 'S',\n"
+                        "'SE', 'E', 'NE', 'N'\n")
     ;
     po::options_description hidden("Hidden options");
     hidden.add_options()
@@ -40,15 +58,67 @@ int main(int ac, char* av[]) {
                                              .allow_unregistered().run(), vm);
     po::notify(vm);
 
+    Settings set;
     if (vm.count("help")) {
       std::cerr << visible << std::endl;
       return 1;
     }
-
     if (!vm.count("world-number")) {
       std::cerr << visible << std::endl;
       return 1;
     }
+    if (!render_mode.compare("top-view") || !render_mode.compare("0")) {
+      set.topview = true;
+      set.oblique = false;
+      set.isometric = false;
+    } else if (!render_mode.compare("oblique") || !render_mode.compare("1")) {
+      set.topview = false;
+      set.oblique = true;
+      set.isometric = false;
+    } else if (!render_mode.compare("isometric") || !render_mode.compare("2")) {
+      set.topview = false;
+      set.oblique = false;
+      set.isometric = true;
+    } else {
+      std::cerr << visible << std::endl;
+      return 1;
+    }
+    if (!shadow_quality.compare("normal") || !shadow_quality.compare("0")) {
+      set.shadow_quality = false;
+      set.shadow_quality_ultra = false;
+    } else if (!shadow_quality.compare("high") || !shadow_quality.compare("1")) {
+      set.shadow_quality = true;
+      set.shadow_quality_ultra = false;
+    } else if (!shadow_quality.compare("ultra") || !shadow_quality.compare("2")) {
+      set.shadow_quality = true;
+      set.shadow_quality_ultra = true;
+    } else {
+      std::cerr << visible << std::endl;
+      return 1;
+    }
+    if (!sun_direction.compare("NW")) {
+      set.sun_direction = 1;
+    } else if (!sun_direction.compare("W")) {
+      set.sun_direction = 2;
+    } else if (!sun_direction.compare("SW")) {
+      set.sun_direction = 3;
+    } else if (!sun_direction.compare("S")) {
+      set.sun_direction = 4;
+    } else if (!sun_direction.compare("SE")) {
+      set.sun_direction = 5;
+    } else if (!sun_direction.compare("E")) {
+      set.sun_direction = 6;
+    } else if (!sun_direction.compare("NE")) {
+      set.sun_direction = 7;
+    } else if (!sun_direction.compare("N")) {
+      set.sun_direction = 0;
+    } else {
+      std::cerr << visible << std::endl;
+      return 1;
+    }
+
+
+
     int world_number;
     try {
       world_number = boost::lexical_cast<int>(world);
@@ -66,10 +136,10 @@ int main(int ac, char* av[]) {
       return 1;
     }
     std::cout << bf.string();
-    bf.setSettings(getSettings());
+    bf.setSettings(set);
     std::pair<int, int> min_norm, max_norm;
     calculateMinMaxPoint(min_norm, max_norm, bf);
-    std::string buffer_file = "tmp.pam";
+    std::string buffer_file = "";
 
     size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
     boost::progress_display show_progress(range);
