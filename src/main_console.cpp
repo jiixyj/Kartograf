@@ -15,6 +15,8 @@ int main(int ac, char* av[]) {
     std::string render_mode;
     std::string shadow_quality;
     std::string sun_direction;
+    int shadow_strength, relief_strength;
+    std::string rotation;
 
     std::stringstream ss;
     std::string program_name = boost::filesystem::path(av[0]).filename();
@@ -37,8 +39,25 @@ int main(int ac, char* av[]) {
                         "'ultra'     or '2'\n")
       ("sun-direction,d", po::value<std::string>(&sun_direction)
                                             ->default_value("NW"),
+                        "where the sun light comes from (note: this direction "
+                        "is already relative to the rotated map):\n"
                         "'NW', 'W', 'SW', 'S',\n"
                         "'SE', 'E', 'NE', 'N'\n")
+      ("shadow-strength,s", po::value<int>(&shadow_strength)
+                                            ->default_value(60),
+                        "set to 0 to disable shadows\n"
+                        "set higher to make shadows stronger\n")
+      ("relief-strength,l", po::value<int>(&relief_strength)
+                                            ->default_value(10),
+                        "set to 0 to disable relief effect\n"
+                        "set higher to make relief effect stronger\n")
+      ("rotation,r", po::value<std::string>(&rotation)
+                                            ->default_value("N"),
+                        "the top of the map points to:\n"
+                        "'N', 'W', 'S', 'E'\n")
+      ("night-mode,n",  "enables night mode")
+      ("height-map-mono",  "renders monochrome height map")
+      ("height-map-color",  "renders color height map")
     ;
     po::options_description hidden("Hidden options");
     hidden.add_options()
@@ -116,6 +135,30 @@ int main(int ac, char* av[]) {
       std::cerr << visible << std::endl;
       return 1;
     }
+    set.shadow_strength = shadow_strength;
+    set.relief_strength = relief_strength;
+    if (!rotation.compare("N")) {
+      set.rotate = 1;
+    } else if (!rotation.compare("W")) {
+      set.rotate = 2;
+    } else if (!rotation.compare("S")) {
+      set.rotate = 3;
+    } else if (!rotation.compare("E")) {
+      set.rotate = 0;
+    } else {
+      std::cerr << visible << std::endl;
+      return 1;
+    }
+    set.nightmode = vm.count("night-mode");
+    set.heightmap = vm.count("height-map-mono") || vm.count("height-map-color");
+    set.color = vm.count("height-map-color");
+    if (!set.topview && (set.heightmap || set.color)) {
+      std::cerr << "Height maps are only supported in top-view mode!"
+                << std::endl;
+      std::cerr << visible << std::endl;
+      return 1;
+    }
+
 
 
 
