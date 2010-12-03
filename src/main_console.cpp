@@ -73,9 +73,15 @@ int main(int ac, char* av[]) {
     visible.add(desc);
 
     po::variables_map vm;
-    po::store(po::command_line_parser(ac, av).options(all).positional(p)
-                                             .allow_unregistered().run(), vm);
-    po::notify(vm);
+    try {
+      po::store(po::command_line_parser(ac, av).options(all).positional(p)
+                                               .run(), vm);
+      po::notify(vm);
+    } catch(po::error e) {
+      std::cerr << e.what() << std::endl;
+      std::cerr << visible << std::endl;
+      return 1;
+    }
 
     Settings set;
     if (vm.count("help")) {
