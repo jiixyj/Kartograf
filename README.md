@@ -49,10 +49,36 @@ Extractor first to create a "EXTRACTEDBIOMES" dir in your world dir.
     ./kartograf_qt4
 
 #### CLI
-At this time, the CLI does not support many arguments. Use:
+    Usage: kartograf_cli world-number [options]
+       or: kartograf_cli directory-name [options]
 
-    ./kartograf_cli [world number]
+    Options:
+     -h [ --help ]                         produce help message
 
-to render a world. You can also specify a folder:
+     -m [ --render-mode ] arg (=top-view)  'top-view'  or '0'
+                                           'oblique'   or '1'
+                                           'isometric' or '2'
 
-    ./kartograf_cli [folder name]
+     -q [ --shadow-quality ] arg (=normal) 'normal'    or '0'
+                                           'high'      or '1'
+                                           'ultra'     or '2'
+
+     -d [ --sun-direction ] arg (=NW)      where the sun light comes from (note:
+                                           this direction is already relative to
+                                           the rotated map):
+                                           'NW', 'W', 'SW', 'S',
+                                           'SE', 'E', 'NE', 'N'
+
+     -s [ --shadow-strength ] arg (=60)    set to 0 to disable shadows
+                                           set higher to make shadows stronger
+
+     -l [ --relief-strength ] arg (=10)    set to 0 to disable relief effect
+                                           set higher to make relief effect
+                                           stronger
+
+     -r [ --rotation ] arg (=N)            the top of the map points to:
+                                           'N', 'W', 'S', 'E'
+
+     -n [ --night-mode ]                   enables night mode
+     --height-map-mono                     renders monochrome height map
+     --height-map-color                    renders color height map
