@@ -77,8 +77,6 @@ else()
   message(STATUS "Intel TBB library not found!")
 endif()
 mark_as_advanced(TBB_INCLUDE_DIR TBB_LIBRARY)
-message(STATUS ${TBB_INCLUDE_DIR})
-message(STATUS ${TBB_LIBRARY})
 
 
 ######################################
