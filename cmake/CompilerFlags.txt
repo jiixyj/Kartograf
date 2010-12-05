@@ -89,6 +89,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   endif()
 elseif("${COMPILER_TYPE}" MATCHES "clang.*")
   list(APPEND FLAGS "-Wno-mismatched-tags")
+  list(REMOVE_ITEM FLAGS "-ansi")
 endif()
 
 if(APPLE)

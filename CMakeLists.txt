@@ -65,6 +65,13 @@ find_library(TBB_LIBRARY tbb)
 if(TBB_INCLUDE_DIR AND TBB_LIBRARY)
   set(TBB_FOUND TRUE)
   add_definitions(-DTBB_FOUND)
+  file(READ "${TBB_INCLUDE_DIR}/tbb/concurrent_queue.h" TBB_CQ)
+  string(REGEX REPLACE "return try_pop" "return this->try_pop" TBB_CQ "${TBB_CQ}")
+  string(REGEX REPLACE "#include \"_concurrent_queue_internal.h\""
+                       "#include <tbb/_concurrent_queue_internal.h>" TBB_CQ "${TBB_CQ}")
+  file(MAKE_DIRECTORY "${${PROJECT_NAME}_BINARY_DIR}/include/tbb")
+  file(WRITE "${${PROJECT_NAME}_BINARY_DIR}/include/tbb/concurrent_queue.h" "${TBB_CQ}")
+  include_directories(SYSTEM ${${PROJECT_NAME}_BINARY_DIR}/include)
   include_directories(SYSTEM ${TBB_INCLUDE_DIR})
 else()
   message(STATUS "Intel TBB library not found!")
@@ -78,7 +85,7 @@ message(STATUS ${TBB_LIBRARY})
 ##### Compiler setup             #####
 ######################################
 include("${CMAKE_MODULE_PATH}/CompilerFlags.txt")  # This sets VALID_FLAGS
-set(CMAKE_CXX_FLAGS "${VALID_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VALID_FLAGS}")
 include("${CMAKE_MODULE_PATH}/CrossCompile.txt")   # This is for MinGW cross compile support
 
 if(CMAKE_COMPILER_IS_GNUCXX AND COMPILER_VERSION STRLESS "4.2.2")
