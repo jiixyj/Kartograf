@@ -180,17 +180,15 @@ void nbt::construct_world() {
     size_t first = fn.find(".");
     size_t second = fn.find(".", first + 1);
     if (second != std::string::npos) {
-      long x = strtol(&(fn.c_str()[first + 1]), NULL, 36);
-      long z = strtol(&(fn.c_str()[second + 1]), NULL, 36);
-      long x_tmp = x, z_tmp = z;
-      while (x_tmp < 0) x_tmp += 64;
-      while (z_tmp < 0) z_tmp += 64;
-      bf::path check = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36) / fn;
+      int x = static_cast<int>(strtol(&(fn.c_str()[first + 1]), NULL, 36));
+      int z = static_cast<int>(strtol(&(fn.c_str()[second + 1]), NULL, 36));
+      bf::path check = dir_ / itoa(((x % 64) + 64) % 64, 36)
+                            / itoa(((z % 64) + 64) % 64, 36) / fn;
       if (bf::exists(check)) {
-        xPos_min_ = std::min(static_cast<int32_t>(x), xPos_min_);
-        xPos_max_ = std::max(static_cast<int32_t>(x), xPos_max_);
-        zPos_min_ = std::min(static_cast<int32_t>(z), zPos_min_);
-        zPos_max_ = std::max(static_cast<int32_t>(z), zPos_max_);
+        xPos_min_ = std::min(x, xPos_min_);
+        xPos_max_ = std::max(x, xPos_max_);
+        zPos_min_ = std::min(z, zPos_min_);
+        zPos_max_ = std::max(z, zPos_max_);
         chunk_found = true;
       }
     }
