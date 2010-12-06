@@ -31,15 +31,6 @@ endif()
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS filesystem system program_options REQUIRED)
 
-##### GTK2
-find_package(GTK2 COMPONENTS gtk gtkmm)
-if(GTK2_FOUND)
-  include_directories(SYSTEM ${GTK2_INCLUDE_DIRS})
-  include_directories(SYSTEM "/usr/include/gdk-pixbuf-2.0/")
-  include_directories(SYSTEM "/usr/lib/pangomm-1.4/include/")
-  include_directories(SYSTEM "/usr/include/freetype2/")
-endif()
-
 ##### Qt
 set(CMAKE_FIND_LIBRARY_SUFFIXES_TMP "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 list(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES ".a")

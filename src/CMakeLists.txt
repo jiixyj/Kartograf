@@ -16,4 +16,3 @@ target_link_libraries(kartograf_qt4 MainGUI)
 target_link_libraries(kartograf_cli assemble)
 
 add_subdirectory(MainForm)
-add_subdirectory(gtkmm)
