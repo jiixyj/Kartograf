@@ -60,7 +60,7 @@ if(TBB_INCLUDE_DIR AND TBB_LIBRARY)
   include_directories(SYSTEM ${${PROJECT_NAME}_BINARY_DIR}/include)
   include_directories(SYSTEM ${TBB_INCLUDE_DIR})
 else()
-  message(STATUS "Intel TBB library not found!")
+  message(FATAL_ERROR "Intel TBB library not found!")
 endif()
 mark_as_advanced(TBB_INCLUDE_DIR TBB_LIBRARY)
 
