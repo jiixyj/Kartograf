@@ -62,8 +62,8 @@ if(TBB_INCLUDE_DIR AND TBB_LIBRARY)
   add_definitions(-DTBB_FOUND)
   file(READ "${TBB_INCLUDE_DIR}/tbb/concurrent_queue.h" TBB_CQ)
   string(REGEX REPLACE "return try_pop" "return this->try_pop" TBB_CQ "${TBB_CQ}")
-  string(REGEX REPLACE "#include \"_concurrent_queue_internal.h\""
-                       "#include <tbb/_concurrent_queue_internal.h>" TBB_CQ "${TBB_CQ}")
+  string(REGEX REPLACE "#include \"([^\"]*)\""
+                       "#include <tbb/\\1>" TBB_CQ "${TBB_CQ}")
   file(MAKE_DIRECTORY "${${PROJECT_NAME}_BINARY_DIR}/include/tbb")
   file(WRITE "${${PROJECT_NAME}_BINARY_DIR}/include/tbb/concurrent_queue.h" "${TBB_CQ}")
   include_directories(SYSTEM ${${PROJECT_NAME}_BINARY_DIR}/include)
