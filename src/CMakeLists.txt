@@ -10,9 +10,12 @@ target_link_libraries(tag ${ZLIB_LIBRARY})
 target_link_libraries(image colors)
 target_link_libraries(assemble nbt ${PNG_LIBRARY} ${TBB_LIBRARY})
 
-add_executable(kartograf_qt4 MACOSX_BUNDLE main)
 add_executable(kartograf_cli main_console)
-target_link_libraries(kartograf_qt4 MainGUI)
 target_link_libraries(kartograf_cli assemble)
 
-add_subdirectory(MainForm)
+if(QT4_FOUND)
+  add_executable(kartograf_qt4 MACOSX_BUNDLE main)
+  target_link_libraries(kartograf_qt4 MainGUI)
+
+  add_subdirectory(MainForm)
+endif()
