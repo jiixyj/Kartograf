@@ -273,36 +273,15 @@ void nbt::setSettings(Settings set__) {
   return;
 }
 
-char nbt::getValue(const nbt::map& cache,
-                 int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
+const std::string& nbt::getBlock(int32_t j, int32_t i) const {
+  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
   static map blockcache_;
   static tbb::concurrent_bounded_queue<std::pair<int, int> > queue;
 
-  if (y < 0 || y >= 128) {
-    std::cerr << "this is probably a bug" << std::endl;
-    return 0;
-  }
-  while (x < 0) {
-    --j;
-    x += 16;
-  }
-  while (x > 15) {
-    ++j;
-    x -= 16;
-  }
-  while (z < 0) {
-    --i;
-    z += 16;
-  }
-  while (z > 15) {
-    ++i;
-    z -= 16;
-  }
-  if (!valid_coordinates.count(std::pair<int, int>(j, i))) return 0;
   {
     nbt::map::const_accessor cacc;
     if (blockcache_.find(cacc, std::pair<int, int>(j, i))) {
-      return cacc->second[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+      return cacc->second;
     }
   }
   tag_ptr newtag = tag_at(j, i);
@@ -324,10 +303,36 @@ char nbt::getValue(const nbt::map& cache,
       }
     }
 
-    return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+    return pl;
   } else {
+    throw std::runtime_error("Must not happen!");
+  }
+}
+
+char nbt::getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
+  if (y < 0 || y >= 128) {
+    std::cerr << "this is probably a bug" << std::endl;
     return 0;
   }
+  while (x < 0) {
+    --j;
+    x += 16;
+  }
+  while (x > 15) {
+    ++j;
+    x -= 16;
+  }
+  while (z < 0) {
+    --i;
+    z += 16;
+  }
+  while (z > 15) {
+    ++i;
+    z -= 16;
+  }
+  if (!valid_coordinates.count(std::pair<int, int>(j, i))) return 0;
+  const std::string& pl = getBlock(j, i);
+  return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
 }
 
 Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,

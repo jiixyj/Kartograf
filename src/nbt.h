@@ -40,7 +40,7 @@ class nbt {
 
   void setSettings(Settings set);
   Settings set() const { return set_; }
-  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> map;
+  const std::string& getBlock(int32_t j, int32_t i) const;
   char getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
   Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
