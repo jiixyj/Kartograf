@@ -29,7 +29,8 @@ endif()
 
 ##### Boost
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost COMPONENTS filesystem system program_options REQUIRED)
+find_package(Boost COMPONENTS thread filesystem system program_options REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 ##### Qt
 set(CMAKE_FIND_LIBRARY_SUFFIXES_TMP "${CMAKE_FIND_LIBRARY_SUFFIXES}")

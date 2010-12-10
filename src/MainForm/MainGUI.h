@@ -2,6 +2,8 @@
 #ifndef SRC_NBT_MAINFORM_MAINGUI_H_
 #define SRC_NBT_MAINFORM_MAINGUI_H_
 
+#include <boost/thread.hpp>
+
 #include "./MainForm.h"
 #include "../settings.h"
 
@@ -16,6 +18,7 @@ class MainGUI : public QWidget {
  signals:
   void disable_shadow_elements_signal(bool);
   void save_image_with_filename_signal(QString);
+  void toggle_rendering_signal();
 
  protected:
 
@@ -54,11 +57,10 @@ class MainGUI : public QWidget {
 
   QPushButton* start_button;
   void start_helper();
-  QFuture<void> worker;
-  QFutureWatcher<void> watcher;
 
-  QFuture<void> new_world_setup;
-  QFutureWatcher<void> new_world_setup_watcher;
+  boost::thread worker_thread;
+  boost::thread waiter_thread;
+  void start_populate_scene_thread();
   void new_bf();
 
   MainGUI(const MainGUI&);

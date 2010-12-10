@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <QPushButton>
+#include <boost/bind.hpp>
 
 #include "../assemble.h"
 
@@ -15,11 +16,8 @@ MainGUI::MainGUI()
             mf(new MainForm(scene, bf)),
             set(),
             start_button(new QPushButton("Start rendering", this)),
-            worker(),
-            watcher(),
-            new_world_setup(),
-            new_world_setup_watcher() {
-
+            worker_thread(),
+            waiter_thread() {
   QGroupBox* groupBox = new QGroupBox("select world");
   QRadioButton* radio1 = new QRadioButton("World 1");
   QRadioButton* radio2 = new QRadioButton("World 2");
@@ -213,7 +211,7 @@ MainGUI::MainGUI()
   left_side_all->addWidget(save_button);
   connect(save_button, SIGNAL(clicked()), this, SLOT(save_image()));
 
-  left_side_all->setContentsMargins(0, 0, 0, 0);
+  left_side_all->setMargin(0);
   QWidget* left_side_all_widget = new QWidget;
   left_side_all_widget->setLayout(left_side_all);
   left_side_all_widget->setFixedWidth(left_side_all_widget->sizeHint().width()
@@ -234,8 +232,7 @@ MainGUI::MainGUI()
   connect(heightmapBox, SIGNAL(toggled(bool)), lightBox, SLOT(setDisabled(bool)));
 
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
-  connect(&new_world_setup_watcher, SIGNAL(finished()), this, SLOT(toggle_rendering()));
-  connect(&watcher, SIGNAL(finished()), this, SLOT(handle_finished()));
+  connect(this, SIGNAL(toggle_rendering_signal()), this, SLOT(toggle_rendering()));
   connect(this, SIGNAL(save_image_with_filename_signal(QString)),
           this, SLOT(save_image_with_filename(QString)));
 }
@@ -331,6 +328,7 @@ void MainGUI::new_bf() {
   } else {
     bf = new nbt(current_world);
   }
+  emit toggle_rendering_signal();
 }
 
 void MainGUI::set_new_world() {
@@ -348,12 +346,17 @@ void MainGUI::set_new_world() {
     }
     start_button->setText("Loading world...");
     start_button->setEnabled(false);
-    new_world_setup = QFuture<void>(QtConcurrent::run(this, &MainGUI::new_bf));
-    new_world_setup_watcher.setFuture(new_world_setup);
+    worker_thread = boost::thread(boost::bind(&MainGUI::new_bf, this));
   } else {
     mf->StopPopulateScene();
     start_button->setEnabled(false);
   }
+}
+
+void MainGUI::start_populate_scene_thread() {
+  boost::thread populate_scene_thread(boost::bind(&MainForm::populateScene, mf));
+  populate_scene_thread.join();
+  handle_finished();
 }
 
 void MainGUI::toggle_rendering() {
@@ -374,8 +377,7 @@ void MainGUI::toggle_rendering() {
 
   start_button->setText("Abort rendering");
   start_button->setEnabled(true);
-  worker = QFuture<void>(QtConcurrent::run(mf, &MainForm::populateScene));
-  watcher.setFuture(worker);
+  waiter_thread = boost::thread(boost::bind(&MainGUI::start_populate_scene_thread, this));
 }
 
 void MainGUI::handle_finished() {

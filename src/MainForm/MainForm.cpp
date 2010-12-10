@@ -102,10 +102,10 @@ void MainForm::populateSceneItem() {
 
 void MainForm::scale() {
   if (scale_ <= 0) {
-    setTransform(QTransform().scale(1.0 / pow(2.0, abs(scale_ - 1)),
+    setMatrix(QMatrix().scale(1.0 / pow(2.0, abs(scale_ - 1)),
                                     1.0 / pow(2.0, abs(scale_ - 1))));
   } else {
-    setTransform(QTransform().scale(scale_, scale_));
+    setMatrix(QMatrix().scale(scale_, scale_));
   }
 }
 
