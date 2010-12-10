@@ -1,0 +1,7 @@
+##### Boost 1.45
+./bootstrap.sh --prefix=/opt/lsb/boost --with-libraries=thread,filesystem,program_options --without-icu
+./bjam cflags=-fPIC cxxflags=-fPIC linkflags=-fPIC link=static threading=multi install
+
+##### TBB 3.0 Update 4
+patch -p1 < tbb-lsb.patch
+make

@@ -1,0 +1,64 @@
+diff -ur tbb30_20101110oss//build/linux.gcc.inc tbb30_20101110oss2//build/linux.gcc.inc
+--- tbb30_20101110oss//build/linux.gcc.inc	2010-12-08 12:31:39.000000000 +0100
++++ tbb30_20101110oss2//build/linux.gcc.inc	2010-12-10 11:56:23.000000000 +0100
+@@ -42,8 +42,8 @@
+ 
+ TBB_NOSTRICT = 1
+ 
+-CPLUS = g++
+-CONLY = gcc
++CPLUS = /opt/lsb/bin/lsbc++
++CONLY = /opt/lsb/bin/lsbcc
+ LIB_LINK_FLAGS = -shared -Wl,-soname=$(BUILDING_LIBRARY)
+ LIBS = -lpthread -lrt
+ C_FLAGS = $(CPLUS_FLAGS)
+diff -ur tbb30_20101110oss//include/tbb/machine/linux_common.h tbb30_20101110oss2//include/tbb/machine/linux_common.h
+--- tbb30_20101110oss//include/tbb/machine/linux_common.h	2010-12-08 12:31:36.000000000 +0100
++++ tbb30_20101110oss2//include/tbb/machine/linux_common.h	2010-12-10 12:23:22.000000000 +0100
+@@ -59,6 +59,7 @@
+ #error machine specific headers must be included after tbb_stddef.h
+ #endif
+ 
++#if 0
+ namespace tbb {
+ 
+ namespace internal {
+@@ -87,5 +88,6 @@
+ } /* namespace internal */
+ 
+ } /* namespace tbb */
++#endif
+ 
+ #endif /* SYS_futex */
+diff -ur tbb30_20101110oss//src/tbb/scheduler.cpp tbb30_20101110oss2//src/tbb/scheduler.cpp
+--- tbb30_20101110oss//src/tbb/scheduler.cpp	2010-12-08 12:31:41.000000000 +0100
++++ tbb30_20101110oss2//src/tbb/scheduler.cpp	2010-12-10 12:28:41.000000000 +0100
+@@ -267,6 +267,7 @@
+ #if __TBB_ipf
+     void    *rsb_base = __TBB_get_bsp();
+ #endif
++#if 0
+ #if __linux__
+     size_t  np_stack_size = 0;
+     void    *stack_limit = NULL;
+@@ -297,6 +298,7 @@
+         pthread_attr_destroy(&np_attr_stack);
+     }
+ #endif /* __linux__ */
++#endif
+     __TBB_ASSERT( stack_size>0, "stack size must be positive" );
+     my_stealing_threshold = (uintptr_t)((char*)stack_base - stack_size/2);
+ #if __TBB_ipf
+diff -ur tbb30_20101110oss//src/tbb/tbb_misc_ex.cpp tbb30_20101110oss2//src/tbb/tbb_misc_ex.cpp
+--- tbb30_20101110oss//src/tbb/tbb_misc_ex.cpp	2010-12-08 12:31:40.000000000 +0100
++++ tbb30_20101110oss2//src/tbb/tbb_misc_ex.cpp	2010-12-10 13:36:32.000000000 +0100
+@@ -70,7 +70,8 @@
+     int availableProcs = 0;
+     int numMasks = 1;
+ #if __linux__
+-    int maxProcs = get_nprocs();
++    // int maxProcs = get_nprocs();
++    int maxProcs = sysconf(_SC_NPROCESSORS_ONLN);
+     int pid = getpid();
+     cpu_set_t *processMask;
+     const size_t BasicMaskSize =  sizeof(cpu_set_t);
