@@ -1,7 +1,14 @@
 ##### Boost 1.45
 ./bootstrap.sh --prefix=/opt/lsb/boost --with-libraries=thread,filesystem,program_options --without-icu
+
+insert
+    using gcc : : /opt/lsb/bin/lsbc++ : <cflags>-U_GNU_SOURCE <cxxflags>-U_GNU_SOURCE ;
+on top of project-config.jam
+
 ./bjam cflags=-fPIC cxxflags=-fPIC linkflags=-fPIC link=static threading=multi install
 
 ##### TBB 3.0 Update 4
 patch -p1 < tbb-lsb.patch
-make
+make tbb
+cd build/linux_*release
+ar rsc libtbb.a *.o
