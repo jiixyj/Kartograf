@@ -7,7 +7,10 @@ png_bytep* read_png_file(const char* file_name, uint32_t& width, uint32_t& heigh
   FILE *fp = fopen(file_name, "rb");
   if (!fp)
     throw std::runtime_error("[read_png_file] File could not be opened for reading");
-  fread(header, 1, 8, fp);
+  size_t bytes_read = fread(header, 1, 8, fp);
+  if (bytes_read != 8) {
+    throw std::runtime_error("Could not read png header!");
+  }
   if (png_sig_cmp(reinterpret_cast<png_byte*>(header), 0, 8))
     throw std::runtime_error("[read_png_file] File is not recognized as a PNG file");
 
@@ -26,8 +29,8 @@ png_bytep* read_png_file(const char* file_name, uint32_t& width, uint32_t& heigh
 
   png_read_info(png_ptr, info_ptr);
 
-  width = png_get_image_width(png_ptr, info_ptr);
-  height = png_get_image_height(png_ptr, info_ptr);
+  width = static_cast<uint32_t>(png_get_image_width(png_ptr, info_ptr));
+  height = static_cast<uint32_t>(png_get_image_height(png_ptr, info_ptr));
 
   png_read_update_info(png_ptr, info_ptr);
 
