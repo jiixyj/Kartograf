@@ -133,6 +133,7 @@ void MainForm::mouseDoubleClickEvent(QMouseEvent* mevent) {
 }
 
 void MainForm::mouseMoveEvent(QMouseEvent* mevent) {
+  QGraphicsView::mousePressEvent(mevent);
   QPoint mpos = mevent->pos();
   QPointF scene_pos_float = mapToScene(mpos);
   QPoint scene_pos(static_cast<int>(floor(scene_pos_float.x())),
