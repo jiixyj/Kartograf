@@ -312,7 +312,7 @@ const std::string& nbt::getBlock(int32_t j, int32_t i) const {
 char nbt::getValue(const nbt::map& cache,
                  int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
   if (y < 0 || y >= 128) {
-    std::cerr << "this is probably a bug" << std::endl;
+    std::cerr << "this is probably a bug " << y << std::endl;
     return 0;
   }
   while (x < 0) {
@@ -485,7 +485,10 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
                         * set_.shadow_strength / 3;
       }
       int32_t blockid2;
-      if (set_.rotate == 0) {
+      if (y == 0) {
+        blockid = 0;
+        blockid2 = 0;
+      } else if (set_.rotate == 0) {
         blockid = getValue(cache, x - 1, y - 1, z, j, i);
         blockid2 = getValue(cache, x + 1, y - 1, z, j, i);
       } else if (set_.rotate == 1) {
@@ -665,9 +668,10 @@ Color nbt::calculateMap(const nbt::map& cache, Color input,
       }
     } else {
       int height_low_bound = y;
-      while (blockid_to_color(getValue(cache, x, height_low_bound--, z, j, i), x, z, j, i)
-                                                              .alphaF() < 1) {
-        if (height_low_bound == -1) break;
+      while (blockid_to_color(getValue(cache, x, height_low_bound, z, j, i),
+                              x, z, j, i).alphaF() < 1
+          && height_low_bound > 0) {
+        --height_low_bound;
       }
       if (set_.shadow_quality_ultra) {
         for (int h = height_low_bound; h < y; ++h) {
