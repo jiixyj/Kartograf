@@ -3,8 +3,7 @@
 #define SRC_NBT_NBT_H_
 
 #include <boost/filesystem.hpp>
-#include <boost/thread/mutex.hpp>
-#include <tbb/concurrent_hash_map.h>
+#include <tbb/mutex.h>
 
 #include "./tag.h"
 #include "./settings.h"
@@ -40,9 +39,9 @@ class nbt {
   void setSettings(Settings set);
   Settings set() const { return set_; }
 
-  const std::string& getBlock(int32_t j, int32_t i) const;
+  boost::shared_ptr<const std::string> getBlock(std::pair<int, int> block) const;
   char getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
-  typedef std::map<std::pair<int, int>, std::string> map;
+  typedef std::map<std::pair<int, int>, boost::shared_ptr<const std::string> > map;
   char getValue(const map& cache,
                    int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
 
@@ -52,6 +51,8 @@ class nbt {
   bool bad_world;
   nbt::tag_ptr tag_;
  private:
+  mutable tbb::mutex get_block_mutex;
+
   Color checkReliefDiagonal(const nbt::map& cache, Color input, int x, int y, int z,
                                            int j, int i) const;
   Color checkReliefNormal(const nbt::map& cache, Color input, int x, int y, int z,

@@ -5,7 +5,6 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
-#include <tbb/concurrent_queue.h>
 #include <fstream>
 
 #include "./png_read.h"
@@ -28,6 +27,7 @@ std::string itoa(int value, int base) {
 
 nbt::nbt(): bad_world(false),
             tag_(),
+            get_block_mutex(),
             xPos_min_(std::numeric_limits<int32_t>::max()),
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
@@ -43,6 +43,7 @@ nbt::nbt(): bad_world(false),
 nbt::nbt(int world)
           : bad_world(false),
             tag_(),
+            get_block_mutex(),
             xPos_min_(std::numeric_limits<int32_t>::max()),
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
@@ -75,6 +76,7 @@ nbt::nbt(int world)
 nbt::nbt(const std::string& filename)
           : bad_world(false),
             tag_(),
+            get_block_mutex(),
             xPos_min_(std::numeric_limits<int32_t>::max()),
             zPos_min_(std::numeric_limits<int32_t>::max()),
             xPos_max_(std::numeric_limits<int32_t>::min()),
@@ -273,37 +275,34 @@ void nbt::setSettings(Settings set__) {
   return;
 }
 
-const std::string& nbt::getBlock(int32_t j, int32_t i) const {
-  typedef tbb::concurrent_hash_map<std::pair<int, int>, std::string> tbb_map;
-  static tbb_map blockcache_;
-  static tbb::concurrent_bounded_queue<std::pair<int, int> > queue;
-  std::pair<int, int> block(j, i);
+boost::shared_ptr<const std::string> nbt::getBlock(std::pair<int, int> block) const {
+  typedef std::map<std::pair<int, int>,
+                               boost::shared_ptr<const std::string> > block_map;
+  static block_map blockcache;
+  static std::queue<std::pair<int, int> > queue;
   {
-    tbb_map::const_accessor cacc;
-    if (blockcache_.find(cacc, block)) {
-      return cacc->second;
+    block_map::const_iterator it = blockcache.find(block);
+    if (it != blockcache.end()) {
+      return it->second;
     }
   }
-  tag_ptr newtag = tag_at(j, i);
+  tag_ptr newtag = tag_at(block.first, block.second);
   if (newtag) {
-    const std::string& pl = newtag->sub("Level")->
-                                     sub("Blocks")->pay_<tag::byte_array>().p;
-    {
-      tbb_map::accessor it;
-      blockcache_.insert(it, block);
-      it->second = pl;
-    }
+    boost::shared_ptr<const std::string> ret
+            (new std::string(newtag->sub("Level")->
+                                     sub("Blocks")->pay_<tag::byte_array>().p));
+    blockcache.insert(std::make_pair(block, ret));
     queue.push(block);
 
-    if (blockcache_.size() > 5000) {
-      while (blockcache_.size() > 1000) {
-        std::pair<int, int> foo;
-        queue.pop(foo);
-        blockcache_.erase(foo);
+    if (blockcache.size() > 5000) {
+      while (blockcache.size() > 1000) {
+        std::pair<int, int> foo = queue.front();
+        queue.pop();
+        blockcache.erase(foo);
       }
     }
 
-    return pl;
+    return ret;
   } else {
     throw std::runtime_error("Must not happen!");
   }
@@ -335,8 +334,7 @@ char nbt::getValue(const nbt::map& cache,
   if (!valid_coordinates.count(block)) return 0;
   nbt::map::const_iterator it = cache.find(block);
   if (it != cache.end()) {
-    const std::string& pl = it->second;
-    return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+    return (*it->second)[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
   } else {
     throw std::runtime_error("cache in getValue is missing an element");
   }
@@ -363,9 +361,10 @@ char nbt::getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const 
     ++i;
     z -= 16;
   }
-  if (!valid_coordinates.count(std::pair<int, int>(j, i))) return 0;
-  const std::string& pl = getBlock(j, i);
-  return pl[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
+  std::pair<int, int> block(j, i);
+  if (!valid_coordinates.count(block)) return 0;
+  tbb::mutex::scoped_lock lock(get_block_mutex);
+  return (*getBlock(block))[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
 }
 
 Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
@@ -1047,10 +1046,14 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
     nbt::map cache;
-    for (int jj = j + 7; jj >= j - 7; --jj) {
-      for (int ii = i + 7; ii >= i - 7; --ii) {
-        if (valid_coordinates.count(std::pair<int, int>(jj, ii))) {
-          cache.insert(std::make_pair(std::make_pair(jj, ii), getBlock(jj, ii)));
+    {
+      tbb::mutex::scoped_lock lock(get_block_mutex);
+      for (int jj = j + 7; jj >= j - 7; --jj) {
+        for (int ii = i + 7; ii >= i - 7; --ii) {
+          std::pair<int, int> point(jj, ii);
+          if (valid_coordinates.count(point)) {
+            cache.insert(std::make_pair(point, getBlock(point)));
+          }
         }
       }
     }

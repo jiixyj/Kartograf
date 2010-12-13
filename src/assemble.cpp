@@ -3,6 +3,7 @@
 
 #include <png.h>
 
+#include <sstream>
 #include <fstream>
 #include <tbb/mutex.h>
 
