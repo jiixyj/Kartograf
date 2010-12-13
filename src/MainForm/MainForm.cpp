@@ -2,6 +2,8 @@
 #include "MainForm.moc"
 
 #include "../assemble.h"
+
+#include <cmath>
 #include <tbb/task_scheduler_init.h>
 
 MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)

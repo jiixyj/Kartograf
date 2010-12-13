@@ -70,7 +70,7 @@ list(APPEND FLAGS "-Wsign-conversion")
 
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  if(COMPILER_VERSION STRLESS "4.2.2")
+  if(COMPILER_VERSION STRLESS "4.2.5")
     list(REMOVE_ITEM FLAGS "-Wmissing-noreturn")
   endif()
   if(COMPILER_VERSION STRLESS "4.4.6")
@@ -81,6 +81,11 @@ endif()
 if("${COMPILER_TYPE}" MATCHES "clang.*")
   list(APPEND FLAGS "-Wno-mismatched-tags")
   list(REMOVE_ITEM FLAGS "-ansi")
+endif()
+
+if("${CMAKE_CXX_COMPILER}" MATCHES ".*lsb.*")
+  list(REMOVE_ITEM FLAGS "-Wmissing-include-dirs")
+  list(REMOVE_ITEM FLAGS "-Wswitch-default")
 endif()
 
 if(APPLE)
