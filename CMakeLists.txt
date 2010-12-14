@@ -76,7 +76,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VALID_FLAGS}")
 include("${CMAKE_MODULE_PATH}/CrossCompile.txt")   # This is for MinGW cross compile support
 
 if("${CMAKE_CXX_COMPILER}" MATCHES ".*lsb.*")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --lsb-besteffort")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --lsb-besteffort -Wl,-z,norelro")
 endif()
 
 
