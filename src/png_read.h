@@ -9,20 +9,29 @@ png_bytep* read_png_file(const char* file_name, uint32_t& width, uint32_t& heigh
     throw std::runtime_error("[read_png_file] File could not be opened for reading");
   size_t bytes_read = fread(header, 1, 8, fp);
   if (bytes_read != 8) {
+    fclose(fp);
     throw std::runtime_error("Could not read png header!");
   }
-  if (png_sig_cmp(reinterpret_cast<png_byte*>(header), 0, 8))
+  if (png_sig_cmp(reinterpret_cast<png_byte*>(header), 0, 8)) {
+    fclose(fp);
     throw std::runtime_error("[read_png_file] File is not recognized as a PNG file");
+  }
 
   /* initialize stuff */
   png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-  if (!png_ptr)
+  if (!png_ptr) {
+    fclose(fp);
     throw std::runtime_error("[read_png_file] png_create_read_struct failed");
+  }
   png_infop info_ptr = png_create_info_struct(png_ptr);
-  if (!info_ptr)
+  if (!info_ptr) {
+    fclose(fp);
     throw std::runtime_error("[read_png_file] png_create_info_struct failed");
-  if (setjmp(png_jmpbuf(png_ptr)))
+  }
+  if (setjmp(png_jmpbuf(png_ptr))) {
+    fclose(fp);
     throw std::runtime_error("[read_png_file] Error during init_io");
+  }
 
   png_init_io(png_ptr, fp);
   png_set_sig_bytes(png_ptr, 8);
@@ -35,8 +44,10 @@ png_bytep* read_png_file(const char* file_name, uint32_t& width, uint32_t& heigh
   png_read_update_info(png_ptr, info_ptr);
 
   /* read file */
-  if (setjmp(png_jmpbuf(png_ptr)))
+  if (setjmp(png_jmpbuf(png_ptr))) {
+    fclose(fp);
     throw std::runtime_error("[read_png_file] Error during read_image");
+  }
 
   png_bytep* row_pointers = new png_bytep[height];
   for (size_t y = 0; y < height; y++)
