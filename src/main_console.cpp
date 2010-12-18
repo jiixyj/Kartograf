@@ -92,15 +92,22 @@ int main(int ac, char* av[]) {
       std::cerr << visible << std::endl;
       return 1;
     }
-    if (!render_mode.compare("top-view") || !render_mode.compare("0")) {
+    if (!render_mode.compare("0")) {
+      render_mode = "top-view";
+    } else if (!render_mode.compare("1")) {
+      render_mode = "oblique";
+    } else if (!render_mode.compare("2")) {
+      render_mode = "isometric";
+    }
+    if (!render_mode.compare("top-view")) {
       set.topview = true;
       set.oblique = false;
       set.isometric = false;
-    } else if (!render_mode.compare("oblique") || !render_mode.compare("1")) {
+    } else if (!render_mode.compare("oblique")) {
       set.topview = false;
       set.oblique = true;
       set.isometric = false;
-    } else if (!render_mode.compare("isometric") || !render_mode.compare("2")) {
+    } else if (!render_mode.compare("isometric")) {
       set.topview = false;
       set.oblique = false;
       set.isometric = true;
@@ -108,13 +115,20 @@ int main(int ac, char* av[]) {
       std::cerr << visible << std::endl;
       return 1;
     }
-    if (!shadow_quality.compare("normal") || !shadow_quality.compare("0")) {
+    if (!shadow_quality.compare("0")) {
+      shadow_quality = "normal";
+    } else if (!shadow_quality.compare("1")) {
+      shadow_quality = "high";
+    } else if (!shadow_quality.compare("2")) {
+      shadow_quality = "ultra";
+    }
+    if (!shadow_quality.compare("normal")) {
       set.shadow_quality = false;
       set.shadow_quality_ultra = false;
-    } else if (!shadow_quality.compare("high") || !shadow_quality.compare("1")) {
+    } else if (!shadow_quality.compare("high")) {
       set.shadow_quality = true;
       set.shadow_quality_ultra = false;
-    } else if (!shadow_quality.compare("ultra") || !shadow_quality.compare("2")) {
+    } else if (!shadow_quality.compare("ultra")) {
       set.shadow_quality = true;
       set.shadow_quality_ultra = true;
     } else {
@@ -179,6 +193,24 @@ int main(int ac, char* av[]) {
       world_number = 0;
     }
 
+    std::stringstream filename;
+    filename << "world" << world_number
+             << "_" << render_mode
+             << "_sq-" << shadow_quality
+             << "_sun-" << sun_direction
+             << "_sstr-" << shadow_strength
+             << "_rstr-" << relief_strength
+             << "_rot-" << rotation;
+    if (set.nightmode) {
+      filename << "_night";
+    }
+    if (set.color) {
+      filename << "_height-color";
+    } else if (set.heightmap) {
+      filename << "_height-mono";
+    }
+    filename << ".png";
+
     nbt bf = world_number ? nbt(world_number) : nbt(av[1]);
     if (bf.bad_world) {
       std::cerr << "Invalid World!" << std::endl;
@@ -200,7 +232,7 @@ int main(int ac, char* av[]) {
     size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);
 
     writeHeader(buffer_file, min_norm, max_norm, bf);
-    FILE* out_file = fopen("test.png", "wb");
+    FILE* out_file = fopen(filename.str().c_str(), "wb");
     if (!out_file) {
       std::cerr << "Could not open output image file!" << std::endl;
       return 1;
