@@ -71,6 +71,7 @@ void MainForm::populateScene() {
     show_progress += progress_index;
     progress_index = 0;
   }
+  bf_->clear_cache();
 }
 
 void MainForm::renderNewImageEmitter() {

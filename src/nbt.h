@@ -25,6 +25,8 @@ class nbt {
   static bool exist_world(int world);
 
   std::string string() const;
+  void clear_cache() const;
+
   int32_t xPos_min() const { return xPos_min_; }
   int32_t zPos_min() const { return zPos_min_; }
   int32_t xPos_max() const { return xPos_max_; }
@@ -39,7 +41,7 @@ class nbt {
   void setSettings(Settings set);
   Settings set() const { return set_; }
 
-  boost::shared_ptr<const std::string> getBlock(std::pair<int, int> block) const;
+  boost::shared_ptr<const std::string> getBlock(std::pair<int, int> block, bool clear = false) const;
   char getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const;
   typedef std::map<std::pair<int, int>, boost::shared_ptr<const std::string> > map;
   char getValue(const map& cache,

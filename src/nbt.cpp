@@ -275,11 +275,16 @@ void nbt::setSettings(Settings set__) {
   return;
 }
 
-boost::shared_ptr<const std::string> nbt::getBlock(std::pair<int, int> block) const {
+boost::shared_ptr<const std::string> nbt::getBlock(std::pair<int, int> block, bool clear) const {
   typedef std::map<std::pair<int, int>,
                                boost::shared_ptr<const std::string> > block_map;
   static block_map blockcache;
   static std::queue<std::pair<int, int> > queue;
+  if (clear) {
+    blockcache.clear();
+    queue = std::queue<std::pair<int, int> >();
+    return boost::shared_ptr<const std::string>();
+  }
   {
     block_map::const_iterator it = blockcache.find(block);
     if (it != blockcache.end()) {
@@ -1108,6 +1113,10 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   de_premultiply(myimg);
   Image<uint8_t> dithered = myimg.floyd_steinberg();
   return dithered;
+}
+
+void nbt::clear_cache() const {
+  getBlock(std::make_pair(0, 0), true);
 }
 
 std::string nbt::string() const {
