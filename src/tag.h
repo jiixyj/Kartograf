@@ -31,6 +31,8 @@ struct tag {
     }
     return payload->p;
   }
+  void write_to_file(const std::string&) const;
+  virtual void write_to_file(gzFile* fileout) const = 0;
   const tag* sub(const std::string&) const;
   const tag_<string>* name;
  private:
@@ -46,6 +48,7 @@ struct tag_ : public tag {
   tag_(gzFile*, bool named);
   T p;
   const T& pay() const;
+  void write_to_file(gzFile* fileout) const;
 };
 
 struct byte_array {

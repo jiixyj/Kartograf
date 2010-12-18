@@ -103,6 +103,62 @@ tag_<T>::tag_(gzFile* file, bool named)
 }
 template <typename T>
 const T& tag_<T>::pay() const { return p; }
+template <>
+void tag_<string>::write_to_file(gzFile* fileout) const {
+  if (name) {
+    char type = static_cast<char>(id());
+    gzwrite(*fileout, &type, 1);
+    name->write_to_file(fileout);
+  }
+  p.length.write_to_file(fileout);
+  gzwrite(*fileout, p.p.c_str(), static_cast<unsigned int>(p.p.size()));
+}
+template <typename T>
+void tag_<T>::write_to_file(gzFile* fileout) const {
+  if (name) {
+    char type = static_cast<char>(id());
+    gzwrite(*fileout, &type, 1);
+    name->write_to_file(fileout);
+  }
+  T out = endian_swap<T>(p);
+  gzwrite(*fileout, reinterpret_cast<void*>(&out), sizeof(out));
+}
+template <>
+void tag_<byte_array>::write_to_file(gzFile* fileout) const {
+  if (name) {
+    char type = static_cast<char>(id());
+    gzwrite(*fileout, &type, 1);
+    name->write_to_file(fileout);
+  }
+  p.length.write_to_file(fileout);
+  gzwrite(*fileout, p.p.c_str(), static_cast<unsigned int>(p.p.size()));
+}
+template <>
+void tag_<list>::write_to_file(gzFile* fileout) const {
+  if (name) {
+    char type = static_cast<char>(id());
+    gzwrite(*fileout, &type, 1);
+    name->write_to_file(fileout);
+  }
+  p.tagid.write_to_file(fileout);
+  p.length.write_to_file(fileout);
+  for (size_t i = 0; i < p.tags.size(); ++i) {
+    p.tags[i]->write_to_file(fileout);
+  }
+}
+template <>
+void tag_<compound>::write_to_file(gzFile* fileout) const {
+  if (name) {
+    char type = static_cast<char>(id());
+    gzwrite(*fileout, &type, 1);
+    name->write_to_file(fileout);
+  }
+  for (std::list<tag*>::const_iterator it = p.tags.begin();
+       it != p.tags.end(); ++it) {
+    (*it)->write_to_file(fileout);
+  }
+  gzwrite(*fileout, "", 1);
+}
 
 tag::tag() : name() {}
 tag::~tag() {
@@ -110,7 +166,11 @@ tag::~tag() {
 }
 tag::tag(gzFile* file, bool named)
           : name(named ? new tag_<string>(file, false) : NULL) {}
-
+void tag::write_to_file(const std::string& filename) const {
+  gzFile fileout = gzopen(filename.c_str(), "wb");
+  reinterpret_cast<const tag_<compound>*>(this)->write_to_file(&fileout);
+  gzclose(fileout);
+}
 
 string::string(gzFile* file) : length(file, false), p() {
   char* bufferstring = new char[length.p];

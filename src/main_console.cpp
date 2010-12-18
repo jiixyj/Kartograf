@@ -185,7 +185,10 @@ int main(int ac, char* av[]) {
       return 1;
     }
     std::cout << bf.string();
-    if (bf.tag_) return 0;
+    if (bf.tag_) {
+      bf.tag_->write_to_file("test.nbt");
+      return 0;
+    }
     bf.setSettings(set);
     std::pair<int, int> min_norm, max_norm;
     calculateMinMaxPoint(min_norm, max_norm, bf);
