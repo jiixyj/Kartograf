@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #include "./minecraft_world.h"
 
 #include <limits>
@@ -131,11 +132,11 @@ void MinecraftWorld::init_world() {
       }
     }
   }
-  bf::recursive_directory_iterator end_itr;
   bool chunk_found = false;
   if (!bf::exists(dir_ / "level.dat")) {
     throw std::runtime_error("Invalid World folder!");
   }
+  bf::recursive_directory_iterator end_itr;
   for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
     if (bf::is_directory(itr->path())) continue;
     if (bf::extension(itr->path()).compare(".dat")) continue;

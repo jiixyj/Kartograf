@@ -7,9 +7,12 @@
 #include <boost/random/variate_generator.hpp>
 #include <fstream>
 
-Renderer::Renderer(const MinecraftWorld& world, Settings set)
-          : world_(world),
-            set_(set) {}
+Renderer::Renderer(const MinecraftWorld& _world, Settings _set)
+          : world_(_world),
+            set_(),
+            get_block_mutex_() {
+  set_ = make_valid(_set);
+}
 
 // std::list<point3> a_star(int x_start, int z_start,
 //                          int x_end, int z_end) {
@@ -38,11 +41,6 @@ Renderer::Renderer(const MinecraftWorld& world, Settings set)
 //         //   changeBlockParts(block_type, state);
 //         // }
 // }
-
-void Renderer::setSettings(Settings set__) {
-  set_ = make_valid(set__);
-  return;
-}
 
 boost::shared_ptr<const std::string> Renderer::getBlock(std::pair<int, int> block, bool clear) const {
   typedef std::map<std::pair<int, int>,
@@ -137,7 +135,7 @@ char Renderer::getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) c
   }
   std::pair<int, int> block(j, i);
   if (!world_.exists_block(j, i)) return 0;
-  tbb::mutex::scoped_lock lock(get_block_mutex);
+  tbb::mutex::scoped_lock lock(get_block_mutex_);
   return (*getBlock(block))[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
 }
 
@@ -789,7 +787,7 @@ void de_premultiply(Image<Color>& img) {
   }
 }
 
-Image<uint8_t> Renderer::getImage(int32_t j, int32_t i, bool* result) const {
+Image<uint8_t> Renderer::get_image(int32_t j, int32_t i, bool* result) const {
   Image<Color> myimg;
   if (set_.topview) {
     myimg = Image<Color>(16, 16, 1);
@@ -817,11 +815,11 @@ Image<uint8_t> Renderer::getImage(int32_t j, int32_t i, bool* result) const {
     std::string block_light = comp->sub("BlockLight")->pay_<tag::byte_array>().p;
     std::string sky_light = comp->sub("SkyLight")->pay_<tag::byte_array>().p;
     if (zPos != i || xPos != j) {
-      std::cerr << "wrong tag in getImage!" << std::endl;
+      std::cerr << "wrong tag in get_image!" << std::endl;
     }
     Renderer::map cache;
     {
-      tbb::mutex::scoped_lock lock(get_block_mutex);
+      tbb::mutex::scoped_lock lock(get_block_mutex_);
       for (int jj = j + 7; jj >= j - 7; --jj) {
         for (int ii = i + 7; ii >= i - 7; --ii) {
           std::pair<int, int> point(jj, ii);

@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #ifndef _MINECRAFT_WORLD_H
 #define _MINECRAFT_WORLD_H
 
@@ -12,7 +13,11 @@ class MinecraftWorld {
   explicit MinecraftWorld(int world);
   explicit MinecraftWorld(const std::string&);
 
+  typedef boost::shared_ptr<const tag::tag> tag_ptr;
+  tag_ptr get_tag_at(int x, int z) const;
+
   static boost::filesystem::path find_world_path(int world);
+  bool exists_block(int x, int z) const;
 
   int x_pos_min() const { return x_pos_min_; }
   int z_pos_min() const { return z_pos_min_; }
@@ -23,11 +28,6 @@ class MinecraftWorld {
   const std::vector<char>& grass_data() const { return grass_data_; }
   typedef std::map<std::pair<int, int>, std::vector<uint16_t> > BiomeIndicesMap;
   const BiomeIndicesMap& biome_indices() const { return biome_indices_; }
-
-  bool exists_block(int x, int z) const;
-
-  typedef boost::shared_ptr<const tag::tag> tag_ptr;
-  tag_ptr get_tag_at(int x, int z) const;
 
  private:
   int x_pos_min_;

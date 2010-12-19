@@ -124,7 +124,7 @@ void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
     bool result = false;
     std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                       (4 - bf_->set().rotate) % 4);
-    Image<uint8_t> image = bf_->getImage(bp.first, bp.second, &result);
+    Image<uint8_t> image = bf_->get_image(bp.first, bp.second, &result);
     if (!result) {
       continue;
     }

@@ -373,7 +373,7 @@ void MainGUI::toggle_rendering(bool is_world_bad) {
     msgBox.exec();
     return;
   }
-  bf->setSettings(set);
+  bf->set_settings(set);
   mf->set_nbt(bf);
   delete scene;
   scene = new QGraphicsScene();

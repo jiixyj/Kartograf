@@ -166,8 +166,8 @@ tag::~tag() {
 }
 tag::tag(gzFile* file, bool named)
           : name(named ? new tag_<string>(file, false) : NULL) {}
-void tag::write_to_file(const std::string& filename) const {
-  gzFile fileout = gzopen(filename.c_str(), "wb");
+void tag::write_to_file(const std::string& _filename) const {
+  gzFile fileout = gzopen(_filename.c_str(), "wb");
   reinterpret_cast<const tag_<compound>*>(this)->write_to_file(&fileout);
   gzclose(fileout);
 }

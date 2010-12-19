@@ -25,7 +25,7 @@ class ApplyFooQT {
       bool result = false;
       std::pair<int, int> bp = projectCoords(std::make_pair(*j, i_),
                                         (4 - mainform_->bf_->set().rotate) % 4);
-      Image<uint8_t> image = mainform_->bf_->getImage(bp.first, bp.second, &result);
+      Image<uint8_t> image = mainform_->bf_->get_image(bp.first, bp.second, &result);
       if (!result) {
         continue;
       }
