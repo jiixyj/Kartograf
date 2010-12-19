@@ -9,6 +9,7 @@
 #include "./settings.h"
 #include "./colors.h"
 #include "./image.h"
+#include "./minecraft_world.h"
 
 struct point3 {
   int x;
@@ -16,25 +17,14 @@ struct point3 {
   int z;
 };
 
-class nbt {
+class Renderer {
  public:
-  nbt();
-  explicit nbt(int world);
-  explicit nbt(const std::string&);
+  Renderer(const MinecraftWorld&, Settings set);
 
-  static bool exist_world(int world);
+  const MinecraftWorld& world() const { return world_; }
+  void set_world(const MinecraftWorld& _world) { world_ = _world; }
 
-  std::string string() const;
   void clear_cache() const;
-
-  int32_t xPos_min() const { return xPos_min_; }
-  int32_t zPos_min() const { return zPos_min_; }
-  int32_t xPos_max() const { return xPos_max_; }
-  int32_t zPos_max() const { return zPos_max_; }
-
-  typedef boost::shared_ptr<const tag::tag> tag_ptr;
-  bool exists(int32_t x, int32_t z, boost::filesystem::path& path) const;
-  tag_ptr tag_at(int32_t x, int32_t z) const;
 
   Image<uint8_t> getImage(int32_t x, int32_t z, bool* result) const;
 
@@ -50,40 +40,27 @@ class nbt {
   std::list<point3> a_star(int x_start, int z_start,
                            int x_end, int z_end);
 
-  bool bad_world;
-  nbt::tag_ptr tag_;
  private:
+  MinecraftWorld world_;
+
   mutable tbb::mutex get_block_mutex;
 
-  Color checkReliefDiagonal(const nbt::map& cache, Color input, int x, int y, int z,
+  Color checkReliefDiagonal(const Renderer::map& cache, Color input, int x, int y, int z,
                                            int j, int i) const;
-  Color checkReliefNormal(const nbt::map& cache, Color input, int x, int y, int z,
+  Color checkReliefNormal(const Renderer::map& cache, Color input, int x, int y, int z,
                                          int j, int i) const;
-  Color calculateMap(const nbt::map& cache, Color input, int x, int y, int z,
+  Color calculateMap(const Renderer::map& cache, Color input, int x, int y, int z,
                                     int j, int i, int32_t zigzag = 0) const;
-  Color calculateShadow(const nbt::map& cache, Color input, int x, int y, int z,
+  Color calculateShadow(const Renderer::map& cache, Color input, int x, int y, int z,
                                        int j, int i, int32_t zigzag = false) const;
-  Color calculateRelief(const nbt::map& cache, Color input, int x, int y, int z,
+  Color calculateRelief(const Renderer::map& cache, Color input, int x, int y, int z,
                                        int j, int i) const;
 
   Color blockid_to_color(int value, int x, int z, int j, int i,
                          bool oblique = false) const;
 
-  int32_t xPos_min_;
-  int32_t zPos_min_;
-  int32_t xPos_max_;
-  int32_t zPos_max_;
-  std::set<std::pair<int, int> > valid_coordinates;
-
-  boost::filesystem::path dir_;
   Settings set_;
 
-  bool has_biome_data;
-  std::vector<char> foliage_data;
-  std::vector<char> grass_data;
-  std::map<std::pair<int, int>, std::vector<uint16_t> > biome_indices;
-
-  void construct_world();
   void projectCoords(int32_t& x, int32_t& y, int32_t& z,
                      int32_t xx, int32_t zz, int32_t& state) const;
   void goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,

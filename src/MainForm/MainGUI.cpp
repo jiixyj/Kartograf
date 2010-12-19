@@ -25,11 +25,11 @@ MainGUI::MainGUI()
   QRadioButton* radio4 = new QRadioButton("World 4");
   QRadioButton* radio5 = new QRadioButton("World 5");
   QRadioButton* radio6 = new QRadioButton("custom");
-  radio1->setEnabled(nbt::exist_world(1));
-  radio2->setEnabled(nbt::exist_world(2));
-  radio3->setEnabled(nbt::exist_world(3));
-  radio4->setEnabled(nbt::exist_world(4));
-  radio5->setEnabled(nbt::exist_world(5));
+  radio1->setEnabled(!MinecraftWorld::find_world_path(1).empty());
+  radio2->setEnabled(!MinecraftWorld::find_world_path(2).empty());
+  radio3->setEnabled(!MinecraftWorld::find_world_path(3).empty());
+  radio4->setEnabled(!MinecraftWorld::find_world_path(4).empty());
+  radio5->setEnabled(!MinecraftWorld::find_world_path(5).empty());
   QVBoxLayout *vbox = new QVBoxLayout;
   vbox->addWidget(radio1);
   vbox->addWidget(radio2);
@@ -232,7 +232,7 @@ MainGUI::MainGUI()
   connect(heightmapBox, SIGNAL(toggled(bool)), lightBox, SLOT(setDisabled(bool)));
 
   connect(start_button, SIGNAL(clicked()), this, SLOT(set_new_world()));
-  connect(this, SIGNAL(toggle_rendering_signal()), this, SLOT(toggle_rendering()));
+  connect(this, SIGNAL(toggle_rendering_signal(bool)), this, SLOT(toggle_rendering(bool)));
   connect(this, SIGNAL(save_image_with_filename_signal(QString)),
           this, SLOT(save_image_with_filename(QString)));
 }
@@ -323,12 +323,17 @@ void MainGUI::set_current_world(int value) {
 }
 
 void MainGUI::new_bf() {
-  if (!current_world) {
-    bf = new nbt(custom_world->text().toStdString());
-  } else {
-    bf = new nbt(current_world);
+  bool is_world_bad = false;
+  try {
+    if (!current_world) {
+      bf = new Renderer(MinecraftWorld(custom_world->text().toStdString()), set);
+    } else {
+      bf = new Renderer(MinecraftWorld(current_world), set);
+    }
+  } catch (...) {
+    is_world_bad = true;
   }
-  emit toggle_rendering_signal();
+  emit toggle_rendering_signal(is_world_bad);
 }
 
 void MainGUI::set_new_world() {
@@ -359,8 +364,8 @@ void MainGUI::start_populate_scene_thread() {
   handle_finished();
 }
 
-void MainGUI::toggle_rendering() {
-  if (bf->bad_world) {
+void MainGUI::toggle_rendering(bool is_world_bad) {
+  if (is_world_bad) {
     handle_finished();
     QMessageBox msgBox;
     msgBox.setText("Invalid world! Check if you have selected the right folder.");
@@ -368,7 +373,6 @@ void MainGUI::toggle_rendering() {
     msgBox.exec();
     return;
   }
-  std::cout << bf->string();
   bf->setSettings(set);
   mf->set_nbt(bf);
   delete scene;

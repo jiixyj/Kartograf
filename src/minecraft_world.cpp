@@ -101,13 +101,13 @@ void MinecraftWorld::init_world() {
   if (bf::is_directory(biome_dir)) {
     has_biome_data_ = true;
     uint32_t width, height;
-    png_bytep* foliage_data = read_png_file((dir_ / "EXTRACTEDBIOMES" / "foliagecolor.png").string().c_str(), width, height);
-    png_bytep* grass_data = read_png_file((dir_ / "EXTRACTEDBIOMES" / "grasscolor.png").string().c_str(), width, height);
+    png_bytep* _foliage_data = read_png_file((dir_ / "EXTRACTEDBIOMES" / "foliagecolor.png").string().c_str(), width, height);
+    png_bytep* _grass_data = read_png_file((dir_ / "EXTRACTEDBIOMES" / "grasscolor.png").string().c_str(), width, height);
     for (size_t y = 0; y < height; y++) {
-      std::copy(foliage_data[y], foliage_data[y] + width * 4, std::back_inserter(foliage_data_));
-      std::copy(grass_data[y], grass_data[y] + width * 4, std::back_inserter(grass_data_));
-      delete[] foliage_data[y];
-      delete[] grass_data[y];
+      std::copy(_foliage_data[y], _foliage_data[y] + width * 4, std::back_inserter(foliage_data_));
+      std::copy(_grass_data[y], _grass_data[y] + width * 4, std::back_inserter(grass_data_));
+      delete[] _foliage_data[y];
+      delete[] _grass_data[y];
     }
     bf::recursive_directory_iterator end_biome_itr;
     for (bf::recursive_directory_iterator itr(biome_dir); itr != end_biome_itr; ++itr) {

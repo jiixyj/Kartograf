@@ -211,27 +211,20 @@ int main(int ac, char* av[]) {
     }
     filename << ".png";
 
-    nbt bf = world_number ? nbt(world_number) : nbt(av[1]);
-    if (bf.bad_world) {
-      std::cerr << "Invalid World!" << std::endl;
-      return 1;
-    }
-    std::cout << bf.string();
-    if (bf.tag_) {
-      bf.tag_->write_to_file("test.nbt");
-      return 0;
-    }
-    bf.setSettings(set);
+    MinecraftWorld bf = world_number ? MinecraftWorld(world_number) :
+                                       MinecraftWorld(av[1]);
+    Renderer renderer(bf, set);
+
     std::pair<int, int> min_norm, max_norm;
-    calculateMinMaxPoint(min_norm, max_norm, bf);
+    calculateMinMaxPoint(min_norm, max_norm, renderer);
     std::string buffer_file = "";
 
     size_t range = static_cast<size_t>(max_norm.second - min_norm.second + 1);
     boost::progress_display show_progress(range);
     std::list<std::vector<int> > tiles(range);
-    size_t tiles_nr = fillTiles(tiles, bf, min_norm, max_norm, show_progress);
+    size_t tiles_nr = fillTiles(tiles, renderer, min_norm, max_norm, show_progress);
 
-    writeHeader(buffer_file, min_norm, max_norm, bf);
+    writeHeader(buffer_file, min_norm, max_norm, renderer);
     FILE* out_file = fopen(filename.str().c_str(), "wb");
     if (!out_file) {
       std::cerr << "Could not open output image file!" << std::endl;
@@ -246,7 +239,7 @@ int main(int ac, char* av[]) {
     for (int i = min_norm.second; i <= max_norm.second; ++i) {
       tbb::parallel_for(tbb::blocked_range<std::vector<int>::iterator>
                                                          (it->begin(), it->end()),
-                        ApplyFoo(&bf, i, &progress_index, min_norm));
+                        ApplyFoo(&renderer, i, &progress_index, min_norm));
       ++it;
       show_progress += progress_index;
       progress_index = 0;

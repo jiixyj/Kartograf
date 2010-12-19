@@ -18,7 +18,7 @@ class MainGUI : public QWidget {
  signals:
   void disable_shadow_elements_signal(bool);
   void save_image_with_filename_signal(QString);
-  void toggle_rendering_signal();
+  void toggle_rendering_signal(bool);
 
  protected:
 
@@ -38,7 +38,7 @@ class MainGUI : public QWidget {
 
   void set_new_world();
   void load_custom_world();
-  void toggle_rendering();
+  void toggle_rendering(bool is_world_bad);
   void handle_finished();
   void save_image();
   void save_image_with_filename(QString filename);
@@ -48,7 +48,7 @@ class MainGUI : public QWidget {
   QLineEdit* custom_world;
   QGroupBox* heightmapBox;
 
-  nbt* bf;
+  Renderer* bf;
   QGraphicsScene* scene;
   MainForm* mf;
   Settings set;

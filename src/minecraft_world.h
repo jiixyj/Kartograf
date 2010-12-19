@@ -18,6 +18,11 @@ class MinecraftWorld {
   int z_pos_min() const { return z_pos_min_; }
   int x_pos_max() const { return x_pos_max_; }
   int z_pos_max() const { return z_pos_max_; }
+  bool has_biome_data() const { return has_biome_data_; }
+  const std::vector<char>& foliage_data() const { return foliage_data_; }
+  const std::vector<char>& grass_data() const { return grass_data_; }
+  typedef std::map<std::pair<int, int>, std::vector<uint16_t> > BiomeIndicesMap;
+  const BiomeIndicesMap& biome_indices() const { return biome_indices_; }
 
   bool exists_block(int x, int z) const;
 
@@ -37,7 +42,7 @@ class MinecraftWorld {
   bool has_biome_data_;
   std::vector<char> foliage_data_;
   std::vector<char> grass_data_;
-  std::map<std::pair<int, int>, std::vector<uint16_t> > biome_indices_;
+  BiomeIndicesMap biome_indices_;
 
   void init_world();
   boost::filesystem::path get_path_of_block(int x, int z) const;

@@ -8,14 +8,14 @@
 
 #include "../image.h"
 
-class nbt;
+class Renderer;
 
 class MainForm : public QGraphicsView {
   Q_OBJECT
 
  public:
-  MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent = NULL);
-  void set_nbt(nbt* bf) {
+  MainForm(QGraphicsScene* img, Renderer* bf, QWidget* parent = NULL);
+  void set_nbt(Renderer* bf) {
     bf_ = bf;
   }
   void reset_view(QGraphicsScene* new_scene) {
@@ -41,7 +41,7 @@ class MainForm : public QGraphicsView {
  private:
   friend class ApplyFooQT;
 
-  nbt* bf_;
+  Renderer* bf_;
   int16_t scale_;
   typedef QPair<Image<uint8_t>, QPoint> image_coords;
   tbb::concurrent_queue<image_coords> images;

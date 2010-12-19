@@ -1,5 +1,5 @@
 /* See LICENSE file for copyright and license details. */
-#include "./nbt.h"
+#include "./renderer.h"
 
 #include <boost/math/constants/constants.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -7,222 +7,21 @@
 #include <boost/random/variate_generator.hpp>
 #include <fstream>
 
-#include "./png_read.h"
-
-namespace bf = boost::filesystem;
-
-std::string itoa(int value, int base) {
-  if (value < 0) {
-    throw std::runtime_error("This itoa only supports positive integers!");
-  } else if (value == 0) return "0";
-  std::string chars = "0123456789abcdefghijklmnopqrstuvwxyz";
-  std::string ret;
-  do {
-    ret.push_back(chars[static_cast<size_t>(value % base)]);
-    value /= base;
-  } while (value != 0);
-  std::reverse(ret.begin(), ret.end());
-  return ret;
-}
-
-nbt::nbt(): bad_world(false),
-            tag_(),
-            get_block_mutex(),
-            xPos_min_(std::numeric_limits<int32_t>::max()),
-            zPos_min_(std::numeric_limits<int32_t>::max()),
-            xPos_max_(std::numeric_limits<int32_t>::min()),
-            zPos_max_(std::numeric_limits<int32_t>::min()),
-            valid_coordinates(),
-            dir_(getenv("HOME")),
-            set_(),
-            has_biome_data(false),
-            foliage_data(),
-            grass_data(),
-            biome_indices() {}
-
-nbt::nbt(int world)
-          : bad_world(false),
-            tag_(),
-            get_block_mutex(),
-            xPos_min_(std::numeric_limits<int32_t>::max()),
-            zPos_min_(std::numeric_limits<int32_t>::max()),
-            xPos_max_(std::numeric_limits<int32_t>::min()),
-            zPos_max_(std::numeric_limits<int32_t>::min()),
-            valid_coordinates(),
-            dir_(),
-            set_(),
-            has_biome_data(false),
-            foliage_data(),
-            grass_data(),
-            biome_indices() {
-  char* home_dir;
-  if ((home_dir = getenv("HOME"))) {
-  } else if ((home_dir = getenv("APPDATA"))) {
-  } else {
-    throw std::runtime_error("Broken environent!");
-  }
-  std::stringstream ss;
-  ss << "World" << world;
-  if (bf::exists(dir_ = bf::path(home_dir) / ".minecraft/saves/" / ss.str())) {
-    construct_world();
-  } else if (bf::exists(dir_ = bf::path(home_dir) / "Library/"
-                          "Application Support/minecraft/saves/" / ss.str())) {
-    construct_world();
-  } else {
-    throw std::runtime_error("Minecraft is not installed!");
-  }
-}
-
-nbt::nbt(const std::string& filename)
-          : bad_world(false),
-            tag_(),
-            get_block_mutex(),
-            xPos_min_(std::numeric_limits<int32_t>::max()),
-            zPos_min_(std::numeric_limits<int32_t>::max()),
-            xPos_max_(std::numeric_limits<int32_t>::min()),
-            zPos_max_(std::numeric_limits<int32_t>::min()),
-            valid_coordinates(),
-            dir_(),
-            set_(),
-            has_biome_data(false),
-            foliage_data(),
-            grass_data(),
-            biome_indices() {
-  if (bf::is_directory(bf::status(dir_ = filename))) {
-    construct_world();
-    return;
-  }
-  tag::filename = filename;
-  gzFile filein = gzopen(filename.c_str(), "rb");
-  if (!filein) {
-    throw std::runtime_error("file could not be opened! " + filename);
-  }
-
-  int buffer = gzgetc(filein);
-  switch (buffer) {
-    case -1:
-      throw std::runtime_error("file read error! " + filename);
-      break;
-    case 10:
-      tag_ = tag_ptr(new tag::tag_<tag::compound>(&filein, true));
-      break;
-    default:
-      throw std::runtime_error("wrong file format! " + filename);
-      break;
-  }
-  gzclose(filein);
-}
-
-bool nbt::exist_world(int world) {
-  boost::filesystem::path dir;
-  char* home_dir;
-  if ((home_dir = getenv("HOME"))) {
-  } else if ((home_dir = getenv("APPDATA"))) {
-  } else {
-    return false;
-  }
-  std::stringstream ss;
-  ss << "World" << world;
-  if (bf::exists(dir = bf::path(home_dir) / ".minecraft/saves/" / ss.str())) {
-    return true;
-  } else if (bf::exists(dir = bf::path(home_dir) / "Library/"
-                          "Application Support/minecraft/saves/" / ss.str())) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-void nbt::construct_world() {
-  bf::path biome_dir = dir_ / "EXTRACTEDBIOMES";
-  if (bf::is_directory(biome_dir)) {
-    has_biome_data = true;
-    uint32_t width, height;
-    png_bytep* foliage_data_ = read_png_file((dir_ / "EXTRACTEDBIOMES" / "foliagecolor.png").string().c_str(), width, height);
-    png_bytep* grass_data_ = read_png_file((dir_ / "EXTRACTEDBIOMES" / "grasscolor.png").string().c_str(), width, height);
-    for (size_t y = 0; y < height; y++) {
-      std::copy(foliage_data_[y], foliage_data_[y] + width * 4, std::back_inserter(foliage_data));
-      std::copy(grass_data_[y], grass_data_[y] + width * 4, std::back_inserter(grass_data));
-      delete[] foliage_data_[y];
-      delete[] grass_data_[y];
-    }
-    bf::recursive_directory_iterator end_biome_itr;
-    for (bf::recursive_directory_iterator itr(biome_dir); itr != end_biome_itr; ++itr) {
-      if (bf::extension(itr->path()).compare(".biome")) continue;
-      std::string fn = itr->path().filename();
-      size_t first = fn.find(".");
-      size_t second = fn.find(".", first + 1);
-      if (second != std::string::npos) {
-        long x = strtol(&(fn.c_str()[0]), NULL, 10);
-        long z = strtol(&(fn.c_str()[first + 1]), NULL, 10);
-        std::cout << x << " " << z << std::endl;
-        std::ifstream input(itr->path().string().c_str());
-        std::vector<uint16_t> indices;
-        for(int i = 0; i < 256*64; ++i) {
-          uint16_t dummy;
-          input.read(reinterpret_cast<char*>(&dummy) + 1, 1);
-          input.read(reinterpret_cast<char*>(&dummy), 1);
-          indices.push_back(dummy);
-        }
-        biome_indices[std::make_pair(x, z)] = indices;
-      }
-    }
-  }
-  bf::recursive_directory_iterator end_itr;
-  bool chunk_found = false;
-  if (!bf::exists(dir_ / "level.dat")) {
-    throw std::runtime_error("Invalid World folder!");
-  }
-  for (bf::recursive_directory_iterator itr(dir_); itr != end_itr; ++itr) {
-    if (bf::is_directory(itr->path())) continue;
-    if (bf::extension(itr->path()).compare(".dat")) continue;
-    std::string fn = itr->path().filename();
-    size_t first = fn.find(".");
-    size_t second = fn.find(".", first + 1);
-    if (second != std::string::npos) {
-      int x = static_cast<int>(strtol(&(fn.c_str()[first + 1]), NULL, 36));
-      int z = static_cast<int>(strtol(&(fn.c_str()[second + 1]), NULL, 36));
-      bf::path check = dir_ / itoa(((x % 64) + 64) % 64, 36)
-                            / itoa(((z % 64) + 64) % 64, 36) / fn;
-      if (bf::exists(check)) {
-        xPos_min_ = std::min(x, xPos_min_);
-        xPos_max_ = std::max(x, xPos_max_);
-        zPos_min_ = std::min(z, zPos_min_);
-        zPos_max_ = std::max(z, zPos_max_);
-        valid_coordinates.insert(std::make_pair(x, z));
-        chunk_found = true;
-      }
-    }
-  }
-  bad_world = !chunk_found;
-  std::cout << "x: " << xPos_min_ << " " << xPos_max_ << std::endl;
-  std::cout << "z: " << zPos_min_ << " " << zPos_max_ << std::endl;
-}
-
-bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
-  if (!valid_coordinates.count(std::make_pair(x, z))) return false;
-  int32_t x_tmp = x, z_tmp = z;
-  while (x_tmp < 0) x_tmp += 64;
-  while (z_tmp < 0) z_tmp += 64;
-  path = dir_ / itoa(x_tmp % 64, 36) / itoa(z_tmp % 64, 36);
-  std::stringstream ss;
-  ss << "c." << ((x < 0) ? "-" : "") << itoa(abs(x), 36) << "."
-             << ((z < 0) ? "-" : "") << itoa(abs(z), 36) << ".dat";
-  path /= ss.str();
-  return true;
-}
+Renderer::Renderer(const MinecraftWorld& world, Settings set)
+          : world_(world),
+            set_(set) {}
 
 // std::list<point3> a_star(int x_start, int z_start,
 //                          int x_end, int z_end) {
-//         // nbt::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
+//         // Renderer::map::iterator it = blockcache_.find(std::pair<int, int>(jj, ii));
 //         // if (it == blockcache_.end()) {
 //         //   tag_ptr newtag = tag_at(jj, ii);
 //         //   if (newtag) {
 //         //     const std::string& pl = newtag->sub("Level")->
 //         //                                sub("Blocks")->pay_<tag::byte_array>().p;
-//         //     blockcache_.insert(nbt::map::value_type(std::pair<int, int>(jj, ii),
+//         //     blockcache_.insert(Renderer::map::value_type(std::pair<int, int>(jj, ii),
 //         //                                             pl));
-//         //     cache.insert(nbt::map::value_type(std::pair<int, int>(jj, ii), pl));
+//         //     cache.insert(Renderer::map::value_type(std::pair<int, int>(jj, ii), pl));
 //         //   }
 //         // } else {
 //         //   cache.insert(*it);
@@ -240,42 +39,12 @@ bool nbt::exists(int32_t x, int32_t z, bf::path& path) const {
 //         // }
 // }
 
-nbt::tag_ptr nbt::tag_at(int32_t x, int32_t z) const {
-  bf::path tmp;
-  if(!exists(x, z, tmp)) {
-    return tag_ptr();
-  }
-  gzFile filein = gzopen(tmp.string().c_str(), "rb");
-  if (!filein) {
-    throw std::runtime_error("file could not be opened! " + tmp.string());
-  }
-  int buffer = gzgetc(filein);
-  switch (buffer) {
-    case -1:
-      throw std::runtime_error("file read error!" + tmp.string());
-      break;
-    case 10:
-      {
-        tag_ptr ret(new tag::tag_<tag::compound>(&filein, true));
-        if (gzclose(filein) != Z_OK) {
-          throw std::runtime_error("could not close file! " + tmp.string());
-        }
-        return ret;
-      }
-      break;
-    default:
-      throw std::runtime_error("wrong file format!" + tmp.string());
-      break;
-  }
-  throw std::runtime_error("can't reach");
-}
-
-void nbt::setSettings(Settings set__) {
+void Renderer::setSettings(Settings set__) {
   set_ = make_valid(set__);
   return;
 }
 
-boost::shared_ptr<const std::string> nbt::getBlock(std::pair<int, int> block, bool clear) const {
+boost::shared_ptr<const std::string> Renderer::getBlock(std::pair<int, int> block, bool clear) const {
   typedef std::map<std::pair<int, int>,
                                boost::shared_ptr<const std::string> > block_map;
   static block_map blockcache;
@@ -291,7 +60,7 @@ boost::shared_ptr<const std::string> nbt::getBlock(std::pair<int, int> block, bo
       return it->second;
     }
   }
-  tag_ptr newtag = tag_at(block.first, block.second);
+  MinecraftWorld::tag_ptr newtag = world_.get_tag_at(block.first, block.second);
   if (newtag) {
     boost::shared_ptr<const std::string> ret
             (new std::string(newtag->sub("Level")->
@@ -313,7 +82,7 @@ boost::shared_ptr<const std::string> nbt::getBlock(std::pair<int, int> block, bo
   }
 }
 
-char nbt::getValue(const nbt::map& cache,
+char Renderer::getValue(const Renderer::map& cache,
                  int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
   if (y < 0 || y >= 128) {
     std::cerr << "this is probably a bug " << y << std::endl;
@@ -336,8 +105,8 @@ char nbt::getValue(const nbt::map& cache,
     z -= 16;
   }
   std::pair<int, int> block(j, i);
-  if (!valid_coordinates.count(block)) return 0;
-  nbt::map::const_iterator it = cache.find(block);
+  if (!world_.exists_block(j, i)) return 0;
+  Renderer::map::const_iterator it = cache.find(block);
   if (it != cache.end()) {
     return (*it->second)[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
   } else {
@@ -345,7 +114,7 @@ char nbt::getValue(const nbt::map& cache,
   }
 }
 
-char nbt::getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
+char Renderer::getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const {
   if (y < 0 || y >= 128) {
     std::cerr << "this is probably a bug" << std::endl;
     return 0;
@@ -367,12 +136,12 @@ char nbt::getValue(int32_t x, int32_t y, int32_t z, int32_t j, int32_t i) const 
     z -= 16;
   }
   std::pair<int, int> block(j, i);
-  if (!valid_coordinates.count(block)) return 0;
+  if (!world_.exists_block(j, i)) return 0;
   tbb::mutex::scoped_lock lock(get_block_mutex);
   return (*getBlock(block))[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
 }
 
-Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
+Color Renderer::checkReliefDiagonal(const Renderer::map& cache, Color input,
                                 int x, int y, int z, int j, int i) const {
   int xd = 0, zd = 0;
   Color color = input;
@@ -406,7 +175,7 @@ Color nbt::checkReliefDiagonal(const nbt::map& cache, Color input,
   return color;
 }
 
-Color nbt::checkReliefNormal(const nbt::map& cache, Color input,
+Color Renderer::checkReliefNormal(const Renderer::map& cache, Color input,
                               int x, int y, int z, int j, int i) const {
   Color color = input;
   int lighter_amount = 0;
@@ -454,7 +223,7 @@ Color nbt::checkReliefNormal(const nbt::map& cache, Color input,
   return color;
 }
 
-Color nbt::calculateShadow(const nbt::map& cache, Color input,
+Color Renderer::calculateShadow(const Renderer::map& cache, Color input,
                             int x, int y, int z, int j, int i,
                             int32_t zigzag) const {
   Color color = input;
@@ -562,7 +331,7 @@ Color nbt::calculateShadow(const nbt::map& cache, Color input,
   return color;
 }
 
-Color nbt::calculateRelief(const nbt::map& cache, Color input,
+Color Renderer::calculateRelief(const Renderer::map& cache, Color input,
                             int x, int y, int z, int j, int i) const {
   Color color = input;
   //++y;
@@ -576,7 +345,7 @@ Color nbt::calculateRelief(const nbt::map& cache, Color input,
   return color;
 }
 
-void nbt::changeBlockParts(int32_t& blockid, int state) const {
+void Renderer::changeBlockParts(int32_t& blockid, int state) const {
   if (set_.oblique) {
     if (state) {
       intmapit it = upperHalf.find(blockid);
@@ -597,9 +366,9 @@ void nbt::changeBlockParts(int32_t& blockid, int state) const {
   }
 }
 
-Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
+Color Renderer::blockid_to_color(int value, int x, int z, int j, int i,
                             bool oblique) const {
-  if (has_biome_data && (value == 2 || value == 18)) {
+  if (world_.has_biome_data() && (value == 2 || value == 18)) {
     while (x < 0) {
       --j;
       x += 16;
@@ -620,10 +389,10 @@ Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
     int j_diff = ((j % 8) + 8) % 8;
     int i_eight = i - i_diff;
     int j_eight = j - j_diff;
-    std::map<std::pair<int, int>, std::vector<uint16_t> >::const_iterator it =
-                           biome_indices.find(std::make_pair(j_eight, i_eight));
+    MinecraftWorld::BiomeIndicesMap::const_iterator it =
+                  world_.biome_indices().find(std::make_pair(j_eight, i_eight));
     std::vector<uint16_t> foo;
-    const std::vector<uint16_t>& data = (it != biome_indices.end()) ? it->second : foo;
+    const std::vector<uint16_t>& data = (it != world_.biome_indices().end()) ? it->second : foo;
     if (data.empty()) {
       return oblique ? colors_oblique[value] : colors[value];
     }
@@ -637,14 +406,14 @@ Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
                                  + x));
 
     if (value == 2) {
-      return Color(static_cast<uint8_t>(grass_data[image_index * 4u + 0]),
-                   static_cast<uint8_t>(grass_data[image_index * 4u + 1]),
-                   static_cast<uint8_t>(grass_data[image_index * 4u + 2]),
+      return Color(static_cast<uint8_t>(world_.grass_data()[image_index * 4u + 0]),
+                   static_cast<uint8_t>(world_.grass_data()[image_index * 4u + 1]),
+                   static_cast<uint8_t>(world_.grass_data()[image_index * 4u + 2]),
                    255);
     } else if (value == 18) {
-      Color ret (static_cast<uint8_t>(foliage_data[image_index * 4u + 0]),
-                 static_cast<uint8_t>(foliage_data[image_index * 4u + 1]),
-                 static_cast<uint8_t>(foliage_data[image_index * 4u + 2]),
+      Color ret (static_cast<uint8_t>(world_.foliage_data()[image_index * 4u + 0]),
+                 static_cast<uint8_t>(world_.foliage_data()[image_index * 4u + 1]),
+                 static_cast<uint8_t>(world_.foliage_data()[image_index * 4u + 2]),
                  255);
       Color leaves = oblique ? colors_oblique[value] : colors[value];
       ret.setAlphaF(leaves.alphaF());
@@ -657,7 +426,7 @@ Color nbt::blockid_to_color(int value, int x, int z, int j, int i,
   return oblique ? colors_oblique[value] : colors[value];
 }
 
-Color nbt::calculateMap(const nbt::map& cache, Color input,
+Color Renderer::calculateMap(const Renderer::map& cache, Color input,
                          int x, int y, int z, int j, int i, int32_t zigzag) const {
   Color color = input;
   if (set_.topview) {
@@ -805,7 +574,7 @@ static std::vector<std::vector<std::vector<int > > > make_to3D() {
 static std::vector<std::vector<int> > state_mask = make_state_mask();
 static std::vector<std::vector<std::vector<int > > > to3D = make_to3D();
 
-void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
+void Renderer::projectCoords(int32_t& x, int32_t& y, int32_t& z,
                         int32_t xx, int32_t zz, int32_t& state) const {
   if (set_.topview) {
     if (set_.rotate == 0) {
@@ -878,7 +647,7 @@ void nbt::projectCoords(int32_t& x, int32_t& y, int32_t& z,
   }
 }
 
-void nbt::goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
+void Renderer::goOneStepIntoScene(int32_t& x, int32_t& y, int32_t& z,
                              int32_t& state) const {
   if (set_.topview) {
     --y;
@@ -1020,7 +789,7 @@ void de_premultiply(Image<Color>& img) {
   }
 }
 
-Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
+Image<uint8_t> Renderer::getImage(int32_t j, int32_t i, bool* result) const {
   Image<Color> myimg;
   if (set_.topview) {
     myimg = Image<Color>(16, 16, 1);
@@ -1031,7 +800,7 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   } else {
     throw std::runtime_error("at least one of topview, oblique or isometric must be chosen!");
   }
-  tag_ptr tag = tag_at(j, i);
+  MinecraftWorld::tag_ptr tag = world_.get_tag_at(j, i);
   if (tag) {
     int16_t minval = std::numeric_limits<int16_t>::min();
     uint32_t a = static_cast<uint32_t>(j - minval) << 16;
@@ -1050,13 +819,13 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
     if (zPos != i || xPos != j) {
       std::cerr << "wrong tag in getImage!" << std::endl;
     }
-    nbt::map cache;
+    Renderer::map cache;
     {
       tbb::mutex::scoped_lock lock(get_block_mutex);
       for (int jj = j + 7; jj >= j - 7; --jj) {
         for (int ii = i + 7; ii >= i - 7; --ii) {
           std::pair<int, int> point(jj, ii);
-          if (valid_coordinates.count(point)) {
+          if (world_.exists_block(jj, ii)) {
             cache.insert(std::make_pair(point, getBlock(point)));
           }
         }
@@ -1115,10 +884,6 @@ Image<uint8_t> nbt::getImage(int32_t j, int32_t i, bool* result) const {
   return dithered;
 }
 
-void nbt::clear_cache() const {
+void Renderer::clear_cache() const {
   getBlock(std::make_pair(0, 0), true);
-}
-
-std::string nbt::string() const {
-  return (tag_ != 0) ? tag_->str() : "";
 }

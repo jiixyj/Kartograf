@@ -6,7 +6,7 @@
 #include <cmath>
 #include <tbb/task_scheduler_init.h>
 
-MainForm::MainForm(QGraphicsScene* img, nbt* bf, QWidget* parent_)
+MainForm::MainForm(QGraphicsScene* img, Renderer* bf, QWidget* parent_)
                  : QGraphicsView(img, parent_), bf_(bf), scale_(1),
                    images(), stop(false) {
   connect(this, SIGNAL(scaleSig()), this, SLOT(scale()));

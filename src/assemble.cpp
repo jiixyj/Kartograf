@@ -7,6 +7,8 @@
 #include <fstream>
 #include <tbb/mutex.h>
 
+#include "./renderer.h"
+
 uint8_t* global_image;
 int32_t* global_image_depth;
 int32_t g_width;
@@ -76,7 +78,7 @@ int render_tile(Image<uint8_t>& image,
 uint16_t writeHeader(std::string filename,
                    std::pair<int, int> min_norm,
                    std::pair<int, int> max_norm,
-                   const nbt& bf) {
+                   const Renderer& bf) {
   if (bf.set().isometric) {
     g_width =  g_x_max - g_x_min + 64;
     g_height = g_y_max - g_y_min + 288;
@@ -138,15 +140,15 @@ void ApplyFoo::operator() (const tbb::blocked_range<std::vector<int>
     render_tile(image, std::make_pair(offset_x, offset_y));
   }
 }
-ApplyFoo::ApplyFoo(nbt* bf, int i, tbb::atomic<size_t>* index,
+ApplyFoo::ApplyFoo(Renderer* bf, int i, tbb::atomic<size_t>* index,
                    std::pair<int, int> min_norm)
         : bf_(bf), i_(i), index_(index), min_norm_(min_norm) {}
 
 void calculateMinMaxPoint(std::pair<int, int>& min_norm,
                           std::pair<int, int>& max_norm,
-                          const nbt& bf) {
-  std::pair<int, int> min(bf.xPos_min(), bf.zPos_min());
-  std::pair<int, int> max(bf.xPos_max(), bf.zPos_max());
+                          const Renderer& bf) {
+  std::pair<int, int> min(bf.world().x_pos_min(), bf.world().z_pos_min());
+  std::pair<int, int> max(bf.world().x_pos_max(), bf.world().z_pos_max());
   min = projectCoords(min, bf.set().rotate);
   max = projectCoords(max, bf.set().rotate);
   min_norm = std::make_pair(std::min(min.first, max.first),
@@ -208,7 +210,7 @@ void pamToPng(FILE* out) {
   }
 }
 
-size_t fillTiles(std::list<std::vector<int> >& tiles, const nbt& bf,
+size_t fillTiles(std::list<std::vector<int> >& tiles, const Renderer& bf,
                  const std::pair<int, int>& min_norm,
                  const std::pair<int, int>& max_norm,
                  boost::progress_display& show_progress) {
@@ -218,8 +220,7 @@ size_t fillTiles(std::list<std::vector<int> >& tiles, const nbt& bf,
     for (int j = min_norm.first; j <= max_norm.first; ++j) {
       std::pair<int, int> p = projectCoords(std::make_pair(j, i),
                                             (4 - bf.set().rotate) % 4);
-      boost::filesystem::path path;
-      if (bf.exists(p.first, p.second, path)) {
+      if (bf.world().exists_block(p.first, p.second)) {
         p = projectCoords(p, bf.set().rotate);
         it->push_back(p.first);
         if (bf.set().isometric) {
