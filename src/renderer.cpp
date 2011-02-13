@@ -108,7 +108,8 @@ char Renderer::getValue(const Renderer::map& cache,
   if (it != cache.end()) {
     return (*it->second)[static_cast<size_t>(y + z * 128 + x * 128 * 16)];
   } else {
-    throw std::runtime_error("cache in getValue is missing an element");
+    return getValue(x, y, z, j, i);
+    // throw std::runtime_error("cache in getValue is missing an element");
   }
 }
 
